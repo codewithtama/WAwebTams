@@ -5,7 +5,7 @@ if (-not (Test-Path $iconsDir)) {
     New-Item -ItemType Directory -Path $iconsDir -Force | Out-Null
 }
 
-function Create-WaIcon {
+function New-WaIcon {
     param(
         [int]$size,
         [string]$filePath
@@ -41,10 +41,10 @@ function Create-WaIcon {
     $font.Dispose()
 }
 
-Create-WaIcon -size 32 -filePath (Join-Path $iconsDir "32x32.png")
-Create-WaIcon -size 128 -filePath (Join-Path $iconsDir "128x128.png")
-Create-WaIcon -size 256 -filePath (Join-Path $iconsDir "128x128@2x.png")
-Create-WaIcon -size 512 -filePath (Join-Path $iconsDir "icon.png")
+New-WaIcon -size 32 -filePath (Join-Path $iconsDir "32x32.png")
+New-WaIcon -size 128 -filePath (Join-Path $iconsDir "128x128.png")
+New-WaIcon -size 256 -filePath (Join-Path $iconsDir "128x128@2x.png")
+New-WaIcon -size 512 -filePath (Join-Path $iconsDir "icon.png")
 
 # Generate .ico
 $bmp256 = [System.Drawing.Bitmap]::FromFile((Join-Path $iconsDir "128x128@2x.png"))

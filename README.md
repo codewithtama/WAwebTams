@@ -54,17 +54,24 @@ Semua fitur ini berjalan murni di sisi client laptop (*DOM/JS injection*) sehing
 ## 🚀 Cara Menjalankan
 
 ### 1. Langsung Buka Aplikasi (Instan)
+
 Cukup klik ganda file **`start-app.bat`**.
 
 ### 2. Mode Development
+
 Jalankan file **`run-dev.bat`** atau perintah:
+
 ```bash
 npm run dev
 ```
 
 ### 3. Kompilasi Binary Standalone (.exe)
+
 Jalankan file **`build-release.bat`** atau perintah:
+
 ```bash
 npm run build
 ```
+
 File executable (.exe) akan dihasilkan di: `%USERPROFILE%\.cargo-target\waweb-tams\release\waweb-tams.exe`.
+
