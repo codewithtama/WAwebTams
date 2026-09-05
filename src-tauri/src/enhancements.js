@@ -436,6 +436,10 @@
                         html: textEl.innerHTML,
                         time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
                     });
+                    if (messageStore.size > 200) {
+                        const oldest = messageStore.keys().next().value;
+                        messageStore.delete(oldest);
+                    }
                 }
             }
 

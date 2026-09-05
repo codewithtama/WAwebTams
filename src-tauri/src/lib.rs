@@ -6,6 +6,22 @@ use tauri::{
 
 const ENHANCEMENT_SCRIPT: &str = include_str!("enhancements.js");
 
+#[cfg(target_os = "windows")]
+fn trim_working_set() {
+    extern "system" {
+        fn GetCurrentProcess() -> isize;
+        fn SetProcessWorkingSetSize(
+            hProcess: isize,
+            dwMinimumWorkingSetSize: usize,
+            dwMaximumWorkingSetSize: usize,
+        ) -> i32;
+    }
+    unsafe {
+        let handle = GetCurrentProcess();
+        SetProcessWorkingSetSize(handle, usize::MAX, usize::MAX);
+    }
+}
+
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
@@ -25,6 +41,13 @@ pub fn run() {
                 let _ = window.unminimize();
                 let _ = window.set_focus();
             }
+
+            // Background memory cleaner thread: trims unused RAM every 3 minutes
+            #[cfg(target_os = "windows")]
+            std::thread::spawn(|| loop {
+                std::thread::sleep(std::time::Duration::from_secs(180));
+                trim_working_set();
+            });
 
             // Menu System Tray
             let show_item = MenuItem::with_id(
@@ -276,6 +299,8 @@ pub fn run() {
                 // Intercept tombol Close (X) -> minimize ke System Tray
                 api.prevent_close();
                 let _ = window.hide();
+                #[cfg(target_os = "windows")]
+                trim_working_set();
             }
         })
         .run(tauri::generate_context!())
