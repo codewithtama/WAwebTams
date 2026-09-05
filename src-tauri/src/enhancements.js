@@ -591,10 +591,195 @@
     });
 
     /* ==========================================================================
-       CONTINUOUS DOM OBSERVER (Anti-Delete, Status Saver, View Once)
+       MOD 8: WA MOD CONTROL CENTER (Floating In-App Settings Panel)
+       ========================================================================== */
+    window.__waweb_toggleModCenter = function() {
+        const existing = document.getElementById('waweb-mod-center-modal');
+        if (existing) {
+            existing.remove();
+            return;
+        }
+
+        const modal = document.createElement('div');
+        modal.id = 'waweb-mod-center-modal';
+        modal.style.cssText = [
+            'position: fixed',
+            'top: 0',
+            'left: 0',
+            'width: 100vw',
+            'height: 100vh',
+            'background: rgba(11, 20, 26, 0.75)',
+            'backdrop-filter: blur(8px)',
+            'z-index: 999999',
+            'display: flex',
+            'align-items: center',
+            'justify-content: center',
+            'font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
+        ].join(';');
+
+        function renderSwitch(id, active) {
+            return `
+                <div id="${id}" style="width: 44px; height: 24px; border-radius: 12px; background: ${active ? '#00a884' : '#374248'}; position: relative; cursor: pointer; transition: background 0.2s ease;">
+                    <div style="width: 18px; height: 18px; border-radius: 50%; background: #ffffff; position: absolute; top: 3px; left: ${active ? '23px' : '3px'}; transition: left 0.2s ease; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>
+                </div>
+            `;
+        }
+
+        modal.innerHTML = `
+            <div style="background: #111b21; border: 1px solid rgba(255,255,255,0.12); border-radius: 18px; padding: 24px; width: 420px; box-shadow: 0 20px 48px rgba(0,0,0,0.65); color: #e9edef;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 14px;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="#00a884"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+                        <span style="font-weight: 700; font-size: 16px; color: #00a884;">WA MOD Control Center</span>
+                    </div>
+                    <button id="waweb-mod-close" style="background: transparent; border: none; color: #8696a0; cursor: pointer; font-size: 18px; line-height: 1;">✕</button>
+                </div>
+
+                <div style="display: flex; flex-direction: column; gap: 14px; max-height: 70vh; overflow-y: auto; padding-right: 4px;">
+                    <!-- Toggle 1: Ghost Read -->
+                    <div style="display: flex; justify-content: space-between; align-items: center; background: #182229; padding: 12px 14px; border-radius: 12px;">
+                        <div>
+                            <div style="font-weight: 600; font-size: 13px; color: #e9edef; display: flex; align-items: center; gap: 6px;">
+                                <span>👁️ Anti-Centang Biru (Ghost Read)</span>
+                            </div>
+                            <div style="font-size: 11px; color: #8696a0; margin-top: 2px;">Bebas baca chat tanpa centang biru di pengirim</div>
+                        </div>
+                        <div id="switch-ghostread">${renderSwitch('sw-btn-ghostread', ghostReadActive)}</div>
+                    </div>
+
+                    <!-- Toggle 2: Ghost Typing -->
+                    <div style="display: flex; justify-content: space-between; align-items: center; background: #182229; padding: 12px 14px; border-radius: 12px;">
+                        <div>
+                            <div style="font-weight: 600; font-size: 13px; color: #e9edef; display: flex; align-items: center; gap: 6px;">
+                                <span>👻 Sembunyikan Sedang Mengetik</span>
+                            </div>
+                            <div style="font-size: 11px; color: #8696a0; margin-top: 2px;">Lawan bicara tidak melihat status mengetikmu</div>
+                        </div>
+                        <div id="switch-ghosttyping">${renderSwitch('sw-btn-ghosttyping', ghostTypingActive)}</div>
+                    </div>
+
+                    <!-- Toggle 3: Privacy Mode -->
+                    <div style="display: flex; justify-content: space-between; align-items: center; background: #182229; padding: 12px 14px; border-radius: 12px;">
+                        <div>
+                            <div style="font-weight: 600; font-size: 13px; color: #e9edef; display: flex; align-items: center; gap: 6px;">
+                                <span>🛡️ Privacy Mode (Blur Chat)</span>
+                            </div>
+                            <div style="font-size: 11px; color: #8696a0; margin-top: 2px;">Blur semua pesan sampai kursor diarahkan (Ctrl+B)</div>
+                        </div>
+                        <div id="switch-privacy">${renderSwitch('sw-btn-privacy', privacyActive)}</div>
+                    </div>
+
+                    <!-- Toggle 4: Ultra Dark OLED -->
+                    <div style="display: flex; justify-content: space-between; align-items: center; background: #182229; padding: 12px 14px; border-radius: 12px;">
+                        <div>
+                            <div style="font-weight: 600; font-size: 13px; color: #e9edef; display: flex; align-items: center; gap: 6px;">
+                                <span>🖤 Ultra Dark OLED Mode</span>
+                            </div>
+                            <div style="font-size: 11px; color: #8696a0; margin-top: 2px;">Warna murni hitam pekat hemat baterai</div>
+                        </div>
+                        <div id="switch-oled">${renderSwitch('sw-btn-oled', oledActive)}</div>
+                    </div>
+
+                    <!-- Action: Direct Chat -->
+                    <div style="background: #182229; padding: 12px 14px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <div style="font-weight: 600; font-size: 13px; color: #e9edef;">🚀 Direct Chat Tanpa Simpan Nomor</div>
+                            <div style="font-size: 11px; color: #8696a0; margin-top: 2px;">Buka chat langsung ke nomor HP mana pun</div>
+                        </div>
+                        <button id="btn-open-direct" style="background: #00a884; color: white; border: none; border-radius: 8px; padding: 7px 12px; font-size: 12px; font-weight: 600; cursor: pointer;">Buka (Ctrl+M)</button>
+                    </div>
+
+                    <!-- Status Info -->
+                    <div style="background: rgba(0, 168, 132, 0.08); border: 1px solid rgba(0, 168, 132, 0.2); padding: 10px 14px; border-radius: 10px; font-size: 11px; color: #8696a0; line-height: 1.5;">
+                        <div>✅ <b>Anti-Delete:</b> Otomatis merekam & menampilkan pesan ditarik.</div>
+                        <div style="margin-top: 3px;">✅ <b>View-Once & Story Saver:</b> Tombol unduh otomatis aktif di viewer.</div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(modal);
+
+        // Click handlers for switches
+        modal.querySelector('#switch-ghostread').onclick = () => {
+            window.__waweb_toggleGhostRead();
+            modal.querySelector('#switch-ghostread').innerHTML = renderSwitch('sw-btn-ghostread', ghostReadActive);
+        };
+        modal.querySelector('#switch-ghosttyping').onclick = () => {
+            window.__waweb_toggleGhostTyping();
+            modal.querySelector('#switch-ghosttyping').innerHTML = renderSwitch('sw-btn-ghosttyping', ghostTypingActive);
+        };
+        modal.querySelector('#switch-privacy').onclick = () => {
+            window.__waweb_togglePrivacy();
+            modal.querySelector('#switch-privacy').innerHTML = renderSwitch('sw-btn-privacy', privacyActive);
+        };
+        modal.querySelector('#switch-oled').onclick = () => {
+            window.__waweb_toggleOled();
+            modal.querySelector('#switch-oled').innerHTML = renderSwitch('sw-btn-oled', oledActive);
+        };
+        modal.querySelector('#btn-open-direct').onclick = () => {
+            modal.remove();
+            window.__waweb_openDirectChatModal();
+        };
+        modal.querySelector('#waweb-mod-close').onclick = () => modal.remove();
+
+        modal.onclick = (e) => {
+            if (e.target === modal) modal.remove();
+        };
+        modal.onkeydown = (e) => {
+            if (e.key === 'Escape') modal.remove();
+        };
+    };
+
+    function injectModLauncher() {
+        if (document.getElementById('waweb-mod-launcher')) return;
+        const btn = document.createElement('div');
+        btn.id = 'waweb-mod-launcher';
+        btn.title = 'Buka Panel Kontrol Fitur WA MOD';
+        btn.style.cssText = [
+            'position: fixed',
+            'top: 10px',
+            'right: 80px',
+            'z-index: 99999',
+            'cursor: pointer',
+            'display: flex',
+            'align-items: center',
+            'gap: 6px',
+            'background: rgba(0, 168, 132, 0.92)',
+            'color: #ffffff',
+            'padding: 7px 14px',
+            'border-radius: 20px',
+            'font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+            'font-size: 12px',
+            'font-weight: 700',
+            'letter-spacing: 0.3px',
+            'box-shadow: 0 4px 16px rgba(0,0,0,0.35)',
+            'backdrop-filter: blur(8px)',
+            'transition: transform 0.15s ease, background 0.15s ease',
+            'user-select: none'
+        ].join(';');
+        btn.innerHTML = `
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+            <span>⚡ WA MOD</span>
+        `;
+        btn.onmouseenter = () => {
+            btn.style.transform = 'scale(1.06)';
+            btn.style.background = '#00c59b';
+        };
+        btn.onmouseleave = () => {
+            btn.style.transform = 'scale(1)';
+            btn.style.background = 'rgba(0, 168, 132, 0.92)';
+        };
+        btn.onclick = () => window.__waweb_toggleModCenter();
+        document.body.appendChild(btn);
+    }
+
+    /* ==========================================================================
+       CONTINUOUS DOM OBSERVER (Anti-Delete, Status Saver, View Once, Mod Launcher)
        ========================================================================== */
     setInterval(() => {
         try {
+            injectModLauncher();
             injectViewOnceDownloader();
             injectStatusDownloader();
             watchAndPreserveMessages();

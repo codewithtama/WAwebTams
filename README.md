@@ -23,9 +23,9 @@ Desktop wrapper khusus untuk **WhatsApp Web** berbasis **Rust + Tauri v2** yang 
 
 ---
 
-## 🚀 6 Fitur Eksklusif WA MOD Suite
+## 🚀 Fitur Eksklusif WA MOD Suite
 
-Semua fitur ini berjalan murni di sisi client laptop (*DOM/JS injection*) sehingga **100% aman dan tidak berisiko banned akun**:
+Semua fitur ini bisa diakses langsung melalui **Tombol Mengambang `⚡ WA MOD` di pojok kanan atas layar**, klik kanan icon System Tray, maupun shortcut keyboard:
 
 | Fitur MOD | Shortcut | Deskripsi |
 | :--- | :--- | :--- |
