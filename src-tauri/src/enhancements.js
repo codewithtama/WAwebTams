@@ -4,6 +4,22 @@
 
     console.log("[ModsTams] Super Suite v2.0 initialized.");
 
+    /* Safe storage helpers to avoid DOMException on restricted origins/about:blank */
+    function safeGet(key, fallback = '') {
+        try {
+            const val = localStorage.getItem(key);
+            return val !== null ? val : fallback;
+        } catch(e) {
+            return fallback;
+        }
+    }
+
+    function safeSet(key, val) {
+        try {
+            localStorage.setItem(key, val);
+        } catch(e) {}
+    }
+
     /* ==========================================================================
        1. AUDIO SYNTHESIZER & TOAST NOTIFICATION SYSTEM
        ========================================================================== */
@@ -36,6 +52,7 @@
     }
 
     function getToastContainer() {
+        if (!document.body) return null;
         let container = document.getElementById('modstams-toast-container');
         if (!container) {
             container = document.createElement('div');
@@ -58,6 +75,8 @@
 
     function showToast(title, subtitle, iconSvg = null, borderColor = '#00a884') {
         const container = getToastContainer();
+        if (!container) return;
+
         const toast = document.createElement('div');
         toast.style.cssText = [
             'pointer-events: auto',
@@ -106,6 +125,7 @@
     }
 
     function triggerDownload(url, filename) {
+        if (!document.body) return;
         const a = document.createElement('a');
         a.href = url;
         a.download = filename;
@@ -174,6 +194,7 @@
        3. MOD: DIRECT CHAT (Kirim Pesan Tanpa Simpan Kontak - Ctrl+M)
        ========================================================================== */
     window.__waweb_openDirectChatModal = function() {
+        if (!document.body) return;
         if (document.getElementById('modstams-direct-modal')) {
             document.getElementById('modstams-direct-modal').remove();
             return;
@@ -304,10 +325,11 @@
     /* ==========================================================================
        5. MOD: GHOST TYPING (Sembunyikan Status Sedang Mengetik)
        ========================================================================== */
-    let ghostTypingActive = localStorage.getItem('modstams_ghost_typing') !== 'false';
+    let ghostTypingActive = safeGet('modstams_ghost_typing', 'true') !== 'false';
+
     window.__waweb_toggleGhostTyping = function() {
         ghostTypingActive = !ghostTypingActive;
-        localStorage.setItem('modstams_ghost_typing', ghostTypingActive ? 'true' : 'false');
+        safeSet('modstams_ghost_typing', ghostTypingActive ? 'true' : 'false');
         showToast(
             ghostTypingActive ? "👻 Ghost Typing Aktif" : "Typing Normal",
             ghostTypingActive ? "Status 'Sedang mengetik...' disembunyikan" : "Status 'Sedang mengetik...' terlihat lawan bicara",
@@ -325,7 +347,7 @@
     /* ==========================================================================
        6. MOD: ANTI-CENTANG BIRU / GHOST READ
        ========================================================================== */
-    let ghostReadActive = localStorage.getItem('modstams_ghost_read') !== 'false';
+    let ghostReadActive = safeGet('modstams_ghost_read', 'true') !== 'false';
 
     const originalHasFocus = document.hasFocus.bind(document);
     document.hasFocus = function() {
@@ -352,7 +374,7 @@
 
     window.__waweb_toggleGhostRead = function() {
         ghostReadActive = !ghostReadActive;
-        localStorage.setItem('modstams_ghost_read', ghostReadActive ? 'true' : 'false');
+        safeSet('modstams_ghost_read', ghostReadActive ? 'true' : 'false');
         showToast(
             ghostReadActive ? "👻 Anti-Centang Biru Aktif" : "Centang Biru Normal",
             ghostReadActive ? "Bebas baca chat tanpa memicu centang biru di pengirim" : "Status baca dikirim seperti biasa",
@@ -367,11 +389,10 @@
     const messageStore = new Map();
     let deletedLogs = [];
     try {
-        deletedLogs = JSON.parse(localStorage.getItem('modstams_deleted_log') || '[]');
+        deletedLogs = JSON.parse(safeGet('modstams_deleted_log', '[]'));
     } catch(e) { deletedLogs = []; }
 
     function saveDeletedLog(sender, text, time) {
-        // Prevent duplicates
         const exists = deletedLogs.some(item => item.text === text && Math.abs(new Date(item.timestamp).getTime() - new Date().getTime()) < 60000);
         if (!exists) {
             deletedLogs.unshift({
@@ -381,8 +402,8 @@
                 time: time,
                 timestamp: new Date().toISOString()
             });
-            if (deletedLogs.length > 100) deletedLogs.pop(); // Max 100 entries
-            localStorage.setItem('modstams_deleted_log', JSON.stringify(deletedLogs));
+            if (deletedLogs.length > 100) deletedLogs.pop();
+            safeSet('modstams_deleted_log', JSON.stringify(deletedLogs));
 
             showToast(
                 "🚫 Pesan Ditarik Terdeteksi!",
@@ -402,7 +423,6 @@
             const textEl = bubble.querySelector('.selectable-text');
             if (textEl && textEl.innerText && !textEl.innerText.includes('Pesan ini telah dihapus') && !textEl.innerText.includes('This message was deleted')) {
                 if (!messageStore.has(id)) {
-                    // Try getting sender name
                     const senderEl = bubble.querySelector('span[aria-label], div[data-pre-plain-text]');
                     let sender = 'Kontak';
                     if (senderEl) {
@@ -515,14 +535,17 @@
         }
     };
 
-    let currentTheme = localStorage.getItem('modstams_theme') || 'emerald';
+    let currentTheme = safeGet('modstams_theme', 'emerald');
     let themeStyleElement = null;
 
     function applyCurrentTheme() {
+        const head = document.head || document.getElementsByTagName('head')[0] || document.documentElement;
+        if (!head) return;
+
         if (!themeStyleElement) {
             themeStyleElement = document.createElement('style');
             themeStyleElement.id = 'modstams-theme-style';
-            document.head.appendChild(themeStyleElement);
+            head.appendChild(themeStyleElement);
         }
         const themeObj = THEMES[currentTheme] || THEMES.emerald;
         themeStyleElement.textContent = themeObj.css;
@@ -531,12 +554,10 @@
     window.__modstams_setTheme = function(themeKey) {
         if (!THEMES[themeKey]) return;
         currentTheme = themeKey;
-        localStorage.setItem('modstams_theme', themeKey);
+        safeSet('modstams_theme', themeKey);
         applyCurrentTheme();
         showToast("🎨 Tema Diubah", THEMES[themeKey].name, null, THEMES[themeKey].accent || '#00a884');
     };
-
-    applyCurrentTheme();
 
     /* ==========================================================================
        9. MOD: PRIVACY MODE (Blur Chat / Anti-Intip - Ctrl+B)
@@ -545,9 +566,10 @@
     let privacyStyle = null;
 
     window.__waweb_togglePrivacy = function() {
+        const head = document.head || document.getElementsByTagName('head')[0] || document.documentElement;
         privacyActive = !privacyActive;
         if (privacyActive) {
-            if (!privacyStyle) {
+            if (!privacyStyle && head) {
                 privacyStyle = document.createElement('style');
                 privacyStyle.id = 'modstams-privacy-style';
                 privacyStyle.textContent = `
@@ -565,7 +587,7 @@
                         filter: none !important;
                     }
                 `;
-                document.head.appendChild(privacyStyle);
+                head.appendChild(privacyStyle);
             }
             showToast("🛡️ Privacy Mode Aktif", "Arahkan mouse ke chat untuk melihat");
         } else {
@@ -580,10 +602,11 @@
     /* ==========================================================================
        10. MOD: APP LOCK & PIN SECURITY (Kunci Aplikasi - Ctrl+L)
        ========================================================================== */
-    let appPin = localStorage.getItem('modstams_app_pin') || ''; // Default: no PIN set yet
+    let appPin = safeGet('modstams_app_pin', '');
     let isAppLocked = false;
 
     function renderLockOverlay() {
+        if (!document.body) return;
         if (document.getElementById('modstams-lock-screen')) return;
 
         const overlay = document.createElement('div');
@@ -725,6 +748,7 @@
        11. MOD: VOICE NOTE SUPER SPEED & AUDIO BOOSTER
        ========================================================================== */
     function injectAudioSuperController() {
+        if (!document.body) return;
         const audios = document.querySelectorAll('audio');
         audios.forEach(audio => {
             if (audio.__modstams_controlled) return;
@@ -858,11 +882,11 @@
     /* ==========================================================================
        13. MOD: ANTI-CALL AUTO-MUTE
        ========================================================================== */
-    let antiCallActive = localStorage.getItem('modstams_anti_call') === 'true';
+    let antiCallActive = safeGet('modstams_anti_call', 'false') === 'true';
 
     window.__modstams_toggleAntiCall = function() {
         antiCallActive = !antiCallActive;
-        localStorage.setItem('modstams_anti_call', antiCallActive ? 'true' : 'false');
+        safeSet('modstams_anti_call', antiCallActive ? 'true' : 'false');
         showToast(
             antiCallActive ? "🔕 Anti-Call Aktif" : "Panggilan Normal",
             antiCallActive ? "Panggilan masuk otomatis diredam / diabaikan" : "Panggilan masuk akan berdering normal",
@@ -873,7 +897,6 @@
 
     function watchAndSuppressCalls() {
         if (!antiCallActive) return;
-        // Check for incoming call popups
         const callDeclines = document.querySelectorAll('button[data-testid="decline-call-btn"], div[role="dialog"] button[aria-label*="Decline"], div[role="dialog"] button[aria-label*="Tolak"]');
         callDeclines.forEach(btn => {
             btn.click();
@@ -885,6 +908,7 @@
        14. MODSTAMS CONTROL CENTER v2.0 (MODAL WITH TABS)
        ========================================================================== */
     window.__waweb_toggleModCenter = function() {
+        if (!document.body) return;
         const existing = document.getElementById('modstams-mod-center-modal');
         if (existing) {
             existing.remove();
@@ -905,7 +929,7 @@
             'display: flex',
             'align-items: center',
             'justify-content: center',
-            'font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
+            'font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
         ].join(';');
 
         function renderSwitch(id, active) {
@@ -1180,7 +1204,7 @@
             const val = modal.querySelector('#input-new-pin').value.trim();
             if (val.length === 4 && /^\d{4}$/.test(val)) {
                 appPin = val;
-                localStorage.setItem('modstams_app_pin', val);
+                safeSet('modstams_app_pin', val);
                 modal.querySelector('#input-new-pin').value = '';
                 showToast("PIN Tersimpan", "Gunakan Ctrl+L untuk mengunci aplikasi");
             } else {
@@ -1194,7 +1218,7 @@
                 const themeKey = card.getAttribute('data-theme');
                 window.__modstams_setTheme(themeKey);
                 modal.remove();
-                window.__waweb_toggleModCenter(); // Reopen to refresh active theme check
+                window.__waweb_toggleModCenter();
             };
         });
 
@@ -1208,7 +1232,7 @@
         });
         modal.querySelector('#btn-clear-del-logs').onclick = () => {
             deletedLogs = [];
-            localStorage.removeItem('modstams_deleted_log');
+            try { localStorage.removeItem('modstams_deleted_log'); } catch(e) {}
             modal.querySelector('#del-logs-list').innerHTML = `
                 <div style="text-align: center; padding: 36px 12px; color: #8696a0; font-size: 13px;">
                     ✨ Riwayat log telah dibersihkan.
@@ -1268,6 +1292,7 @@
        15. FLOATING MOD LAUNCHER BUTTON (⚡ ModsTams)
        ========================================================================== */
     function injectModLauncher() {
+        if (!document.body) return;
         if (document.getElementById('waweb-mod-launcher')) return;
         const btn = document.createElement('div');
         btn.id = 'waweb-mod-launcher';
@@ -1314,41 +1339,33 @@
        16. GLOBAL SHORTCUTS
        ========================================================================== */
     window.addEventListener('keydown', function(e) {
-        // F5 / Ctrl+R: Reload
         if (e.key === 'F5' || (e.ctrlKey && e.key.toLowerCase() === 'r')) {
             window.location.reload();
         }
-        // Ctrl+M: Direct Chat
         if (e.ctrlKey && !e.shiftKey && e.key.toLowerCase() === 'm') {
             e.preventDefault();
             window.__waweb_openDirectChatModal();
         }
-        // Ctrl+B: Privacy Blur
         if (e.ctrlKey && e.key.toLowerCase() === 'b') {
             e.preventDefault();
             window.__waweb_togglePrivacy();
         }
-        // Ctrl+L: Lock App with PIN
         if (e.ctrlKey && e.key.toLowerCase() === 'l') {
             e.preventDefault();
             window.__modstams_lockApp();
         }
-        // Ctrl+Shift+M: Open ModsTams Control Center
         if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'm') {
             e.preventDefault();
             window.__waweb_toggleModCenter();
         }
-        // Ctrl+Shift+O: OLED Theme Toggle
         if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'o') {
             e.preventDefault();
             window.__modstams_setTheme(currentTheme === 'oled' ? 'emerald' : 'oled');
         }
-        // Ctrl+Shift+T: Ghost Typing Toggle
         if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 't') {
             e.preventDefault();
             window.__waweb_toggleGhostTyping();
         }
-        // Ctrl+Shift+G: Ghost Read Toggle
         if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'g') {
             e.preventDefault();
             window.__waweb_toggleGhostRead();
@@ -1356,10 +1373,22 @@
     });
 
     /* ==========================================================================
-       17. CONTINUOUS OBSERVERS & HOOKS
+       17. CONTINUOUS OBSERVERS & LIFECYCLE INITIALIZATION
        ========================================================================== */
+    function initModEnvironment() {
+        applyCurrentTheme();
+        injectModLauncher();
+    }
+
+    if (document.readyState === 'loading') {
+        window.addEventListener('DOMContentLoaded', initModEnvironment, { once: true });
+    } else {
+        initModEnvironment();
+    }
+
     setInterval(() => {
         try {
+            if (!document.body) return;
             injectModLauncher();
             injectViewOnceDownloader();
             injectStatusDownloader();
@@ -1370,7 +1399,9 @@
     }, 1200);
 
     // Request native desktop notification permission
-    if ("Notification" in window && Notification.permission === "default") {
-        Notification.requestPermission();
-    }
+    try {
+        if ("Notification" in window && Notification.permission === "default") {
+            Notification.requestPermission();
+        }
+    } catch(e) {}
 })();

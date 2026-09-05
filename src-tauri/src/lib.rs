@@ -18,9 +18,12 @@ pub fn run() {
         .setup(|app| {
             // Build main window with initialization script
             if let Some(window_config) = app.config().app.windows.first() {
-                let _window = WebviewWindowBuilder::from_config(app.handle(), window_config)?
+                let window = WebviewWindowBuilder::from_config(app.handle(), window_config)?
                     .initialization_script(ENHANCEMENT_SCRIPT)
                     .build()?;
+                let _ = window.show();
+                let _ = window.unminimize();
+                let _ = window.set_focus();
             }
 
             // Menu System Tray
