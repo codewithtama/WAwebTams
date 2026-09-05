@@ -221,9 +221,9 @@
             <div style="background: #111b21; border: 1px solid rgba(255,255,255,0.12); border-radius: 16px; padding: 24px; width: 380px; box-shadow: 0 16px 40px rgba(0,0,0,0.6);">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
                     <div style="font-weight: 600; font-size: 16px; color: #00a884; display: flex; align-items: center; gap: 8px;">
-                        <span>🚀 Direct Chat (Tanpa Simpan Nomor)</span>
+                        <span>Direct Chat (Tanpa Simpan Nomor)</span>
                     </div>
-                    <button id="modstams-direct-close" style="background: transparent; border: none; color: #8696a0; cursor: pointer; font-size: 18px;">✕</button>
+                    <button id="modstams-direct-close" style="background: transparent; border: none; color: #8696a0; cursor: pointer; font-size: 20px; line-height: 1;">&times;</button>
                 </div>
                 <div style="font-size: 13px; color: #8696a0; margin-bottom: 12px;">Masukkan nomor HP tujuan (contoh: 08123456789 atau 62812...):</div>
                 <input id="modstams-direct-phone" type="text" placeholder="08xxxxxxxxxx" style="width: 100%; box-sizing: border-box; background: #202c33; border: 1px solid #2a3942; border-radius: 8px; padding: 12px; color: #e9edef; font-size: 14px; outline: none; margin-bottom: 12px;">
@@ -331,7 +331,7 @@
         ghostTypingActive = !ghostTypingActive;
         safeSet('modstams_ghost_typing', ghostTypingActive ? 'true' : 'false');
         showToast(
-            ghostTypingActive ? "👻 Ghost Typing Aktif" : "Typing Normal",
+            ghostTypingActive ? "Ghost Typing Aktif" : "Typing Normal",
             ghostTypingActive ? "Status 'Sedang mengetik...' disembunyikan" : "Status 'Sedang mengetik...' terlihat lawan bicara",
             null,
             ghostTypingActive ? '#00e5ff' : '#8696a0'
@@ -376,7 +376,7 @@
         ghostReadActive = !ghostReadActive;
         safeSet('modstams_ghost_read', ghostReadActive ? 'true' : 'false');
         showToast(
-            ghostReadActive ? "👻 Anti-Centang Biru Aktif" : "Centang Biru Normal",
+            ghostReadActive ? "Anti-Centang Biru Aktif" : "Centang Biru Normal",
             ghostReadActive ? "Bebas baca chat tanpa memicu centang biru di pengirim" : "Status baca dikirim seperti biasa",
             null,
             ghostReadActive ? "#00d2ff" : "#8696a0"
@@ -406,7 +406,7 @@
             safeSet('modstams_deleted_log', JSON.stringify(deletedLogs));
 
             showToast(
-                "🚫 Pesan Ditarik Terdeteksi!",
+                "Pesan Ditarik Terdeteksi!",
                 `${sender || 'Seseorang'}: "${text.length > 28 ? text.substring(0, 28) + '...' : text}"`,
                 `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ff5252" stroke-width="2.2"><circle cx="12" cy="12" r="10"></circle><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line></svg>`,
                 '#ff5252'
@@ -462,7 +462,7 @@
                     ].join(';');
                     restoredBox.innerHTML = `
                         <div style="color: #ff5252; font-size: 11px; font-weight: 700; margin-bottom: 3px; display: flex; align-items: center; gap: 4px;">
-                            <span>🚫 PESAN DITARIK (${cached.time})</span>
+                            <span>PESAN DITARIK (${cached.time})</span>
                         </div>
                         <div style="font-style: italic; color: #ffffff;">${cached.text}</div>
                     `;
@@ -565,7 +565,7 @@
         currentTheme = themeKey;
         safeSet('modstams_theme', themeKey);
         applyCurrentTheme();
-        showToast("🎨 Tema Diubah", THEMES[themeKey].name, null, THEMES[themeKey].accent || '#00a884');
+        showToast("Tema Diubah", THEMES[themeKey].name, null, THEMES[themeKey].accent || '#00a884');
     };
 
     /* ==========================================================================
@@ -598,13 +598,13 @@
                 `;
                 head.appendChild(privacyStyle);
             }
-            showToast("🛡️ Privacy Mode Aktif", "Arahkan mouse ke chat untuk melihat");
+            showToast("Privacy Mode Aktif", "Arahkan mouse ke chat untuk melihat");
         } else {
             if (privacyStyle) {
                 privacyStyle.remove();
                 privacyStyle = null;
             }
-            showToast("👁️ Privacy Mode Nonaktif", "Tampilan chat normal");
+            showToast("Privacy Mode Nonaktif", "Tampilan chat normal");
         }
     };
 
@@ -657,7 +657,7 @@
         safeSet('modstams_blur_media', blurMediaActive ? 'true' : 'false');
         applyBlurMediaStyles();
         showToast(
-            blurMediaActive ? "🖼️ Auto-Blur Media Aktif" : "Media Normal",
+            blurMediaActive ? "Auto-Blur Media Aktif" : "Media Normal",
             blurMediaActive ? "Foto/video ter-sensor, arahkan mouse untuk melihat (Ctrl+Shift+B)" : "Foto & video tampil tanpa sensor",
             null,
             blurMediaActive ? "#00e5ff" : "#8696a0"
@@ -726,7 +726,7 @@
         }
 
         showToast(
-            unreadFilterActive ? "🔔 Filter Unread Aktif" : "Menampilkan Semua Chat",
+            unreadFilterActive ? "Filter Unread Aktif" : "Menampilkan Semua Chat",
             unreadFilterActive ? "Hanya menampilkan chat yang ada pesan belum dibaca (Ctrl+Shift+U)" : "Semua obrolan kembali ditampilkan",
             null,
             unreadFilterActive ? "#00a884" : "#8696a0"
@@ -794,7 +794,7 @@
                     `).join('')}
                     <button id="pin-clear" style="height: 56px; border-radius: 28px; border: none; background: transparent; color: #8696a0; font-size: 13px; font-weight: 600; cursor: pointer;">C</button>
                     <button class="pin-btn" data-val="0" style="height: 56px; border-radius: 28px; border: 1px solid rgba(255,255,255,0.08); background: #1f2c34; color: #e9edef; font-size: 20px; font-weight: 600; cursor: pointer;">0</button>
-                    <button id="pin-back" style="height: 56px; border-radius: 28px; border: none; background: transparent; color: #8696a0; font-size: 18px; font-weight: 600; cursor: pointer;">⌫</button>
+                    <button id="pin-back" style="height: 56px; border-radius: 28px; border: none; background: transparent; color: #8696a0; font-size: 13px; font-weight: 700; cursor: pointer;">DEL</button>
                 </div>
             </div>
         `;
@@ -821,7 +821,7 @@
                 if (enteredPin === appPin) {
                     overlay.remove();
                     isAppLocked = false;
-                    showToast("🔓 ModsTams Terbuka", "Selamat datang kembali!");
+                    showToast("ModsTams Terbuka", "Selamat datang kembali!");
                 } else {
                     playChime(false);
                     enteredPin = "";
@@ -917,7 +917,7 @@
 
                     bar.innerHTML = `
                         <div style="font-size: 11px; font-weight: 700; color: #00a884; display: flex; align-items: center; gap: 4px;">
-                            <span>🎙️ VN Speed:</span>
+                            <span>VN Speed:</span>
                         </div>
                         <div style="display: flex; gap: 4px;">
                             <button class="vn-spd-btn" data-spd="1.0" style="background:#202c33;color:#e9edef;border:none;border-radius:12px;padding:4px 8px;font-size:11px;font-weight:600;cursor:pointer;">1.0x</button>
@@ -928,7 +928,7 @@
                         </div>
                         <div style="width: 1px; height: 16px; background: rgba(255,255,255,0.12);"></div>
                         <button id="vn-boost-btn" style="background: rgba(255,170,0,0.15); color: #ffaa00; border: 1px solid rgba(255,170,0,0.4); border-radius: 12px; padding: 4px 10px; font-size: 11px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 4px;">
-                            <span>📢 Boost +200%</span>
+                            <span>Boost +200%</span>
                         </button>
                     `;
                     document.body.appendChild(bar);
@@ -945,7 +945,7 @@
                     bar.querySelector('#vn-boost-btn').onclick = () => {
                         boosted = !boosted;
                         audio.volume = boosted ? 1.0 : 0.8;
-                        showToast(boosted ? "📢 Volume Boost Max" : "Volume Normal", boosted ? "Suara diperkeras maksimal" : "Volume audio normal", null, '#ffaa00');
+                        showToast(boosted ? "Volume Boost Max" : "Volume Normal", boosted ? "Suara diperkeras maksimal" : "Volume audio normal", null, '#ffaa00');
                     };
                 }
             });
@@ -1026,7 +1026,7 @@
         antiCallActive = !antiCallActive;
         safeSet('modstams_anti_call', antiCallActive ? 'true' : 'false');
         showToast(
-            antiCallActive ? "🔕 Anti-Call Aktif" : "Panggilan Normal",
+            antiCallActive ? "Anti-Call Aktif" : "Panggilan Normal",
             antiCallActive ? "Panggilan masuk otomatis diredam / diabaikan" : "Panggilan masuk akan berdering normal",
             null,
             antiCallActive ? "#ff5252" : "#8696a0"
@@ -1038,7 +1038,7 @@
         const callDeclines = document.querySelectorAll('button[data-testid="decline-call-btn"], div[role="dialog"] button[aria-label*="Decline"], div[role="dialog"] button[aria-label*="Tolak"]');
         callDeclines.forEach(btn => {
             btn.click();
-            showToast("🔕 Panggilan Ditolak Otomatis", "Fitur Anti-Call ModsTams aktif", null, "#ff5252");
+            showToast("Panggilan Ditolak Otomatis", "Fitur Anti-Call ModsTams aktif", null, "#ff5252");
         });
     }
 
@@ -1091,18 +1091,18 @@
                             <div style="font-size: 11px; color: #8696a0;">Super Suite v2.1 • Ultra-Light Desktop Wrapper</div>
                         </div>
                     </div>
-                    <button id="modstams-close-btn" style="background: transparent; border: none; color: #8696a0; cursor: pointer; font-size: 20px; line-height: 1;">✕</button>
+                    <button id="modstams-close-btn" style="background: transparent; border: none; color: #8696a0; cursor: pointer; font-size: 20px; line-height: 1;">&times;</button>
                 </div>
 
                 <!-- Tabs Navigation -->
                 <div style="display: flex; border-bottom: 1px solid rgba(255,255,255,0.08); background: #111b21;">
-                    <button class="tab-nav active" data-tab="tab-privacy" style="flex: 1; padding: 12px 6px; background: transparent; border: none; border-bottom: 2px solid #00a884; color: #00a884; font-size: 12px; font-weight: 600; cursor: pointer;">🛡️ Privasi</button>
-                    <button class="tab-nav" data-tab="tab-theme" style="flex: 1; padding: 12px 6px; background: transparent; border: none; border-bottom: 2px solid transparent; color: #8696a0; font-size: 12px; font-weight: 600; cursor: pointer;">🎨 Tema</button>
+                    <button class="tab-nav active" data-tab="tab-privacy" style="flex: 1; padding: 12px 6px; background: transparent; border: none; border-bottom: 2px solid #00a884; color: #00a884; font-size: 12px; font-weight: 600; cursor: pointer;">Privasi</button>
+                    <button class="tab-nav" data-tab="tab-theme" style="flex: 1; padding: 12px 6px; background: transparent; border: none; border-bottom: 2px solid transparent; color: #8696a0; font-size: 12px; font-weight: 600; cursor: pointer;">Tema</button>
                     <button class="tab-nav" data-tab="tab-deleted" style="flex: 1; padding: 12px 6px; background: transparent; border: none; border-bottom: 2px solid transparent; color: #8696a0; font-size: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px;">
-                        <span>🚫 Log Ditarik</span>
+                        <span>Log Ditarik</span>
                         <span id="tab-del-badge" style="background: #ff5252; color: white; font-size: 10px; padding: 1px 6px; border-radius: 10px;">${deletedLogs.length}</span>
                     </button>
-                    <button class="tab-nav" data-tab="tab-tools" style="flex: 1; padding: 12px 6px; background: transparent; border: none; border-bottom: 2px solid transparent; color: #8696a0; font-size: 12px; font-weight: 600; cursor: pointer;">⚡ Alat Super</button>
+                    <button class="tab-nav" data-tab="tab-tools" style="flex: 1; padding: 12px 6px; background: transparent; border: none; border-bottom: 2px solid transparent; color: #8696a0; font-size: 12px; font-weight: 600; cursor: pointer;">Alat Super</button>
                 </div>
 
                 <!-- Tab Contents -->
@@ -1112,7 +1112,7 @@
                     <div id="tab-privacy" class="tab-content" style="display: flex; flex-direction: column; gap: 12px;">
                         <div style="display: flex; justify-content: space-between; align-items: center; background: #182229; padding: 12px 14px; border-radius: 12px;">
                             <div>
-                                <div style="font-weight: 600; font-size: 13px; color: #e9edef;">👁️ Anti-Centang Biru (Ghost Read)</div>
+                                <div style="font-weight: 600; font-size: 13px; color: #e9edef;">Anti-Centang Biru (Ghost Read)</div>
                                 <div style="font-size: 11px; color: #8696a0; margin-top: 2px;">Bebas baca chat tanpa memicu centang biru di pengirim</div>
                             </div>
                             <div id="switch-ghostread">${renderSwitch('sw-btn-ghostread', ghostReadActive)}</div>
@@ -1120,7 +1120,7 @@
 
                         <div style="display: flex; justify-content: space-between; align-items: center; background: #182229; padding: 12px 14px; border-radius: 12px;">
                             <div>
-                                <div style="font-weight: 600; font-size: 13px; color: #e9edef;">👻 Sembunyikan Sedang Mengetik</div>
+                                <div style="font-weight: 600; font-size: 13px; color: #e9edef;">Sembunyikan Sedang Mengetik</div>
                                 <div style="font-size: 11px; color: #8696a0; margin-top: 2px;">Lawan bicara tidak melihat status mengetik Anda</div>
                             </div>
                             <div id="switch-ghosttyping">${renderSwitch('sw-btn-ghosttyping', ghostTypingActive)}</div>
@@ -1129,7 +1129,7 @@
                         <!-- NEW: Auto-Blur Media Only -->
                         <div style="display: flex; justify-content: space-between; align-items: center; background: #182229; padding: 12px 14px; border-radius: 12px; border-left: 3px solid #00e5ff;">
                             <div>
-                                <div style="font-weight: 600; font-size: 13px; color: #00e5ff;">🖼️ Auto-Blur Media Saja (Sensor Foto/Video)</div>
+                                <div style="font-weight: 600; font-size: 13px; color: #00e5ff;">Auto-Blur Media Saja (Sensor Foto/Video)</div>
                                 <div style="font-size: 11px; color: #8696a0; margin-top: 2px;">Sensor foto & video (hover untuk lihat), teks chat normal (Ctrl+Shift+B)</div>
                             </div>
                             <div id="switch-blurmedia">${renderSwitch('sw-btn-blurmedia', blurMediaActive)}</div>
@@ -1138,7 +1138,7 @@
                         <!-- NEW: Filter Chat Belum Dibaca -->
                         <div style="display: flex; justify-content: space-between; align-items: center; background: #182229; padding: 12px 14px; border-radius: 12px; border-left: 3px solid #00a884;">
                             <div>
-                                <div style="font-weight: 600; font-size: 13px; color: #00a884;">🔔 Filter Chat Belum Dibaca (Unread Only)</div>
+                                <div style="font-weight: 600; font-size: 13px; color: #00a884;">Filter Chat Belum Dibaca (Unread Only)</div>
                                 <div style="font-size: 11px; color: #8696a0; margin-top: 2px;">Saring hanya obrolan yang memiliki pesan belum dibaca (Ctrl+Shift+U)</div>
                             </div>
                             <div id="switch-unreadfilter">${renderSwitch('sw-btn-unreadfilter', unreadFilterActive)}</div>
@@ -1146,7 +1146,7 @@
 
                         <div style="display: flex; justify-content: space-between; align-items: center; background: #182229; padding: 12px 14px; border-radius: 12px;">
                             <div>
-                                <div style="font-weight: 600; font-size: 13px; color: #e9edef;">🛡️ Full Privacy Mode (Blur Semua Chat)</div>
+                                <div style="font-weight: 600; font-size: 13px; color: #e9edef;">Full Privacy Mode (Blur Semua Chat)</div>
                                 <div style="font-size: 11px; color: #8696a0; margin-top: 2px;">Blur seluruh teks & media sampai kursor diarahkan (Ctrl+B)</div>
                             </div>
                             <div id="switch-privacy">${renderSwitch('sw-btn-privacy', privacyActive)}</div>
@@ -1154,7 +1154,7 @@
 
                         <div style="display: flex; justify-content: space-between; align-items: center; background: #182229; padding: 12px 14px; border-radius: 12px;">
                             <div>
-                                <div style="font-weight: 600; font-size: 13px; color: #e9edef;">🔕 Anti-Call (Auto-Mute Panggilan)</div>
+                                <div style="font-weight: 600; font-size: 13px; color: #e9edef;">Anti-Call (Auto-Mute Panggilan)</div>
                                 <div style="font-size: 11px; color: #8696a0; margin-top: 2px;">Otomatis redam/tolak panggilan masuk agar tidak mengganggu</div>
                             </div>
                             <div id="switch-anticall">${renderSwitch('sw-btn-anticall', antiCallActive)}</div>
@@ -1165,7 +1165,7 @@
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                                 <div>
                                     <div style="font-weight: 600; font-size: 13px; color: #e9edef; display: flex; align-items: center; gap: 6px;">
-                                        <span>🔒 Kunci Aplikasi (App Lock)</span>
+                                        <span>Kunci Aplikasi (App Lock)</span>
                                     </div>
                                     <div style="font-size: 11px; color: #8696a0; margin-top: 2px;">Lindungi chat dengan PIN 4-digit (Ctrl+L)</div>
                                 </div>
@@ -1190,7 +1190,7 @@
                                     <div style="font-size: 11px; color: #8696a0;">Aksen hijau khas ModsTams yang elegan</div>
                                 </div>
                             </div>
-                            ${currentTheme === 'emerald' ? '<span style="color:#00a884; font-size:14px; font-weight:700;">✓</span>' : ''}
+                            ${currentTheme === 'emerald' ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#00a884" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>' : ''}
                         </div>
 
                         <div class="theme-card" data-theme="cyberpunk" style="display: flex; align-items: center; justify-content: space-between; background: #182229; padding: 12px 14px; border-radius: 12px; cursor: pointer; border: 1px solid ${currentTheme === 'cyberpunk' ? '#00e5ff' : 'transparent'};">
@@ -1201,7 +1201,7 @@
                                     <div style="font-size: 11px; color: #8696a0;">Kombinasi Cyan menyala & Neon Magenta futuristik</div>
                                 </div>
                             </div>
-                            ${currentTheme === 'cyberpunk' ? '<span style="color:#00e5ff; font-size:14px; font-weight:700;">✓</span>' : ''}
+                            ${currentTheme === 'cyberpunk' ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#00e5ff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>' : ''}
                         </div>
 
                         <div class="theme-card" data-theme="midnight" style="display: flex; align-items: center; justify-content: space-between; background: #182229; padding: 12px 14px; border-radius: 12px; cursor: pointer; border: 1px solid ${currentTheme === 'midnight' ? '#3b82f6' : 'transparent'};">
@@ -1212,7 +1212,7 @@
                                     <div style="font-size: 11px; color: #8696a0;">Navy gelap menenangkan dengan aksen Ice Blue</div>
                                 </div>
                             </div>
-                            ${currentTheme === 'midnight' ? '<span style="color:#3b82f6; font-size:14px; font-weight:700;">✓</span>' : ''}
+                            ${currentTheme === 'midnight' ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>' : ''}
                         </div>
 
                         <div class="theme-card" data-theme="crimson" style="display: flex; align-items: center; justify-content: space-between; background: #182229; padding: 12px 14px; border-radius: 12px; cursor: pointer; border: 1px solid ${currentTheme === 'crimson' ? '#f97316' : 'transparent'};">
@@ -1223,7 +1223,7 @@
                                     <div style="font-size: 11px; color: #8696a0;">Nuansa arang hangat dengan aksen merah membara</div>
                                 </div>
                             </div>
-                            ${currentTheme === 'crimson' ? '<span style="color:#f97316; font-size:14px; font-weight:700;">✓</span>' : ''}
+                            ${currentTheme === 'crimson' ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>' : ''}
                         </div>
 
                         <div class="theme-card" data-theme="oled" style="display: flex; align-items: center; justify-content: space-between; background: #182229; padding: 12px 14px; border-radius: 12px; cursor: pointer; border: 1px solid ${currentTheme === 'oled' ? '#00a884' : 'transparent'};">
@@ -1234,7 +1234,7 @@
                                     <div style="font-size: 11px; color: #8696a0;">Hitam pekat murni #000000 hemat daya baterai</div>
                                 </div>
                             </div>
-                            ${currentTheme === 'oled' ? '<span style="color:#00a884; font-size:14px; font-weight:700;">✓</span>' : ''}
+                            ${currentTheme === 'oled' ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#00a884" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>' : ''}
                         </div>
                     </div>
 
@@ -1248,7 +1248,6 @@
                         <div id="del-logs-list" style="display: flex; flex-direction: column; gap: 10px; max-height: 48vh; overflow-y: auto; padding-right: 4px;">
                             ${deletedLogs.length === 0 ? `
                                 <div style="text-align: center; padding: 36px 12px; color: #8696a0; font-size: 13px;">
-                                    <div style="font-size: 28px; margin-bottom: 8px;">✨</div>
                                     Belum ada pesan yang ditarik.<br>Setiap pesan yang dihapus pengirim akan otomatis dicatat di sini!
                                 </div>
                             ` : deletedLogs.map(item => `
@@ -1270,7 +1269,7 @@
                         <!-- Direct Chat Quick Action -->
                         <div style="background: #182229; padding: 14px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center;">
                             <div>
-                                <div style="font-weight: 600; font-size: 13px; color: #e9edef;">🚀 Direct Chat Tanpa Simpan Nomor</div>
+                                <div style="font-weight: 600; font-size: 13px; color: #e9edef;">Direct Chat Tanpa Simpan Nomor</div>
                                 <div style="font-size: 11px; color: #8696a0; margin-top: 2px;">Kirim pesan langsung via nomor HP (Ctrl+M)</div>
                             </div>
                             <button id="btn-tab-direct" style="background: #00a884; color: white; border: none; border-radius: 8px; padding: 8px 14px; font-size: 12px; font-weight: 600; cursor: pointer;">Buka Direct Chat</button>
@@ -1278,7 +1277,7 @@
 
                         <!-- Text Repeater (Boom Text) -->
                         <div style="background: #182229; padding: 14px; border-radius: 12px;">
-                            <div style="font-weight: 600; font-size: 13px; color: #e9edef; margin-bottom: 4px;">💥 Text Repeater (Boom Text)</div>
+                            <div style="font-weight: 600; font-size: 13px; color: #e9edef; margin-bottom: 4px;">Text Repeater (Boom Text)</div>
                             <div style="font-size: 11px; color: #8696a0; margin-bottom: 10px;">Duplikasi pesan N kali dan masukkan langsung ke kolom chat:</div>
                             <div style="display: flex; gap: 8px; margin-bottom: 10px;">
                                 <input id="boom-text-input" type="text" placeholder="Ketik kata/pesan..." style="flex: 2; background: #202c33; border: 1px solid #2a3942; border-radius: 8px; padding: 8px 12px; color: #e9edef; font-size: 13px; outline: none;">
@@ -1289,7 +1288,7 @@
 
                         <!-- Aesthetic Fancy Font Generator -->
                         <div style="background: #182229; padding: 14px; border-radius: 12px;">
-                            <div style="font-weight: 600; font-size: 13px; color: #e9edef; margin-bottom: 4px;">✨ Fancy Font Generator</div>
+                            <div style="font-weight: 600; font-size: 13px; color: #e9edef; margin-bottom: 4px;">Fancy Font Generator</div>
                             <div style="font-size: 11px; color: #8696a0; margin-bottom: 10px;">Ketik kata untuk mengubahnya menjadi font aesthetic unik:</div>
                             <input id="fancy-font-input" type="text" placeholder="Ketik teks di sini..." style="width: 100%; box-sizing: border-box; background: #202c33; border: 1px solid #2a3942; border-radius: 8px; padding: 8px 12px; color: #e9edef; font-size: 13px; outline: none; margin-bottom: 10px;">
                             
@@ -1399,7 +1398,7 @@
             try { localStorage.removeItem('modstams_deleted_log'); } catch(e) {}
             modal.querySelector('#del-logs-list').innerHTML = `
                 <div style="text-align: center; padding: 36px 12px; color: #8696a0; font-size: 13px;">
-                    ✨ Riwayat log telah dibersihkan.
+                    Riwayat log telah dibersihkan.
                 </div>
             `;
             modal.querySelector('#tab-del-badge').innerText = '0';
@@ -1452,9 +1451,6 @@
         };
     };
 
-    /* ==========================================================================
-       17. FLOATING MOD LAUNCHER BUTTON (⚡ ModsTams)
-       ========================================================================== */
     /* ==========================================================================
        17. UNIFIED FLOATING MODSTAMS DOCK (#modstams-dock)
        Collision-proof, glassmorphic, draggable toolbar fusing Launcher + Unread

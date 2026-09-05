@@ -67,14 +67,14 @@ pub fn run() {
             let control_item = MenuItem::with_id(
                 app,
                 "control",
-                "⚡ Buka ModsTams Control Center",
+                "Buka ModsTams Control Center",
                 true,
                 None::<&str>,
             )?;
             let lock_item = MenuItem::with_id(
                 app,
                 "lock",
-                "🔒 Kunci ModsTams (Ctrl+L)",
+                "Kunci ModsTams (Ctrl+L)",
                 true,
                 None::<&str>,
             )?;
@@ -83,49 +83,49 @@ pub fn run() {
             let direct_item = MenuItem::with_id(
                 app,
                 "direct",
-                "🚀 Chat Nomor Baru (Ctrl+M)",
+                "Chat Nomor Baru (Ctrl+M)",
                 true,
                 None::<&str>,
             )?;
             let privacy_item = MenuItem::with_id(
                 app,
                 "privacy",
-                "🛡️ Toggle Privacy Mode (Ctrl+B)",
+                "Toggle Privacy Mode (Ctrl+B)",
                 true,
                 None::<&str>,
             )?;
             let oled_item = MenuItem::with_id(
                 app,
                 "oled",
-                "🖤 Toggle Ultra Dark OLED",
+                "Toggle Ultra Dark OLED",
                 true,
                 None::<&str>,
             )?;
             let ghost_item = MenuItem::with_id(
                 app,
                 "ghost",
-                "👻 Toggle Ghost Typing",
+                "Toggle Ghost Typing",
                 true,
                 None::<&str>,
             )?;
             let ghostread_item = MenuItem::with_id(
                 app,
                 "ghostread",
-                "👁️ Toggle Anti-Centang Biru",
+                "Toggle Anti-Centang Biru",
                 true,
                 None::<&str>,
             )?;
             let blurmedia_item = MenuItem::with_id(
                 app,
                 "blurmedia",
-                "🖼️ Toggle Auto-Blur Media (Ctrl+Shift+B)",
+                "Toggle Auto-Blur Media (Ctrl+Shift+B)",
                 true,
                 None::<&str>,
             )?;
             let unread_item = MenuItem::with_id(
                 app,
                 "unread",
-                "🔔 Toggle Filter Unread (Ctrl+Shift+U)",
+                "Toggle Filter Unread (Ctrl+Shift+U)",
                 true,
                 None::<&str>,
             )?;
