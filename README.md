@@ -10,17 +10,25 @@ Desktop wrapper khusus untuk **WhatsApp Web** berbasis **Rust + Tauri v2** yang 
    - Memanfaatkan Native Microsoft Edge WebView2 (Evergreen) bawaan Windows OS.
    - Tidak memuat instance Chromium utuh atau Node.js runtime terpisah.
    - Mengurangi penggunaan RAM hingga **70%–80%** dibandingkan WhatsApp Desktop resmi (~180–250MB vs ~800MB–1.2GB).
-2. **System Tray Integration**:
+2. **Notifikasi Download Berhasil (Media & Dokumen)**:
+   - Setiap kali foto, video, voice note, atau dokumen diunduh, muncul **Toast Notification Glassmorphic** modern di pojok kanan bawah.
+   - Dilengkapi **efek suara chime lembut** (disintesis via Web Audio API tanpa perlu file eksternal).
+   - Mengirim notifikasi native desktop Windows jika izin notifikasi aktif.
+3. **Privacy Mode / Anti-Intip (`Ctrl + B`)**:
+   - Fitur keamanan saat menggunakan laptop di cafe, kantor, atau tempat umum.
+   - Mengaburkan (blur) teks pesan dan preview media foto/video.
+   - Arahkan kursor mouse (hover) ke atas pesan untuk membacanya secara instan.
+4. **System Tray Integration**:
    - Icon WhatsApp di System Tray (pojok kanan bawah taskbar).
    - Klik kiri icon tray untuk memunculkan / menyembunyikan window secara instan.
-   - Klik kanan untuk menu cepat: *Tampilkan WhatsApp*, *Sembunyikan ke Tray*, *Muat Ulang (Reload)*, dan *Keluar Sepenuhnya*.
-3. **Minimize-to-Tray on Close**:
+   - Klik kanan untuk menu cepat: *Tampilkan WhatsApp*, *Sembunyikan ke Tray*, *Toggle Privacy Mode*, *Muat Ulang (Reload)*, dan *Keluar Sepenuhnya*.
+5. **Minimize-to-Tray on Close**:
    - Menekan tombol **Close (X)** tidak akan mematikan aplikasi, melainkan menyembunyikannya ke System Tray agar notifikasi tetap standby di latar belakang.
-4. **Desktop User-Agent Spoofing**:
+6. **Desktop User-Agent Spoofing**:
    - Menggunakan header User-Agent Chrome Desktop modern agar WhatsApp Web tidak memunculkan peringatan browser usang.
-5. **Persistent Session & Storage**:
+7. **Persistent Session & Storage**:
    - Sesi login QR tersimpan permanen di direktori AppData user. Tidak perlu scan QR ulang setiap kali membuka aplikasi.
-6. **Single Instance**:
+8. **Single Instance**:
    - Mencegah aplikasi terbuka ganda. Jika aplikasi dibuka lagi, window yang sudah ada akan otomatis difokuskan ke depan.
 
 ---
@@ -45,16 +53,8 @@ File executable (.exe) akan dihasilkan di: `%USERPROFILE%\.cargo-target\waweb-ta
 
 ---
 
-## 💡 Catatan Teknis (Solusi OS Error 32 di Windows)
+## ⌨️ Shortcut Keyboard
 
-Di Windows, meletakkan folder `target/` di dalam `Desktop` sering kali memicu `os error 32` karena file compiler `.rcgu.o` dan `.rmeta` langsung dikunci oleh **Windows Search Indexer** dan **Windows Defender Real-time Scan**.
-Proyek ini telah dikonfigurasi secara permanen dengan:
-- `CARGO_TARGET_DIR` dialihkan ke `%USERPROFILE%\.cargo-target\waweb-tams` (bebas dari indexing).
-- `jobs = 2` dan `incremental = false` di [Cargo.toml](file:///c:/Users/tamav/Desktop/PROYEK/WAwebTams/src-tauri/Cargo.toml) untuk memastikan kompilasi 100% stabil di Windows.
-
----
-
-## ⌨️ Shortcut Berguna
-
+- `Ctrl + B` : Toggle **Privacy Mode** (Anti-intip / Blur chat).
 - `F5` atau `Ctrl + R` : Memuat ulang halaman WhatsApp Web.
 - `Alt + F4` atau `Tombol X` : Menyembunyikan aplikasi ke System Tray.

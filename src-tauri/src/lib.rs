@@ -1,8 +1,10 @@
 use tauri::{
     menu::{Menu, MenuItem, PredefinedMenuItem},
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
-    Manager, WindowEvent,
+    Manager, WebviewWindowBuilder, WindowEvent,
 };
+
+const ENHANCEMENT_SCRIPT: &str = include_str!("enhancements.js");
 
 pub fn run() {
     tauri::Builder::default()
@@ -14,6 +16,13 @@ pub fn run() {
             }
         }))
         .setup(|app| {
+            // Build main window with initialization script
+            if let Some(window_config) = app.config().app.windows.first() {
+                let _window = WebviewWindowBuilder::from_config(app.handle(), window_config)?
+                    .initialization_script(ENHANCEMENT_SCRIPT)
+                    .build()?;
+            }
+
             // Menu System Tray
             let show_item = MenuItem::with_id(
                 app,
@@ -29,6 +38,14 @@ pub fn run() {
                 true,
                 None::<&str>,
             )?;
+            let sep1 = PredefinedMenuItem::separator(app)?;
+            let privacy_item = MenuItem::with_id(
+                app,
+                "privacy",
+                "Toggle Privacy Mode (Ctrl+B)",
+                true,
+                None::<&str>,
+            )?;
             let reload_item = MenuItem::with_id(
                 app,
                 "reload",
@@ -36,7 +53,6 @@ pub fn run() {
                 true,
                 None::<&str>,
             )?;
-            let sep1 = PredefinedMenuItem::separator(app)?;
             let sep2 = PredefinedMenuItem::separator(app)?;
             let quit_item = MenuItem::with_id(
                 app,
@@ -48,7 +64,15 @@ pub fn run() {
 
             let menu = Menu::with_items(
                 app,
-                &[&show_item, &hide_item, &sep1, &reload_item, &sep2, &quit_item],
+                &[
+                    &show_item,
+                    &hide_item,
+                    &sep1,
+                    &privacy_item,
+                    &reload_item,
+                    &sep2,
+                    &quit_item,
+                ],
             )?;
 
             if let Some(icon) = app.default_window_icon() {
@@ -68,6 +92,13 @@ pub fn run() {
                         "hide" => {
                             if let Some(window) = app.get_webview_window("main") {
                                 let _ = window.hide();
+                            }
+                        }
+                        "privacy" => {
+                            if let Some(window) = app.get_webview_window("main") {
+                                let _ = window.eval(
+                                    "window.__waweb_togglePrivacy && window.__waweb_togglePrivacy()",
+                                );
                             }
                         }
                         "reload" => {
@@ -100,22 +131,6 @@ pub fn run() {
                         }
                     })
                     .build(app)?;
-            }
-
-            // Injeksi skrip klien: shortcut keyboard tambahan & observer
-            if let Some(window) = app.get_webview_window("main") {
-                let init_script = r#"
-                    (function() {
-                        // Shortcut F5 / Ctrl+R untuk reload
-                        window.addEventListener('keydown', function(e) {
-                            if (e.key === 'F5' || (e.ctrlKey && e.key.toLowerCase() === 'r')) {
-                                window.location.reload();
-                            }
-                        });
-                        console.log("[WAwebTams] Ultra-light WhatsApp Web wrapper active.");
-                    })();
-                "#;
-                let _ = window.eval(init_script);
             }
 
             Ok(())
