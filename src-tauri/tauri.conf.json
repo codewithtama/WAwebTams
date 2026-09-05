@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "WAwebTams",
+  "productName": "ModsTams",
   "version": "1.0.0",
   "identifier": "com.tams.waweb",
   "build": {
@@ -11,7 +11,7 @@
     "windows": [
       {
         "label": "main",
-        "title": "WhatsApp Web",
+        "title": "ModsTams",
         "url": "https://web.whatsapp.com",
         "width": 1200,
         "height": 800,

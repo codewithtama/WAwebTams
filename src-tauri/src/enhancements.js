@@ -2,7 +2,7 @@
     if (window.__waweb_initialized) return;
     window.__waweb_initialized = true;
 
-    console.log("[WAwebTams] Mod Enhancements Suite loaded.");
+    console.log("[ModsTams] Enhancements Suite loaded.");
 
     /* ==========================================================================
        1. AUDIO SYNTHESIZER & TOAST NOTIFICATION SYSTEM
@@ -630,7 +630,7 @@
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 14px;">
                     <div style="display: flex; align-items: center; gap: 8px;">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="#00a884"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
-                        <span style="font-weight: 700; font-size: 16px; color: #00a884;">WA MOD Control Center</span>
+                        <span style="font-weight: 700; font-size: 16px; color: #00a884;">ModsTams Control Center</span>
                     </div>
                     <button id="waweb-mod-close" style="background: transparent; border: none; color: #8696a0; cursor: pointer; font-size: 18px; line-height: 1;">✕</button>
                 </div>
@@ -735,7 +735,7 @@
         if (document.getElementById('waweb-mod-launcher')) return;
         const btn = document.createElement('div');
         btn.id = 'waweb-mod-launcher';
-        btn.title = 'Buka Panel Kontrol Fitur WA MOD';
+        btn.title = 'Buka Panel Kontrol ModsTams';
         btn.style.cssText = [
             'position: fixed',
             'top: 10px',
@@ -760,7 +760,7 @@
         ].join(';');
         btn.innerHTML = `
             <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
-            <span>⚡ WA MOD</span>
+            <span>⚡ ModsTams</span>
         `;
         btn.onmouseenter = () => {
             btn.style.transform = 'scale(1.06)';

@@ -27,7 +27,7 @@ pub fn run() {
             let show_item = MenuItem::with_id(
                 app,
                 "show",
-                "Tampilkan WhatsApp",
+                "Tampilkan ModsTams",
                 true,
                 None::<&str>,
             )?;
@@ -112,9 +112,9 @@ pub fn run() {
             )?;
 
             if let Some(icon) = app.default_window_icon() {
-                let _tray = TrayIconBuilder::with_id("waweb-tray")
+                let _tray = TrayIconBuilder::with_id("modstams-tray")
                     .icon(icon.clone())
-                    .tooltip("WhatsApp Web (Ultra-Light)")
+                    .tooltip("ModsTams (Ultra-Light)")
                     .menu(&menu)
                     .show_menu_on_left_click(false)
                     .on_menu_event(|app, event| match event.id.as_ref() {

@@ -1,6 +1,6 @@
-# WAwebTams - WhatsApp Web Ultra-Light + MOD Suite
+# ModsTams - Ultra-Light Desktop Client & Mod Suite
 
-Desktop wrapper khusus untuk **WhatsApp Web** berbasis **Rust + Tauri v2** yang dirancang untuk menghemat konsumsi RAM secara drastis dibandingkan aplikasi resmi WhatsApp Desktop (Electron), dilengkapi paket **Fitur Eksklusif WA MOD** yang aman dari banned akun.
+Aplikasi desktop wrapper ultra-ringan berbasis **Rust + Tauri v2** yang dirancang untuk menghemat konsumsi RAM secara drastis, dilengkapi paket **Fitur Eksklusif ModsTams** yang aman dan stabil.
 
 ---
 
@@ -55,25 +55,20 @@ Semua fitur ini bisa diakses langsung melalui **Tombol Mengambang `⚡ WA MOD` d
 
 ## 🚀 Cara Menjalankan
 
-### 1. Langsung Buka Aplikasi (Instan)
+### 1. Buka Langsung File Executable (Stand-Alone .EXE)
 
-Cukup klik ganda file **`start-app.bat`**.
+Cukup **klik ganda file `ModsTams.exe`** yang sudah ada di folder ini!
+File biner ini sepenuhnya mandiri (standalone), portabel, dan tidak memerlukan Node.js atau compiler lagi.
 
-### 2. Mode Development
+### 2. Melalui Launcher Cepat
+
+Klik ganda file **`start-app.bat`**.
+
+### 3. Mode Development
 
 Jalankan file **`run-dev.bat`** atau perintah:
 
 ```bash
 npm run dev
 ```
-
-### 3. Kompilasi Binary Standalone (.exe)
-
-Jalankan file **`build-release.bat`** atau perintah:
-
-```bash
-npm run build
-```
-
-File executable (.exe) akan dihasilkan di: `%USERPROFILE%\.cargo-target\waweb-tams\release\waweb-tams.exe`.
 
