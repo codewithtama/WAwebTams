@@ -2,7 +2,7 @@
     if (window.__waweb_initialized) return;
     window.__waweb_initialized = true;
 
-    console.log("[ModsTams] Super Suite v2.0 initialized.");
+    console.log("[ModsTams] Super Suite v2.1 initialized.");
 
     /* Safe storage helpers to avoid DOMException on restricted origins/about:blank */
     function safeGet(key, fallback = '') {
@@ -560,7 +560,7 @@
     };
 
     /* ==========================================================================
-       9. MOD: PRIVACY MODE (Blur Chat / Anti-Intip - Ctrl+B)
+       9. MOD: PRIVACY MODE (Full Blur Chat & Media - Ctrl+B)
        ========================================================================== */
     let privacyActive = false;
     let privacyStyle = null;
@@ -600,7 +600,164 @@
     };
 
     /* ==========================================================================
-       10. MOD: APP LOCK & PIN SECURITY (Kunci Aplikasi - Ctrl+L)
+       10. MOD: AUTO-BLUR MEDIA ONLY (Sensor Khusus Foto, Video & Stiker - Ctrl+Shift+B)
+       ========================================================================== */
+    let blurMediaActive = safeGet('modstams_blur_media', 'false') === 'true';
+    let blurMediaStyle = null;
+
+    function applyBlurMediaStyles() {
+        const head = document.head || document.getElementsByTagName('head')[0] || document.documentElement;
+        if (!head) return;
+
+        if (blurMediaActive) {
+            if (!blurMediaStyle) {
+                blurMediaStyle = document.createElement('style');
+                blurMediaStyle.id = 'modstams-blur-media-style';
+                blurMediaStyle.textContent = `
+                    /* Auto-Blur Media Only: sensor foto, video, stiker & avatar */
+                    #main img, #main video,
+                    [data-testid="media-canvas"],
+                    [data-testid="audio-player"],
+                    div[data-testid="image-thumb"] img,
+                    div[data-testid="video-thumb"] video,
+                    #pane-side img {
+                        filter: blur(14px) !important;
+                        transition: filter 0.2s ease-in-out !important;
+                    }
+                    #main img:hover, #main video:hover,
+                    [data-testid="media-canvas"]:hover,
+                    [data-testid="audio-player"]:hover,
+                    div[data-testid="image-thumb"]:hover img,
+                    div[data-testid="video-thumb"]:hover video,
+                    #pane-side div:hover img {
+                        filter: none !important;
+                    }
+                `;
+                head.appendChild(blurMediaStyle);
+            }
+        } else {
+            if (blurMediaStyle) {
+                blurMediaStyle.remove();
+                blurMediaStyle = null;
+            }
+        }
+    }
+
+    window.__modstams_toggleBlurMedia = function() {
+        blurMediaActive = !blurMediaActive;
+        safeSet('modstams_blur_media', blurMediaActive ? 'true' : 'false');
+        applyBlurMediaStyles();
+        showToast(
+            blurMediaActive ? "🖼️ Auto-Blur Media Aktif" : "Media Normal",
+            blurMediaActive ? "Foto/video ter-sensor, arahkan mouse untuk melihat (Ctrl+Shift+B)" : "Foto & video tampil tanpa sensor",
+            null,
+            blurMediaActive ? "#00e5ff" : "#8696a0"
+        );
+    };
+
+    /* ==========================================================================
+       11. MOD: FILTER CHAT BELUM DIBACA (Unread Only Filter - Ctrl+Shift+U)
+       ========================================================================== */
+    let unreadFilterActive = safeGet('modstams_unread_filter', 'false') === 'true';
+
+    function executeUnreadFilter() {
+        const chatRows = document.querySelectorAll('#pane-side [role="row"], #pane-side div[data-testid="cell-frame-container"]');
+        let unreadCount = 0;
+
+        chatRows.forEach(row => {
+            const parentRow = row.closest('[role="row"]') || row;
+            if (!unreadFilterActive) {
+                parentRow.style.display = '';
+                return;
+            }
+
+            // Check for WhatsApp unread badge indicators
+            const hasUnreadBadge = parentRow.querySelector('span[aria-label*="unread"], span[aria-label*="belum dibaca"], span[data-icon="unread-count"], [data-testid="icon-unread-count"]') !== null;
+            const textCheck = parentRow.innerText || '';
+            const hasUnreadNumber = /\b[1-9]\d*\b/.test(parentRow.querySelector('div[style*="border-radius: 50%"], span[class*="unread"]')?.innerText || '');
+
+            if (hasUnreadBadge || hasUnreadNumber) {
+                parentRow.style.display = '';
+                unreadCount++;
+            } else {
+                parentRow.style.display = 'none';
+            }
+        });
+
+        // Update pill UI badge if present
+        const badge = document.getElementById('modstams-unread-badge');
+        if (badge) {
+            badge.innerText = unreadCount > 0 ? unreadCount : '0';
+        }
+    }
+
+    window.__modstams_toggleUnreadFilter = function() {
+        unreadFilterActive = !unreadFilterActive;
+        safeSet('modstams_unread_filter', unreadFilterActive ? 'true' : 'false');
+        executeUnreadFilter();
+        
+        const pill = document.getElementById('modstams-unread-pill');
+        if (pill) {
+            pill.style.background = unreadFilterActive ? '#00a884' : '#202c33';
+            pill.style.color = unreadFilterActive ? '#ffffff' : '#8696a0';
+        }
+
+        showToast(
+            unreadFilterActive ? "🔔 Filter Unread Aktif" : "Menampilkan Semua Chat",
+            unreadFilterActive ? "Hanya menampilkan chat yang ada pesan belum dibaca (Ctrl+Shift+U)" : "Semua obrolan kembali ditampilkan",
+            null,
+            unreadFilterActive ? "#00a884" : "#8696a0"
+        );
+    };
+
+    function injectUnreadFilterPill() {
+        if (!document.body) return;
+        if (document.getElementById('modstams-unread-pill')) return;
+
+        // Find the chat list search header or pane-side top container
+        const searchHeader = document.querySelector('[data-testid="chat-list-search"]') || document.querySelector('#pane-side header') || document.querySelector('#pane-side');
+        if (!searchHeader) return;
+
+        const pill = document.createElement('div');
+        pill.id = 'modstams-unread-pill';
+        pill.title = 'Filter hanya chat belum dibaca (Ctrl+Shift+U)';
+        pill.style.cssText = [
+            'position: fixed',
+            'top: 10px',
+            'right: 190px',
+            'z-index: 99999',
+            'cursor: pointer',
+            'display: flex',
+            'align-items: center',
+            'gap: 6px',
+            `background: ${unreadFilterActive ? '#00a884' : '#202c33'}`,
+            `color: ${unreadFilterActive ? '#ffffff' : '#8696a0'}`,
+            'padding: 7px 12px',
+            'border-radius: 20px',
+            'font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+            'font-size: 11px',
+            'font-weight: 600',
+            'box-shadow: 0 4px 14px rgba(0,0,0,0.3)',
+            'border: 1px solid rgba(255,255,255,0.08)',
+            'backdrop-filter: blur(8px)',
+            'transition: all 0.15s ease',
+            'user-select: none'
+        ].join(';');
+
+        pill.innerHTML = `
+            <span>🔔 Unread Only</span>
+            <span id="modstams-unread-badge" style="background: rgba(255,255,255,0.2); border-radius: 10px; padding: 1px 6px; font-size: 10px;">•</span>
+        `;
+
+        pill.onmouseenter = () => pill.style.transform = 'scale(1.05)';
+        pill.onmouseleave = () => pill.style.transform = 'scale(1)';
+        pill.onclick = () => window.__modstams_toggleUnreadFilter();
+
+        document.body.appendChild(pill);
+    }
+
+    /* ==========================================================================
+       12. MOD: APP LOCK & PIN SECURITY (Kunci Aplikasi - Ctrl+L)
        ========================================================================== */
     let appPin = safeGet('modstams_app_pin', '');
     let isAppLocked = false;
@@ -745,7 +902,7 @@
     };
 
     /* ==========================================================================
-       11. MOD: VOICE NOTE SUPER SPEED & AUDIO BOOSTER
+       13. MOD: VOICE NOTE SUPER SPEED & AUDIO BOOSTER
        ========================================================================== */
     function injectAudioSuperController() {
         if (!document.body) return;
@@ -828,7 +985,7 @@
     }
 
     /* ==========================================================================
-       12. MOD: TEXT REPEATER (BOOM TEXT) & FANCY FONT GENERATOR
+       14. MOD: TEXT REPEATER (BOOM TEXT) & FANCY FONT GENERATOR
        ========================================================================== */
     function insertTextIntoChat(text) {
         const input = document.querySelector('footer div[contenteditable="true"]') ||
@@ -880,7 +1037,7 @@
     };
 
     /* ==========================================================================
-       13. MOD: ANTI-CALL AUTO-MUTE
+       15. MOD: ANTI-CALL AUTO-MUTE
        ========================================================================== */
     let antiCallActive = safeGet('modstams_anti_call', 'false') === 'true';
 
@@ -905,7 +1062,7 @@
     }
 
     /* ==========================================================================
-       14. MODSTAMS CONTROL CENTER v2.0 (MODAL WITH TABS)
+       16. MODSTAMS CONTROL CENTER v2.1 (MODAL WITH TABS)
        ========================================================================== */
     window.__waweb_toggleModCenter = function() {
         if (!document.body) return;
@@ -941,7 +1098,7 @@
         }
 
         modal.innerHTML = `
-            <div style="background: #111b21; border: 1px solid rgba(255,255,255,0.12); border-radius: 18px; width: 480px; max-width: 95vw; box-shadow: 0 24px 60px rgba(0,0,0,0.7); color: #e9edef; overflow: hidden; display: flex; flex-direction: column; max-height: 85vh;">
+            <div style="background: #111b21; border: 1px solid rgba(255,255,255,0.12); border-radius: 18px; width: 490px; max-width: 95vw; box-shadow: 0 24px 60px rgba(0,0,0,0.7); color: #e9edef; overflow: hidden; display: flex; flex-direction: column; max-height: 85vh;">
                 <!-- Header -->
                 <div style="display: flex; justify-content: space-between; align-items: center; padding: 18px 24px; border-bottom: 1px solid rgba(255,255,255,0.08); background: #182229;">
                     <div style="display: flex; align-items: center; gap: 10px;">
@@ -950,7 +1107,7 @@
                         </div>
                         <div>
                             <div style="font-weight: 700; font-size: 16px; color: #00a884;">ModsTams Control Center</div>
-                            <div style="font-size: 11px; color: #8696a0;">Super Suite v2.0 • Ultra-Light Desktop Wrapper</div>
+                            <div style="font-size: 11px; color: #8696a0;">Super Suite v2.1 • Ultra-Light Desktop Wrapper</div>
                         </div>
                     </div>
                     <button id="modstams-close-btn" style="background: transparent; border: none; color: #8696a0; cursor: pointer; font-size: 20px; line-height: 1;">✕</button>
@@ -988,10 +1145,28 @@
                             <div id="switch-ghosttyping">${renderSwitch('sw-btn-ghosttyping', ghostTypingActive)}</div>
                         </div>
 
+                        <!-- NEW: Auto-Blur Media Only -->
+                        <div style="display: flex; justify-content: space-between; align-items: center; background: #182229; padding: 12px 14px; border-radius: 12px; border-left: 3px solid #00e5ff;">
+                            <div>
+                                <div style="font-weight: 600; font-size: 13px; color: #00e5ff;">🖼️ Auto-Blur Media Saja (Sensor Foto/Video)</div>
+                                <div style="font-size: 11px; color: #8696a0; margin-top: 2px;">Sensor foto & video (hover untuk lihat), teks chat normal (Ctrl+Shift+B)</div>
+                            </div>
+                            <div id="switch-blurmedia">${renderSwitch('sw-btn-blurmedia', blurMediaActive)}</div>
+                        </div>
+
+                        <!-- NEW: Filter Chat Belum Dibaca -->
+                        <div style="display: flex; justify-content: space-between; align-items: center; background: #182229; padding: 12px 14px; border-radius: 12px; border-left: 3px solid #00a884;">
+                            <div>
+                                <div style="font-weight: 600; font-size: 13px; color: #00a884;">🔔 Filter Chat Belum Dibaca (Unread Only)</div>
+                                <div style="font-size: 11px; color: #8696a0; margin-top: 2px;">Saring hanya obrolan yang memiliki pesan belum dibaca (Ctrl+Shift+U)</div>
+                            </div>
+                            <div id="switch-unreadfilter">${renderSwitch('sw-btn-unreadfilter', unreadFilterActive)}</div>
+                        </div>
+
                         <div style="display: flex; justify-content: space-between; align-items: center; background: #182229; padding: 12px 14px; border-radius: 12px;">
                             <div>
-                                <div style="font-weight: 600; font-size: 13px; color: #e9edef;">🛡️ Privacy Mode (Blur Chat)</div>
-                                <div style="font-size: 11px; color: #8696a0; margin-top: 2px;">Blur semua pesan sampai kursor diarahkan (Ctrl+B)</div>
+                                <div style="font-weight: 600; font-size: 13px; color: #e9edef;">🛡️ Full Privacy Mode (Blur Semua Chat)</div>
+                                <div style="font-size: 11px; color: #8696a0; margin-top: 2px;">Blur seluruh teks & media sampai kursor diarahkan (Ctrl+B)</div>
                             </div>
                             <div id="switch-privacy">${renderSwitch('sw-btn-privacy', privacyActive)}</div>
                         </div>
@@ -1150,8 +1325,8 @@
 
                 <!-- Footer Shortcut Help -->
                 <div style="padding: 12px 24px; background: #141d22; border-top: 1px solid rgba(255,255,255,0.06); font-size: 11px; color: #8696a0; display: flex; justify-content: space-between; align-items: center;">
-                    <div>Shortcuts: <b>Ctrl+M</b> (Direct Chat) • <b>Ctrl+B</b> (Blur) • <b>Ctrl+L</b> (Lock)</div>
-                    <div style="color: #00a884; font-weight: 600;">ModsTams v2.0</div>
+                    <div>Shortcuts: <b>Ctrl+M</b> (Direct) • <b>Ctrl+Shift+U</b> (Unread) • <b>Ctrl+Shift+B</b> (Blur Media) • <b>Ctrl+L</b> (Lock)</div>
+                    <div style="color: #00a884; font-weight: 600;">ModsTams v2.1</div>
                 </div>
             </div>
         `;
@@ -1185,6 +1360,14 @@
         modal.querySelector('#switch-ghosttyping').onclick = () => {
             window.__waweb_toggleGhostTyping();
             modal.querySelector('#switch-ghosttyping').innerHTML = renderSwitch('sw-btn-ghosttyping', ghostTypingActive);
+        };
+        modal.querySelector('#switch-blurmedia').onclick = () => {
+            window.__modstams_toggleBlurMedia();
+            modal.querySelector('#switch-blurmedia').innerHTML = renderSwitch('sw-btn-blurmedia', blurMediaActive);
+        };
+        modal.querySelector('#switch-unreadfilter').onclick = () => {
+            window.__modstams_toggleUnreadFilter();
+            modal.querySelector('#switch-unreadfilter').innerHTML = renderSwitch('sw-btn-unreadfilter', unreadFilterActive);
         };
         modal.querySelector('#switch-privacy').onclick = () => {
             window.__waweb_togglePrivacy();
@@ -1289,7 +1472,7 @@
     };
 
     /* ==========================================================================
-       15. FLOATING MOD LAUNCHER BUTTON (⚡ ModsTams)
+       17. FLOATING MOD LAUNCHER BUTTON (⚡ ModsTams)
        ========================================================================== */
     function injectModLauncher() {
         if (!document.body) return;
@@ -1336,7 +1519,7 @@
     }
 
     /* ==========================================================================
-       16. GLOBAL SHORTCUTS
+       18. GLOBAL SHORTCUTS
        ========================================================================== */
     window.addEventListener('keydown', function(e) {
         if (e.key === 'F5' || (e.ctrlKey && e.key.toLowerCase() === 'r')) {
@@ -1346,9 +1529,17 @@
             e.preventDefault();
             window.__waweb_openDirectChatModal();
         }
-        if (e.ctrlKey && e.key.toLowerCase() === 'b') {
+        if (e.ctrlKey && !e.shiftKey && e.key.toLowerCase() === 'b') {
             e.preventDefault();
             window.__waweb_togglePrivacy();
+        }
+        if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'b') {
+            e.preventDefault();
+            window.__modstams_toggleBlurMedia();
+        }
+        if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'u') {
+            e.preventDefault();
+            window.__modstams_toggleUnreadFilter();
         }
         if (e.ctrlKey && e.key.toLowerCase() === 'l') {
             e.preventDefault();
@@ -1373,11 +1564,13 @@
     });
 
     /* ==========================================================================
-       17. CONTINUOUS OBSERVERS & LIFECYCLE INITIALIZATION
+       19. CONTINUOUS OBSERVERS & LIFECYCLE INITIALIZATION
        ========================================================================== */
     function initModEnvironment() {
         applyCurrentTheme();
+        applyBlurMediaStyles();
         injectModLauncher();
+        injectUnreadFilterPill();
     }
 
     if (document.readyState === 'loading') {
@@ -1390,11 +1583,13 @@
         try {
             if (!document.body) return;
             injectModLauncher();
+            injectUnreadFilterPill();
             injectViewOnceDownloader();
             injectStatusDownloader();
             watchAndPreserveMessages();
             injectAudioSuperController();
             watchAndSuppressCalls();
+            if (unreadFilterActive) executeUnreadFilter();
         } catch (err) {}
     }, 1200);
 

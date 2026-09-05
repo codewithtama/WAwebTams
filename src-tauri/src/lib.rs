@@ -92,6 +92,20 @@ pub fn run() {
                 true,
                 None::<&str>,
             )?;
+            let blurmedia_item = MenuItem::with_id(
+                app,
+                "blurmedia",
+                "🖼️ Toggle Auto-Blur Media (Ctrl+Shift+B)",
+                true,
+                None::<&str>,
+            )?;
+            let unread_item = MenuItem::with_id(
+                app,
+                "unread",
+                "🔔 Toggle Filter Unread (Ctrl+Shift+U)",
+                true,
+                None::<&str>,
+            )?;
 
             let sep2 = PredefinedMenuItem::separator(app)?;
             let reload_item = MenuItem::with_id(
@@ -120,6 +134,8 @@ pub fn run() {
                     &sep1,
                     &direct_item,
                     &privacy_item,
+                    &blurmedia_item,
+                    &unread_item,
                     &oled_item,
                     &ghost_item,
                     &ghostread_item,
@@ -183,6 +199,20 @@ pub fn run() {
                             if let Some(window) = app.get_webview_window("main") {
                                 let _ = window.eval(
                                     "window.__waweb_togglePrivacy && window.__waweb_togglePrivacy()",
+                                );
+                            }
+                        }
+                        "blurmedia" => {
+                            if let Some(window) = app.get_webview_window("main") {
+                                let _ = window.eval(
+                                    "window.__modstams_toggleBlurMedia && window.__modstams_toggleBlurMedia()",
+                                );
+                            }
+                        }
+                        "unread" => {
+                            if let Some(window) = app.get_webview_window("main") {
+                                let _ = window.eval(
+                                    "window.__modstams_toggleUnreadFilter && window.__modstams_toggleUnreadFilter()",
                                 );
                             }
                         }
