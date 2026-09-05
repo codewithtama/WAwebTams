@@ -38,6 +38,20 @@ pub fn run() {
                 true,
                 None::<&str>,
             )?;
+            let control_item = MenuItem::with_id(
+                app,
+                "control",
+                "⚡ Buka ModsTams Control Center",
+                true,
+                None::<&str>,
+            )?;
+            let lock_item = MenuItem::with_id(
+                app,
+                "lock",
+                "🔒 Kunci ModsTams (Ctrl+L)",
+                true,
+                None::<&str>,
+            )?;
             let sep1 = PredefinedMenuItem::separator(app)?;
 
             let direct_item = MenuItem::with_id(
@@ -98,6 +112,8 @@ pub fn run() {
                 &[
                     &show_item,
                     &hide_item,
+                    &control_item,
+                    &lock_item,
                     &sep1,
                     &direct_item,
                     &privacy_item,
@@ -128,6 +144,26 @@ pub fn run() {
                         "hide" => {
                             if let Some(window) = app.get_webview_window("main") {
                                 let _ = window.hide();
+                            }
+                        }
+                        "control" => {
+                            if let Some(window) = app.get_webview_window("main") {
+                                let _ = window.show();
+                                let _ = window.unminimize();
+                                let _ = window.set_focus();
+                                let _ = window.eval(
+                                    "window.__waweb_toggleModCenter && window.__waweb_toggleModCenter()",
+                                );
+                            }
+                        }
+                        "lock" => {
+                            if let Some(window) = app.get_webview_window("main") {
+                                let _ = window.show();
+                                let _ = window.unminimize();
+                                let _ = window.set_focus();
+                                let _ = window.eval(
+                                    "window.__modstams_lockApp && window.__modstams_lockApp()",
+                                );
                             }
                         }
                         "direct" => {
