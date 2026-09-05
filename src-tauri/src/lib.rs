@@ -68,6 +68,13 @@ pub fn run() {
                 true,
                 None::<&str>,
             )?;
+            let ghostread_item = MenuItem::with_id(
+                app,
+                "ghostread",
+                "👁️ Toggle Anti-Centang Biru",
+                true,
+                None::<&str>,
+            )?;
 
             let sep2 = PredefinedMenuItem::separator(app)?;
             let reload_item = MenuItem::with_id(
@@ -96,6 +103,7 @@ pub fn run() {
                     &privacy_item,
                     &oled_item,
                     &ghost_item,
+                    &ghostread_item,
                     &sep2,
                     &reload_item,
                     &sep3,
@@ -150,6 +158,13 @@ pub fn run() {
                             if let Some(window) = app.get_webview_window("main") {
                                 let _ = window.eval(
                                     "window.__waweb_toggleGhostTyping && window.__waweb_toggleGhostTyping()",
+                                );
+                            }
+                        }
+                        "ghostread" => {
+                            if let Some(window) = app.get_webview_window("main") {
+                                let _ = window.eval(
+                                    "window.__waweb_toggleGhostRead && window.__waweb_toggleGhostRead()",
                                 );
                             }
                         }

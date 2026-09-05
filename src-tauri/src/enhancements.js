@@ -501,6 +501,61 @@
     };
 
     /* ==========================================================================
+       MOD 7: GHOST READ / ANTI-CENTANG BIRU (Hide Blue Ticks / Read Receipts)
+       ========================================================================== */
+    let ghostReadActive = localStorage.getItem('waweb_ghost_read') !== 'false'; // Default: Aktif
+
+    const originalHasFocus = document.hasFocus.bind(document);
+    document.hasFocus = function() {
+        if (ghostReadActive) {
+            return false;
+        }
+        return originalHasFocus();
+    };
+
+    try {
+        Object.defineProperty(document, 'visibilityState', {
+            get: function() {
+                return ghostReadActive ? 'hidden' : 'visible';
+            },
+            configurable: true
+        });
+        Object.defineProperty(document, 'hidden', {
+            get: function() {
+                return ghostReadActive ? true : false;
+            },
+            configurable: true
+        });
+    } catch(e) {}
+
+    // Block focus events that trigger read receipts
+    window.addEventListener('focus', function(e) {
+        if (ghostReadActive) {
+            e.stopImmediatePropagation();
+        }
+    }, true);
+
+    window.__waweb_toggleGhostRead = function() {
+        ghostReadActive = !ghostReadActive;
+        localStorage.setItem('waweb_ghost_read', ghostReadActive ? 'true' : 'false');
+        if (ghostReadActive) {
+            showToast(
+                "👻 Anti-Centang Biru Aktif",
+                "Bebas baca chat tanpa memicu centang biru di pengirim!",
+                null,
+                "#00d2ff"
+            );
+        } else {
+            showToast(
+                "Centang Biru Normal",
+                "Status membaca dikirim seperti biasa",
+                null,
+                "#8696a0"
+            );
+        }
+    };
+
+    /* ==========================================================================
        GLOBAL KEYBOARD SHORTCUTS
        ========================================================================== */
     window.addEventListener('keydown', function(e) {
@@ -527,6 +582,11 @@
         if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 't') {
             e.preventDefault();
             window.__waweb_toggleGhostTyping();
+        }
+        // Ctrl+Shift+G: Ghost Read (Anti-Centang Biru) Toggle
+        if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'g') {
+            e.preventDefault();
+            window.__waweb_toggleGhostRead();
         }
     });
 

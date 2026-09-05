@@ -32,6 +32,7 @@ Semua fitur ini berjalan murni di sisi client laptop (*DOM/JS injection*) sehing
 | **🔓 Anti View-Once (Bypass 1x Lihat)** | *Otomatis* | Media foto/video "1x lihat" bisa dibuka berkali-kali dan muncul tombol **"Simpan Media"** untuk langsung mendownloadnya. Klik kanan juga diaktifkan. |
 | **📲 Direct Chat (Tanpa Simpan Nomor)** | `Ctrl + M` | Membuka modal cepat untuk langsung memulai obrolan ke nomor mana pun (misal `08123456789`) tanpa perlu simpan kontak di HP. |
 | **📥 Status / Story Saver** | *Otomatis* | Tombol mengambang **"Unduh Story Ini"** muncul saat menonton status foto/video teman untuk menyimpan ke laptop dengan 1 klik. |
+| **👁️ Anti-Centang Biru (Ghost Read)** | `Ctrl + Shift + G` | Bebas buka dan baca chat tanpa memicu centang biru di HP pengirim (tetap centang abu-abu dua). |
 | **👻 Ghost Typing (Sembunyikan Mengetik)** | `Ctrl + Shift + T` | Mencegah status *"Sedang mengetik..."* terkirim ke lawan bicara. Kamu bisa mengetik pesan dengan tenang tanpa ketahuan. |
 | **🚫 Anti-Delete Messages (Anti-Tarik)** | *Otomatis* | Jika seseorang menarik pesan (*Delete for Everyone*), teks pesan asli tetap ditampilkan dengan tanda merah: `🚫 PESAN DITARIK PENGIRIM`. |
 | **🖤 Ultra Dark OLED Mode (Hitam Pekat)** | `Ctrl + Shift + O` | Mengubah tema WhatsApp Web menjadi warna murni hitam pekat (`#000000`) untuk menghemat baterai layar laptop OLED dan nyaman di mata. |
@@ -43,6 +44,7 @@ Semua fitur ini berjalan murni di sisi client laptop (*DOM/JS injection*) sehing
 ## ⌨️ Daftar Lengkap Shortcut Keyboard
 
 - `Ctrl + M` : Buka modal **Direct Chat** (Kirim pesan tanpa simpan nomor).
+- `Ctrl + Shift + G` : Toggle **Anti-Centang Biru / Ghost Read** (Sembunyikan status sudah dibaca).
 - `Ctrl + B` : Toggle **Privacy Mode** (Anti-intip / Blur chat).
 - `Ctrl + Shift + O` : Toggle **Ultra Dark OLED Mode** (Hitam pekat).
 - `Ctrl + Shift + T` : Toggle **Ghost Typing** (Sembunyikan status sedang mengetik).
