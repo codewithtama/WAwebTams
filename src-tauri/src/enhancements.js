@@ -491,7 +491,8 @@
                     --teal: #00e5ff !important;
                     --primary-strong: #ff007f !important;
                 }
-                #waweb-mod-launcher { background: linear-gradient(135deg, #00e5ff, #ff007f) !important; color: #000 !important; }
+                #modstams-dock-launcher, #waweb-mod-launcher { background: linear-gradient(135deg, #00e5ff, #ff007f) !important; color: #000 !important; font-weight: 800 !important; }
+                #modstams-dock { border-color: rgba(0, 229, 255, 0.35) !important; box-shadow: 0 4px 20px rgba(0, 229, 255, 0.2) !important; }
                 header, [data-testid="chat-list-search"] { border-color: rgba(0, 229, 255, 0.25) !important; }
                 .message-out { background-color: #0b3d42 !important; border-right: 2px solid #00e5ff !important; }
                 span[data-icon="status-unread"] { fill: #ff007f !important; }
@@ -506,7 +507,8 @@
                 .message-out { background-color: #1e3a8a !important; border-left: 2px solid #3b82f6 !important; }
                 .message-in { background-color: #0f172a !important; }
                 header, footer { background-color: #0b1329 !important; }
-                #waweb-mod-launcher { background: #2563eb !important; }
+                #modstams-dock-launcher, #waweb-mod-launcher { background: linear-gradient(135deg, #3b82f6, #1d4ed8) !important; color: #fff !important; }
+                #modstams-dock { border-color: rgba(59, 130, 246, 0.35) !important; }
             `
         },
         crimson: {
@@ -516,7 +518,8 @@
                 .message-out { background-color: #7c2d12 !important; border-left: 2px solid #f97316 !important; }
                 .message-in { background-color: #1c1917 !important; }
                 header, footer { background-color: #12100e !important; }
-                #waweb-mod-launcher { background: linear-gradient(135deg, #f97316, #ef4444) !important; }
+                #modstams-dock-launcher, #waweb-mod-launcher { background: linear-gradient(135deg, #f97316, #ef4444) !important; color: #fff !important; }
+                #modstams-dock { border-color: rgba(249, 115, 22, 0.35) !important; }
             `
         },
         oled: {
@@ -535,6 +538,8 @@
                 .message-out { background-color: #00382b !important; }
                 [data-testid="chat-list-search"], div[role="textbox"] { background-color: #080808 !important; border-color: #1c1c1c !important; }
                 div, header, footer { border-color: #121212 !important; }
+                #modstams-dock { background: rgba(0, 0, 0, 0.95) !important; border-color: #222222 !important; }
+                #modstams-dock-launcher, #waweb-mod-launcher { background: #00a884 !important; }
             `
         }
     };
@@ -692,6 +697,13 @@
         const badge = document.getElementById('modstams-unread-badge');
         if (badge) {
             badge.innerText = unreadCount > 0 ? unreadCount : '0';
+            if (unreadCount > 0) {
+                badge.style.background = 'rgba(255, 82, 82, 0.85)';
+                badge.style.color = '#ffffff';
+            } else {
+                badge.style.background = 'rgba(255, 255, 255, 0.22)';
+                badge.style.color = 'inherit';
+            }
         }
     }
 
@@ -700,10 +712,17 @@
         safeSet('modstams_unread_filter', unreadFilterActive ? 'true' : 'false');
         executeUnreadFilter();
         
-        const pill = document.getElementById('modstams-unread-pill');
-        if (pill) {
-            pill.style.background = unreadFilterActive ? '#00a884' : '#202c33';
-            pill.style.color = unreadFilterActive ? '#ffffff' : '#8696a0';
+        const unreadBtn = document.getElementById('modstams-dock-unread');
+        if (unreadBtn) {
+            if (unreadFilterActive) {
+                unreadBtn.style.background = '#00a884';
+                unreadBtn.style.color = '#ffffff';
+                unreadBtn.style.boxShadow = '0 2px 8px rgba(0, 168, 132, 0.4)';
+            } else {
+                unreadBtn.style.background = 'rgba(255, 255, 255, 0.06)';
+                unreadBtn.style.color = '#8696a0';
+                unreadBtn.style.boxShadow = 'none';
+            }
         }
 
         showToast(
@@ -715,49 +734,7 @@
     };
 
     function injectUnreadFilterPill() {
-        if (!document.body) return;
-        if (document.getElementById('modstams-unread-pill')) return;
-
-        // Find the chat list search header or pane-side top container
-        const searchHeader = document.querySelector('[data-testid="chat-list-search"]') || document.querySelector('#pane-side header') || document.querySelector('#pane-side');
-        if (!searchHeader) return;
-
-        const pill = document.createElement('div');
-        pill.id = 'modstams-unread-pill';
-        pill.title = 'Filter hanya chat belum dibaca (Ctrl+Shift+U)';
-        pill.style.cssText = [
-            'position: fixed',
-            'top: 10px',
-            'right: 190px',
-            'z-index: 99999',
-            'cursor: pointer',
-            'display: flex',
-            'align-items: center',
-            'gap: 6px',
-            `background: ${unreadFilterActive ? '#00a884' : '#202c33'}`,
-            `color: ${unreadFilterActive ? '#ffffff' : '#8696a0'}`,
-            'padding: 7px 12px',
-            'border-radius: 20px',
-            'font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-            'font-size: 11px',
-            'font-weight: 600',
-            'box-shadow: 0 4px 14px rgba(0,0,0,0.3)',
-            'border: 1px solid rgba(255,255,255,0.08)',
-            'backdrop-filter: blur(8px)',
-            'transition: all 0.15s ease',
-            'user-select: none'
-        ].join(';');
-
-        pill.innerHTML = `
-            <span>🔔 Unread Only</span>
-            <span id="modstams-unread-badge" style="background: rgba(255,255,255,0.2); border-radius: 10px; padding: 1px 6px; font-size: 10px;">•</span>
-        `;
-
-        pill.onmouseenter = () => pill.style.transform = 'scale(1.05)';
-        pill.onmouseleave = () => pill.style.transform = 'scale(1)';
-        pill.onclick = () => window.__modstams_toggleUnreadFilter();
-
-        document.body.appendChild(pill);
+        injectModDock();
     }
 
     /* ==========================================================================
@@ -1478,48 +1455,224 @@
     /* ==========================================================================
        17. FLOATING MOD LAUNCHER BUTTON (⚡ ModsTams)
        ========================================================================== */
-    function injectModLauncher() {
+    /* ==========================================================================
+       17. UNIFIED FLOATING MODSTAMS DOCK (#modstams-dock)
+       Collision-proof, glassmorphic, draggable toolbar fusing Launcher + Unread
+       ========================================================================== */
+    function injectModDock() {
         if (!document.body) return;
-        if (document.getElementById('waweb-mod-launcher')) return;
-        const btn = document.createElement('div');
-        btn.id = 'waweb-mod-launcher';
-        btn.title = 'Buka Panel Kontrol ModsTams (Ctrl+Shift+M)';
-        btn.style.cssText = [
+
+        // Clean up legacy separated nodes if found
+        const legacyLauncher = document.getElementById('waweb-mod-launcher');
+        if (legacyLauncher && legacyLauncher.parentElement !== document.getElementById('modstams-dock')) {
+            legacyLauncher.remove();
+        }
+        const legacyPill = document.getElementById('modstams-unread-pill');
+        if (legacyPill) legacyPill.remove();
+
+        if (document.getElementById('modstams-dock')) {
+            const unreadBtn = document.getElementById('modstams-dock-unread');
+            if (unreadBtn) {
+                unreadBtn.style.background = unreadFilterActive ? '#00a884' : 'rgba(255, 255, 255, 0.06)';
+                unreadBtn.style.color = unreadFilterActive ? '#ffffff' : '#8696a0';
+                unreadBtn.style.boxShadow = unreadFilterActive ? '0 2px 8px rgba(0, 168, 132, 0.4)' : 'none';
+            }
+            return;
+        }
+
+        const dock = document.createElement('div');
+        dock.id = 'modstams-dock';
+        dock.style.cssText = [
             'position: fixed',
             'top: 10px',
-            'right: 80px',
+            'right: 96px',
             'z-index: 99999',
-            'cursor: pointer',
+            'display: inline-flex',
+            'align-items: center',
+            'gap: 4px',
+            'background: rgba(17, 27, 33, 0.90)',
+            'border: 1px solid rgba(255, 255, 255, 0.14)',
+            'border-radius: 20px',
+            'padding: 3px 5px',
+            'backdrop-filter: blur(16px)',
+            '-webkit-backdrop-filter: blur(16px)',
+            'box-shadow: 0 6px 22px rgba(0, 0, 0, 0.5), 0 0 1px rgba(255, 255, 255, 0.15)',
+            'font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+            'user-select: none',
+            'box-sizing: border-box',
+            'transition: border-color 0.2s ease, box-shadow 0.2s ease'
+        ].join(';');
+
+        // Restore user's custom dragged position if previously saved
+        try {
+            const savedPos = JSON.parse(safeGet('modstams_dock_pos', 'null'));
+            if (savedPos && typeof savedPos.x === 'number' && typeof savedPos.y === 'number') {
+                const maxX = Math.max(10, window.innerWidth - 240);
+                const maxY = Math.max(10, window.innerHeight - 50);
+                dock.style.left = Math.min(Math.max(10, savedPos.x), maxX) + 'px';
+                dock.style.top = Math.min(Math.max(8, savedPos.y), maxY) + 'px';
+                dock.style.right = 'auto';
+            }
+        } catch(e) {}
+
+        // 1. Drag Handle
+        const dragHandle = document.createElement('div');
+        dragHandle.id = 'modstams-dock-drag';
+        dragHandle.title = 'Tahan & geser untuk memindahkan dock • Klik 2x untuk reset posisi';
+        dragHandle.style.cssText = [
             'display: flex',
             'align-items: center',
-            'gap: 6px',
-            'background: rgba(0, 168, 132, 0.92)',
-            'color: #ffffff',
-            'padding: 7px 14px',
-            'border-radius: 20px',
-            'font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-            'font-size: 12px',
+            'justify-content: center',
+            'cursor: grab',
+            'padding: 0 4px 0 2px',
+            'opacity: 0.5',
+            'transition: opacity 0.15s ease'
+        ].join(';');
+        dragHandle.innerHTML = `
+            <svg width="8" height="14" viewBox="0 0 8 14" fill="#8696a0">
+                <circle cx="2" cy="2" r="1.2"/>
+                <circle cx="6" cy="2" r="1.2"/>
+                <circle cx="2" cy="7" r="1.2"/>
+                <circle cx="6" cy="7" r="1.2"/>
+                <circle cx="2" cy="12" r="1.2"/>
+                <circle cx="6" cy="12" r="1.2"/>
+            </svg>
+        `;
+        dragHandle.onmouseenter = () => dragHandle.style.opacity = '1';
+        dragHandle.onmouseleave = () => {
+            if (!isDraggingDock) dragHandle.style.opacity = '0.5';
+        };
+
+        // 2. Unread Filter Button
+        const unreadBtn = document.createElement('button');
+        unreadBtn.id = 'modstams-dock-unread';
+        unreadBtn.title = 'Filter hanya chat belum dibaca (Ctrl+Shift+U)';
+        unreadBtn.style.cssText = [
+            'display: flex',
+            'align-items: center',
+            'gap: 5px',
+            'border: none',
+            'outline: none',
+            'cursor: pointer',
+            'padding: 5px 9px',
+            'border-radius: 14px',
+            'font-size: 11px',
+            'font-weight: 600',
+            'font-family: inherit',
+            `background: ${unreadFilterActive ? '#00a884' : 'rgba(255, 255, 255, 0.06)'}`,
+            `color: ${unreadFilterActive ? '#ffffff' : '#8696a0'}`,
+            `box-shadow: ${unreadFilterActive ? '0 2px 8px rgba(0, 168, 132, 0.4)' : 'none'}`,
+            'transition: all 0.18s ease'
+        ].join(';');
+        unreadBtn.innerHTML = `
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+            <span>Unread</span>
+            <span id="modstams-unread-badge" style="background: rgba(255,255,255,0.22); border-radius: 9px; padding: 1px 6px; font-size: 10px; font-weight: 700; min-width: 12px; text-align: center;">0</span>
+        `;
+        unreadBtn.onmouseenter = () => {
+            if (!unreadFilterActive) {
+                unreadBtn.style.background = 'rgba(255, 255, 255, 0.12)';
+                unreadBtn.style.color = '#e9edef';
+            }
+        };
+        unreadBtn.onmouseleave = () => {
+            if (!unreadFilterActive) {
+                unreadBtn.style.background = 'rgba(255, 255, 255, 0.06)';
+                unreadBtn.style.color = '#8696a0';
+            }
+        };
+        unreadBtn.onclick = () => window.__modstams_toggleUnreadFilter();
+
+        // 3. Subtle Vertical Divider
+        const divider = document.createElement('div');
+        divider.style.cssText = 'width: 1px; height: 16px; background: rgba(255, 255, 255, 0.14); margin: 0 1px;';
+
+        // 4. ModsTams Launcher Button
+        const launcherBtn = document.createElement('button');
+        launcherBtn.id = 'modstams-dock-launcher';
+        launcherBtn.title = 'Buka Panel Kontrol ModsTams (Ctrl+Shift+M)';
+        launcherBtn.style.cssText = [
+            'display: flex',
+            'align-items: center',
+            'gap: 5px',
+            'border: none',
+            'outline: none',
+            'cursor: pointer',
+            'padding: 5px 12px',
+            'border-radius: 14px',
+            'font-size: 11px',
             'font-weight: 700',
             'letter-spacing: 0.3px',
-            'box-shadow: 0 4px 16px rgba(0,0,0,0.35)',
-            'backdrop-filter: blur(8px)',
-            'transition: transform 0.15s ease, background 0.15s ease',
-            'user-select: none'
+            'font-family: inherit',
+            'background: linear-gradient(135deg, #00a884 0%, #008f6f 100%)',
+            'color: #ffffff',
+            'box-shadow: 0 2px 10px rgba(0, 168, 132, 0.35)',
+            'transition: all 0.18s ease'
         ].join(';');
-        btn.innerHTML = `
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
-            <span>⚡ ModsTams</span>
+        launcherBtn.innerHTML = `
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+            <span>ModsTams</span>
         `;
-        btn.onmouseenter = () => {
-            btn.style.transform = 'scale(1.06)';
-            btn.style.background = '#00c59b';
+        launcherBtn.onmouseenter = () => {
+            launcherBtn.style.transform = 'scale(1.04)';
+            launcherBtn.style.filter = 'brightness(1.1)';
         };
-        btn.onmouseleave = () => {
-            btn.style.transform = 'scale(1)';
-            btn.style.background = 'rgba(0, 168, 132, 0.92)';
+        launcherBtn.onmouseleave = () => {
+            launcherBtn.style.transform = 'scale(1)';
+            launcherBtn.style.filter = 'none';
         };
-        btn.onclick = () => window.__waweb_toggleModCenter();
-        document.body.appendChild(btn);
+        launcherBtn.onclick = () => window.__waweb_toggleModCenter();
+
+        dock.appendChild(dragHandle);
+        dock.appendChild(unreadBtn);
+        dock.appendChild(divider);
+        dock.appendChild(launcherBtn);
+        document.body.appendChild(dock);
+
+        // Drag and drop event listeners
+        let isDraggingDock = false;
+        let dragOffsetX = 0;
+        let dragOffsetY = 0;
+
+        dragHandle.addEventListener('mousedown', (e) => {
+            isDraggingDock = true;
+            dragHandle.style.cursor = 'grabbing';
+            const rect = dock.getBoundingClientRect();
+            dragOffsetX = e.clientX - rect.left;
+            dragOffsetY = e.clientY - rect.top;
+            e.preventDefault();
+        });
+
+        window.addEventListener('mousemove', (e) => {
+            if (!isDraggingDock) return;
+            const x = Math.min(Math.max(10, e.clientX - dragOffsetX), window.innerWidth - dock.offsetWidth - 10);
+            const y = Math.min(Math.max(8, e.clientY - dragOffsetY), window.innerHeight - dock.offsetHeight - 10);
+            dock.style.left = x + 'px';
+            dock.style.top = y + 'px';
+            dock.style.right = 'auto';
+        });
+
+        window.addEventListener('mouseup', () => {
+            if (isDraggingDock) {
+                isDraggingDock = false;
+                dragHandle.style.cursor = 'grab';
+                const rect = dock.getBoundingClientRect();
+                safeSet('modstams_dock_pos', JSON.stringify({ x: rect.left, y: rect.top }));
+            }
+        });
+
+        dragHandle.addEventListener('dblclick', (e) => {
+            e.stopPropagation();
+            dock.style.left = 'auto';
+            dock.style.right = '96px';
+            dock.style.top = '10px';
+            safeSet('modstams_dock_pos', 'null');
+            showToast("Posisi Dock Direset", "Kembali ke kanan atas standar");
+        });
+    }
+
+    function injectModLauncher() {
+        injectModDock();
     }
 
     /* ==========================================================================
@@ -1573,8 +1726,7 @@
     function initModEnvironment() {
         applyCurrentTheme();
         applyBlurMediaStyles();
-        injectModLauncher();
-        injectUnreadFilterPill();
+        injectModDock();
     }
 
     if (document.readyState === 'loading') {
@@ -1586,8 +1738,7 @@
     setInterval(() => {
         try {
             if (!document.body) return;
-            injectModLauncher();
-            injectUnreadFilterPill();
+            injectModDock();
             injectViewOnceDownloader();
             injectStatusDownloader();
             watchAndPreserveMessages();
