@@ -1,6 +1,6 @@
-# WAwebTams - WhatsApp Web Ultra-Light Desktop Wrapper
+# WAwebTams - WhatsApp Web Ultra-Light + MOD Suite
 
-Desktop wrapper khusus untuk **WhatsApp Web** berbasis **Rust + Tauri v2** yang dirancang untuk menghemat konsumsi RAM secara drastis dibandingkan aplikasi resmi WhatsApp Desktop (Electron).
+Desktop wrapper khusus untuk **WhatsApp Web** berbasis **Rust + Tauri v2** yang dirancang untuk menghemat konsumsi RAM secara drastis dibandingkan aplikasi resmi WhatsApp Desktop (Electron), dilengkapi paket **Fitur Eksklusif WA MOD** yang aman dari banned akun.
 
 ---
 
@@ -10,51 +10,61 @@ Desktop wrapper khusus untuk **WhatsApp Web** berbasis **Rust + Tauri v2** yang 
    - Memanfaatkan Native Microsoft Edge WebView2 (Evergreen) bawaan Windows OS.
    - Tidak memuat instance Chromium utuh atau Node.js runtime terpisah.
    - Mengurangi penggunaan RAM hingga **70%–80%** dibandingkan WhatsApp Desktop resmi (~180–250MB vs ~800MB–1.2GB).
-2. **Notifikasi Download Berhasil (Media & Dokumen)**:
-   - Setiap kali foto, video, voice note, atau dokumen diunduh, muncul **Toast Notification Glassmorphic** modern di pojok kanan bawah.
-   - Dilengkapi **efek suara chime lembut** (disintesis via Web Audio API tanpa perlu file eksternal).
-   - Mengirim notifikasi native desktop Windows jika izin notifikasi aktif.
-3. **Privacy Mode / Anti-Intip (`Ctrl + B`)**:
-   - Fitur keamanan saat menggunakan laptop di cafe, kantor, atau tempat umum.
-   - Mengaburkan (blur) teks pesan dan preview media foto/video.
-   - Arahkan kursor mouse (hover) ke atas pesan untuk membacanya secara instan.
-4. **System Tray Integration**:
+2. **System Tray Integration**:
    - Icon WhatsApp di System Tray (pojok kanan bawah taskbar).
    - Klik kiri icon tray untuk memunculkan / menyembunyikan window secara instan.
-   - Klik kanan untuk menu cepat: *Tampilkan WhatsApp*, *Sembunyikan ke Tray*, *Toggle Privacy Mode*, *Muat Ulang (Reload)*, dan *Keluar Sepenuhnya*.
-5. **Minimize-to-Tray on Close**:
-   - Menekan tombol **Close (X)** tidak akan mematikan aplikasi, melainkan menyembunyikannya ke System Tray agar notifikasi tetap standby di latar belakang.
-6. **Desktop User-Agent Spoofing**:
-   - Menggunakan header User-Agent Chrome Desktop modern agar WhatsApp Web tidak memunculkan peringatan browser usang.
-7. **Persistent Session & Storage**:
+   - Klik kanan untuk menu cepat: akses semua fitur mod, reload, dan minimize.
+3. **Minimize-to-Tray on Close**:
+   - Menekan tombol **Close (X)** tidak mematikan aplikasi, melainkan menyembunyikannya ke System Tray agar notifikasi tetap standby di latar belakang.
+4. **Persistent Session & Storage**:
    - Sesi login QR tersimpan permanen di direktori AppData user. Tidak perlu scan QR ulang setiap kali membuka aplikasi.
-8. **Single Instance**:
+5. **Single Instance**:
    - Mencegah aplikasi terbuka ganda. Jika aplikasi dibuka lagi, window yang sudah ada akan otomatis difokuskan ke depan.
+
+---
+
+## 🚀 6 Fitur Eksklusif WA MOD Suite
+
+Semua fitur ini berjalan murni di sisi client laptop (*DOM/JS injection*) sehingga **100% aman dan tidak berisiko banned akun**:
+
+| Fitur MOD | Shortcut | Deskripsi |
+| :--- | :--- | :--- |
+| **🔓 Anti View-Once (Bypass 1x Lihat)** | *Otomatis* | Media foto/video "1x lihat" bisa dibuka berkali-kali dan muncul tombol **"Simpan Media"** untuk langsung mendownloadnya. Klik kanan juga diaktifkan. |
+| **📲 Direct Chat (Tanpa Simpan Nomor)** | `Ctrl + M` | Membuka modal cepat untuk langsung memulai obrolan ke nomor mana pun (misal `08123456789`) tanpa perlu simpan kontak di HP. |
+| **📥 Status / Story Saver** | *Otomatis* | Tombol mengambang **"Unduh Story Ini"** muncul saat menonton status foto/video teman untuk menyimpan ke laptop dengan 1 klik. |
+| **👻 Ghost Typing (Sembunyikan Mengetik)** | `Ctrl + Shift + T` | Mencegah status *"Sedang mengetik..."* terkirim ke lawan bicara. Kamu bisa mengetik pesan dengan tenang tanpa ketahuan. |
+| **🚫 Anti-Delete Messages (Anti-Tarik)** | *Otomatis* | Jika seseorang menarik pesan (*Delete for Everyone*), teks pesan asli tetap ditampilkan dengan tanda merah: `🚫 PESAN DITARIK PENGIRIM`. |
+| **🖤 Ultra Dark OLED Mode (Hitam Pekat)** | `Ctrl + Shift + O` | Mengubah tema WhatsApp Web menjadi warna murni hitam pekat (`#000000`) untuk menghemat baterai layar laptop OLED dan nyaman di mata. |
+| **🛡️ Privacy Mode (Anti-Intip / Blur)** | `Ctrl + B` | Mengaburkan semua teks chat & foto di layar sampai kursor mouse diarahkan (*hover*) ke atasnya. Aman dipakai di cafe/kantor. |
+| **🔔 Notifikasi Download Berhasil** | *Otomatis* | Toast notification glassmorphic dengan nada chime halus setiap kali ada media/file yang berhasil diunduh. |
+
+---
+
+## ⌨️ Daftar Lengkap Shortcut Keyboard
+
+- `Ctrl + M` : Buka modal **Direct Chat** (Kirim pesan tanpa simpan nomor).
+- `Ctrl + B` : Toggle **Privacy Mode** (Anti-intip / Blur chat).
+- `Ctrl + Shift + O` : Toggle **Ultra Dark OLED Mode** (Hitam pekat).
+- `Ctrl + Shift + T` : Toggle **Ghost Typing** (Sembunyikan status sedang mengetik).
+- `F5` atau `Ctrl + R` : Memuat ulang halaman WhatsApp Web.
+- `Alt + F4` atau `Tombol X` : Menyembunyikan aplikasi ke System Tray.
 
 ---
 
 ## 🚀 Cara Menjalankan
 
 ### 1. Langsung Buka Aplikasi (Instan)
-Klik ganda file **`start-app.bat`**. Aplikasi langsung terbuka tanpa menunggu kompilasi.
+Cukup klik ganda file **`start-app.bat`**.
 
-### 2. Menjalankan dalam Mode Development
-Klik ganda file **`run-dev.bat`** atau jalankan perintah:
+### 2. Mode Development
+Jalankan file **`run-dev.bat`** atau perintah:
 ```bash
 npm run dev
 ```
 
-### 3. Membangun Binary Standalone Release (.exe)
-Klik ganda file **`build-release.bat`** atau jalankan perintah:
+### 3. Kompilasi Binary Standalone (.exe)
+Jalankan file **`build-release.bat`** atau perintah:
 ```bash
 npm run build
 ```
 File executable (.exe) akan dihasilkan di: `%USERPROFILE%\.cargo-target\waweb-tams\release\waweb-tams.exe`.
-
----
-
-## ⌨️ Shortcut Keyboard
-
-- `Ctrl + B` : Toggle **Privacy Mode** (Anti-intip / Blur chat).
-- `F5` atau `Ctrl + R` : Memuat ulang halaman WhatsApp Web.
-- `Alt + F4` atau `Tombol X` : Menyembunyikan aplikasi ke System Tray.

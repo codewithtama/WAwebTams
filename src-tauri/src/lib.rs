@@ -39,13 +39,37 @@ pub fn run() {
                 None::<&str>,
             )?;
             let sep1 = PredefinedMenuItem::separator(app)?;
-            let privacy_item = MenuItem::with_id(
+
+            let direct_item = MenuItem::with_id(
                 app,
-                "privacy",
-                "Toggle Privacy Mode (Ctrl+B)",
+                "direct",
+                "🚀 Chat Nomor Baru (Ctrl+M)",
                 true,
                 None::<&str>,
             )?;
+            let privacy_item = MenuItem::with_id(
+                app,
+                "privacy",
+                "🛡️ Toggle Privacy Mode (Ctrl+B)",
+                true,
+                None::<&str>,
+            )?;
+            let oled_item = MenuItem::with_id(
+                app,
+                "oled",
+                "🖤 Toggle Ultra Dark OLED",
+                true,
+                None::<&str>,
+            )?;
+            let ghost_item = MenuItem::with_id(
+                app,
+                "ghost",
+                "👻 Toggle Ghost Typing",
+                true,
+                None::<&str>,
+            )?;
+
+            let sep2 = PredefinedMenuItem::separator(app)?;
             let reload_item = MenuItem::with_id(
                 app,
                 "reload",
@@ -53,7 +77,7 @@ pub fn run() {
                 true,
                 None::<&str>,
             )?;
-            let sep2 = PredefinedMenuItem::separator(app)?;
+            let sep3 = PredefinedMenuItem::separator(app)?;
             let quit_item = MenuItem::with_id(
                 app,
                 "quit",
@@ -68,9 +92,13 @@ pub fn run() {
                     &show_item,
                     &hide_item,
                     &sep1,
+                    &direct_item,
                     &privacy_item,
-                    &reload_item,
+                    &oled_item,
+                    &ghost_item,
                     &sep2,
+                    &reload_item,
+                    &sep3,
                     &quit_item,
                 ],
             )?;
@@ -94,10 +122,34 @@ pub fn run() {
                                 let _ = window.hide();
                             }
                         }
+                        "direct" => {
+                            if let Some(window) = app.get_webview_window("main") {
+                                let _ = window.show();
+                                let _ = window.unminimize();
+                                let _ = window.set_focus();
+                                let _ = window.eval(
+                                    "window.__waweb_openDirectChatModal && window.__waweb_openDirectChatModal()",
+                                );
+                            }
+                        }
                         "privacy" => {
                             if let Some(window) = app.get_webview_window("main") {
                                 let _ = window.eval(
                                     "window.__waweb_togglePrivacy && window.__waweb_togglePrivacy()",
+                                );
+                            }
+                        }
+                        "oled" => {
+                            if let Some(window) = app.get_webview_window("main") {
+                                let _ = window.eval(
+                                    "window.__waweb_toggleOled && window.__waweb_toggleOled()",
+                                );
+                            }
+                        }
+                        "ghost" => {
+                            if let Some(window) = app.get_webview_window("main") {
+                                let _ = window.eval(
+                                    "window.__waweb_toggleGhostTyping && window.__waweb_toggleGhostTyping()",
                                 );
                             }
                         }
