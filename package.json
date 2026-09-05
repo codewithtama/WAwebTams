@@ -1,0 +1,13 @@
+{
+  "name": "waweb-tams",
+  "version": "1.0.0",
+  "description": "Ultra-lightweight WhatsApp Web desktop wrapper built with Rust and Tauri v2",
+  "private": true,
+  "scripts": {
+    "dev": "tauri dev",
+    "build": "tauri build"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2.3.1"
+  }
+}

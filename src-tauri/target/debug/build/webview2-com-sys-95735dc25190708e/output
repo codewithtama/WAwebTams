@@ -1,0 +1,2 @@
+cargo:rustc-link-search=native=C:\Users\tamav\Desktop\PROYEK\WAwebTams\src-tauri\target\debug\build\webview2-com-sys-95735dc25190708e\out\x64
+cargo:rustc-link-lib=advapi32
