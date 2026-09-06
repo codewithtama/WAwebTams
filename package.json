@@ -5,7 +5,12 @@
   "private": true,
   "scripts": {
     "dev": "tauri dev",
-    "build": "tauri build"
+    "build": "tauri build",
+    "build:portable": "cargo build --manifest-path src-tauri/Cargo.toml --release",
+    "lint": "cargo clippy --manifest-path src-tauri/Cargo.toml -- -D warnings",
+    "fmt": "cargo fmt --manifest-path src-tauri/Cargo.toml",
+    "fmt:check": "cargo fmt --manifest-path src-tauri/Cargo.toml -- --check",
+    "clean": "cargo clean --manifest-path src-tauri/Cargo.toml"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2.3.1"

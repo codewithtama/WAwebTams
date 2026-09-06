@@ -1,83 +1,150 @@
-# ModsTams - Ultra-Light Desktop Client & Mod Suite
+# ModsTams &mdash; Enterprise Ultra-Light Desktop Client
 
-Aplikasi desktop wrapper ultra-ringan berbasis **Rust + Tauri v2** yang dirancang untuk menghemat konsumsi RAM secara drastis, dilengkapi paket **Fitur Eksklusif ModsTams** yang aman dan stabil.
+[![CI](https://github.com/codewithtama/WAwebTams/actions/workflows/ci.yml/badge.svg)](https://github.com/codewithtama/WAwebTams/actions/workflows/ci.yml)
+[![Rust](https://img.shields.io/badge/Rust-1.78%2B-orange.svg?logo=rust)](https://www.rust-lang.org/)
+[![Tauri](https://img.shields.io/badge/Tauri-v2-24C8DB.svg?logo=tauri)](https://v2.tauri.app/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Platform](https://img.shields.io/badge/Platform-Windows%2010%20%2F%2011-0078D6.svg?logo=windows)](https://microsoft.com/windows)
 
----
-
-## Fitur Utama & Optimasi Performa
-
-1. **Ultra-Low Memory Footprint**:
-   - Memanfaatkan Native Microsoft Edge WebView2 (Evergreen) bawaan Windows OS.
-   - Tidak memuat instance Chromium utuh atau Node.js runtime terpisah.
-   - Mengurangi penggunaan RAM hingga **70%–80%** dibandingkan WhatsApp Desktop resmi (~180–250MB vs ~800MB–1.2GB).
-2. **System Tray Integration**:
-   - Icon WhatsApp di System Tray (pojok kanan bawah taskbar).
-   - Klik kiri icon tray untuk memunculkan / menyembunyikan window secara instan.
-   - Klik kanan untuk menu cepat: akses semua fitur mod, reload, dan minimize.
-3. **Minimize-to-Tray on Close**:
-   - Menekan tombol **Close (X)** tidak mematikan aplikasi, melainkan menyembunyikannya ke System Tray agar notifikasi tetap standby di latar belakang.
-4. **Persistent Session & Storage**:
-   - Sesi login QR tersimpan permanen di direktori AppData user. Tidak perlu scan QR ulang setiap kali membuka aplikasi.
-5. **Single Instance**:
-   - Mencegah aplikasi terbuka ganda. Jika aplikasi dibuka lagi, window yang sudah ada akan otomatis difokuskan ke depan.
+A high-performance, ultra-lightweight desktop client wrapper for WhatsApp Web engineered with **Rust** and **Tauri v2**. Designed to slash memory consumption by **70%–80%** compared to standard Electron/Chromium distributions while providing an enterprise-grade productivity mod suite.
 
 ---
 
-## Fitur Eksklusif ModsTams Suite
+## Technical Architecture
 
-Semua fitur ini bisa diakses langsung melalui **Dock Mengambang `ModsTams` di kanan atas layar**, klik kanan icon System Tray, maupun shortcut keyboard:
-
-| Fitur MOD | Shortcut | Deskripsi |
-| :--- | :--- | :--- |
-| **Filter Chat Belum Dibaca (Unread Only)** | `Ctrl + Shift + U` | Saring hanya obrolan yang memiliki pesan belum dibaca dalam 1-klik (dilengkapi tombol pill mengambang). |
-| **Auto-Blur Media Saja (Sensor Foto/Video)** | `Ctrl + Shift + B` | Sensor khusus foto, video, stiker & avatar (hover untuk melihat), teks pesan tetap terbaca normal. |
-| **Anti-Centang Biru (Ghost Read)** | `Ctrl + Shift + G` | Bebas baca chat tanpa memicu centang biru di HP pengirim (tetap centang abu-abu dua). |
-| **Ghost Typing (Sembunyikan Mengetik)** | `Ctrl + Shift + T` | Mencegah status *"Sedang mengetik..."* terkirim ke lawan bicara. |
-| **Anti-Delete Messages & Log History** | *Otomatis* | Pesan yang ditarik tetap muncul di bubble chat dan dicatat ke tab **Log Pesan Ditarik** di Control Center. |
-| **Anti View-Once (Bypass 1x Lihat)** | *Otomatis* | Media foto/video 1x lihat bisa dibuka berkali-kali dan langsung diunduh dengan tombol Simpan Media. |
-| **Direct Chat (Tanpa Simpan Nomor)** | `Ctrl + M` | Membuka modal cepat untuk langsung kirim pesan ke nomor baru tanpa simpan kontak. |
-| **Status / Story Saver** | *Otomatis* | Tombol mengambang **"Unduh Story Ini"** muncul saat menonton status teman. |
-| **Multi-Theme & Accent Colors** | `Ctrl + Shift + O` | Pilihan tema *Emerald, Cyberpunk Neon, Midnight Sapphire, Sunset Crimson, dan Ultra Dark OLED*. |
-| **App Lock & PIN Security** | `Ctrl + L` | Kunci layar aplikasi dengan PIN 4-digit custom saat laptop ditinggalkan. |
-| **Voice Note Super Speed & Booster** | *Otomatis* | Kontrol percepatan audio VN hingga 3.0x dan pengeras volume hingga +200%. |
-| **Text Repeater & Fancy Font** | *Di Control Center* | Gandakan pesan instan (*Boom Text*) dan ubah font teks menjadi aesthetic (*Bold, Italic, Monospace, Bubble*). |
-| **Anti-Call Auto-Mute** | *Di Control Center* | Otomatis menolak / meredam panggilan masuk agar tidak mengganggu aktivitas. |
-| **Full Privacy Mode (Blur Chat)** | `Ctrl + B` | Mengaburkan semua teks chat & foto di layar sampai kursor mouse diarahkan (*hover*). |
-
----
-
-## Daftar Lengkap Shortcut Keyboard
-
-- `Ctrl + Shift + U` : Toggle **Filter Chat Belum Dibaca** (Unread Only).
-- `Ctrl + Shift + B` : Toggle **Auto-Blur Media Saja** (Sensor foto & video).
-- `Ctrl + Shift + G` : Toggle **Anti-Centang Biru / Ghost Read** (Sembunyikan status baca).
-- `Ctrl + Shift + T` : Toggle **Ghost Typing** (Sembunyikan status sedang mengetik).
-- `Ctrl + Shift + M` : Buka **ModsTams Control Center** (Panel Pengaturan Lengkap).
-- `Ctrl + Shift + O` : Toggle **Ultra Dark OLED Mode** (Hitam pekat).
-- `Ctrl + M` : Buka modal **Direct Chat** (Kirim pesan tanpa simpan nomor).
-- `Ctrl + B` : Toggle **Full Privacy Mode** (Blur seluruh chat & media).
-- `Ctrl + L` : **Kunci Aplikasi (App Lock PIN)** seketika.
-- `F5` atau `Ctrl + R` : Memuat ulang halaman.
-- `Tombol X` : Menyembunyikan aplikasi ke System Tray (standby di latar belakang).
-
----
-
-## Cara Menjalankan
-
-### 1. Buka Langsung File Executable (Stand-Alone .EXE)
-
-Cukup **klik ganda file `ModsTams.exe`** yang sudah ada di folder ini!
-File biner ini sepenuhnya mandiri (standalone), portabel, dan tidak memerlukan Node.js atau compiler lagi.
-
-### 2. Melalui Launcher Cepat
-
-Klik ganda file **`start-app.bat`**.
-
-### 3. Mode Development
-
-Jalankan file **`run-dev.bat`** atau perintah:
-
-```bash
-npm run dev
+```
++-------------------------------------------------------------------------+
+|                              ModsTams Host                              |
++-----------------------------------+-------------------------------------+
+|         Rust Native Host          |      Native WebView2 Runtime        |
+|  - Single Instance Mutex          |  - Memory Capped V8 Heap (256MB)    |
+|  - System Tray Management         |  - Strict Disk & Media Cache (32MB) |
+|  - Win32 Working-Set RAM Trimmer  |  - Injected Mod Suite (Assets)      |
++-----------------------------------+-------------------------------------+
+                                    |
+                                    v
+                     +-----------------------------+
+                     |   https://web.whatsapp.com  |
+                     +-----------------------------+
 ```
 
+### Architecture Highlights:
+- **Zero Heavy Runtime**: Uses native Microsoft Edge WebView2 (Evergreen) built into Windows OS. No separate Chromium or Node.js runtime process.
+- **Aggressive RAM Management**:
+  - Chromium V8 JavaScript heap is hard-capped to `256MB` (`--max-old-space-size=256`).
+  - Active working set is automatically reclaimed using Win32 `SetProcessWorkingSetSize` every 3 minutes.
+  - Idle footprint: **~180MB–250MB** (vs. ~800MB–1.2GB on official client).
+- **Decoupled Modularity**:
+  - `src-tauri/src/memory.rs`: Windows FFI memory optimization worker.
+  - `src-tauri/src/tray.rs`: System tray icon, interactive context menu, and IPC dispatcher.
+  - `src-tauri/src/window.rs`: Window configuration, script injection, and minimize-to-tray lifecycle.
+  - `src-tauri/assets/`: Encapsulated frontend enhancements injected at compile time.
+
+---
+
+## Repository Structure
+
+```
+WAwebTams/
+├── .github/
+│   └── workflows/
+│       └── ci.yml               # GitHub Actions CI validation
+├── scripts/                     # Build and execution automation
+│   ├── build-release.bat        # Production release compiler
+│   ├── run-dev.bat              # Development server runner
+│   └── start-app.bat            # Application launcher
+├── src-tauri/                   # Rust native backend
+│   ├── assets/
+│   │   └── enhancements.js      # Injected productivity & mod suite script
+│   ├── capabilities/
+│   │   └── default.json         # Tauri v2 security ACL capabilities
+│   ├── icons/                   # Cross-platform application icons
+│   ├── src/
+│   │   ├── lib.rs               # Core application orchestrator (<30 lines)
+│   │   ├── main.rs              # Executable entry point with V8 flags
+│   │   ├── memory.rs            # Windows FFI working-set trimmer
+│   │   ├── tray.rs              # System tray construction & event routing
+│   │   └── window.rs            # Window lifecycle & minimize interception
+│   ├── .cargo/
+│   │   └── config.toml          # Portable build flags
+│   ├── Cargo.toml               # Optimized release profile (LTO, strip)
+│   └── tauri.conf.json          # Tauri application manifest
+├── ui/
+│   └── index.html               # Initial offline loading screen
+├── .editorconfig                # Universal indentation and encoding standards
+├── .gitattributes               # Line-ending normalizations
+├── .gitignore                   # Enterprise git exclusion patterns
+├── CHANGELOG.md                 # Semantic versioning release log
+├── CONTRIBUTING.md              # Engineering guidelines & PR checklist
+├── LICENSE                      # MIT Open-Source License
+├── package.json                 # Standardized developer lifecycle scripts
+├── README.md                    # Technical documentation
+└── SECURITY.md                  # Vulnerability disclosure policy
+```
+
+---
+
+## ModsTams Suite Features
+
+| Mod Feature | Shortcut | Description |
+| :--- | :--- | :--- |
+| **Filter Chat Belum Dibaca** | `Ctrl + Shift + U` | Saring hanya percakapan yang memiliki pesan unread dalam 1-klik. |
+| **Auto-Blur Media Saja** | `Ctrl + Shift + B` | Sensor otomatis untuk foto, video, avatar, dan stiker (hover untuk intip). |
+| **Anti-Centang Biru (Ghost Read)** | `Ctrl + Shift + G` | Membaca pesan tanpa mengirim laporan terbaca (*read receipts*). |
+| **Ghost Typing** | `Ctrl + Shift + T` | Menyembunyikan indikator *"Sedang mengetik..."*. |
+| **Anti-Delete & Log History** | *Otomatis* | Pesan yang ditarik pengirim tetap terlihat dan dicatat ke audit log. |
+| **Anti View-Once (Bypass 1x Lihat)** | *Otomatis* | Media 1x lihat dapat dibuka berulang kali dan diunduh langsung. |
+| **Direct Chat** | `Ctrl + M` | Kirim pesan instan ke nomor baru tanpa perlu menyimpan ke kontak. |
+| **Status Saver** | *Otomatis* | Tombol unduh otomatis saat melihat status/story kontak. |
+| **Multi-Theme & Ultra Dark OLED** | `Ctrl + Shift + O` | Berbagai tema warna termasuk Emerald, Cyberpunk, OLED Midnight. |
+| **App Lock & PIN Security** | `Ctrl + L` | Kunci layar aplikasi seketika dengan PIN 4-digit kustom. |
+| **Voice Note Speed & Booster** | *Otomatis* | Percepatan audio VN hingga 3.0x dan penguat volume hingga +200%. |
+
+---
+
+## Getting Started
+
+### Prerequisites
+- [Rust Toolchain (cargo)](https://rustup.rs/)
+- [Node.js (LTS)](https://nodejs.org/)
+- Visual Studio C++ Build Tools (MSVC)
+
+### Development
+Jalankan dev server dengan hot-reloading:
+```bash
+npm run dev
+# atau: scripts\run-dev.bat
+```
+
+### Production Release Build
+Kompilasi binary release portabel yang dioptimasi (LTO + Strip):
+```bash
+npm run build:portable
+# atau: scripts\build-release.bat
+```
+Hasil executable mandiri akan dibuat di direktori utama: `ModsTams.exe`.
+
+### Code Quality & Standards
+```bash
+# Format Rust code
+npm run fmt
+
+# Check Rust code format without altering files
+npm run fmt:check
+
+# Run strict Clippy linter
+npm run lint
+```
+
+---
+
+## Quality Gates & CI/CD
+Semua *Pull Request* dan *push* ke branch `main` harus melewati pipeline CI:
+1. **Formatting**: `cargo fmt --check` (0 diffs).
+2. **Static Analysis**: `cargo clippy -- -D warnings` (0 warnings).
+3. **Compilation**: Clean release build on `windows-latest`.
+
+---
+
+## License
+Didistribusikan di bawah lisensi [MIT](LICENSE).
