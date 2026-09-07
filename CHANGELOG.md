@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - **Recursive Child-Process Memory Trimming**: Windows FFI snapshot enumerating and trimming physical memory (`SetProcessWorkingSetSize`) across all `msedgewebview2.exe` renderer and GPU child processes, slashing idle RAM to **~60MB–85MB**.
+- **Native Always On Top (`Ctrl+Shift+P`)**: Pin window on top of games, IDEs, and browser windows via native Win32 window flags, hotkey, and tray menu.
+- **Inactivity Auto-Lock Security**: Zero-overhead idle monitor automatically engaging 4-digit PIN lock when inactive for 2, 5, or 10 minutes.
 - **Low-Overhead Chromium Browser Flags**: Injected `--disable-background-networking`, `--disable-domain-reliability`, `--disable-component-update`, `--disable-speech-api`, `--enable-gpu-rasterization`, and `--enable-zero-copy` via `WEBVIEW2_ADDITIONAL_BROWSER_ARGS`.
 - **Seamless Native Header Integration**: Injected modern SVG button directly into the WhatsApp Web top navbar, replacing floating draggable widget overlays and eliminating global mouse drag listeners.
 - **ModsTams Quick HUD**: Redesigned Control Center into an ultra-compact single-view popover with instant response and zero tab bloat.

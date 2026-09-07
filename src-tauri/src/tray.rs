@@ -22,6 +22,13 @@ pub fn setup_tray(app: &tauri::App) -> Result<(), Box<dyn std::error::Error>> {
         None::<&str>,
     )?;
     let lock_item = MenuItem::with_id(app, "lock", "Kunci ModsTams (Ctrl+L)", true, None::<&str>)?;
+    let pin_item = MenuItem::with_id(
+        app,
+        "pin",
+        "Pin Selalu di Atas (Ctrl+Shift+P)",
+        true,
+        None::<&str>,
+    )?;
     let sep1 = PredefinedMenuItem::separator(app)?;
 
     let direct_item = MenuItem::with_id(
@@ -74,6 +81,7 @@ pub fn setup_tray(app: &tauri::App) -> Result<(), Box<dyn std::error::Error>> {
             &hide_item,
             &control_item,
             &lock_item,
+            &pin_item,
             &sep1,
             &direct_item,
             &privacy_item,
@@ -138,6 +146,19 @@ fn handle_menu_action(app: &AppHandle, action_id: &str) {
             if let Some(window) = main_window {
                 focus_window(&window);
                 let _ = window.eval("window.__modstams_lockApp && window.__modstams_lockApp()");
+            }
+        }
+        "pin" => {
+            if let Some(window) = main_window {
+                if let Ok(current) = window.is_always_on_top() {
+                    let next = !current;
+                    let _ = window.set_always_on_top(next);
+                    let js = format!(
+                        "window.__modstams_onPinToggled && window.__modstams_onPinToggled({})",
+                        next
+                    );
+                    let _ = window.eval(&js);
+                }
             }
         }
         "direct" => {

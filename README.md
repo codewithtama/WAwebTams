@@ -95,6 +95,8 @@ WAwebTams/
 | **Anti-Centang Biru (Ghost Read)** | `Ctrl + Shift + G` | Membaca pesan tanpa mengirim laporan terbaca (*read receipts*). |
 | **Ghost Typing** | `Ctrl + Shift + T` | Menyembunyikan indikator *"Sedang mengetik..."*. |
 | **Direct Chat** | `Ctrl + M` | Kirim pesan instan ke nomor baru tanpa perlu menyimpan ke kontak. |
+| **Pin Window (Always on Top)** | `Ctrl + Shift + P` | Pin jendela ModsTams agar selalu melayang di atas aplikasi lain saat multitasking. |
+| **Auto-Lock Saat Ditinggal** | *Otomatis* | Kunci layar aplikasi otomatis dengan PIN jika tidak ada aktivitas (2m, 5m, 10m). |
 | **App Lock & PIN Security** | `Ctrl + L` | Kunci layar aplikasi seketika dengan PIN 4-digit kustom. |
 | **Ultra Dark OLED Mode** | `Ctrl + Shift + O` | Mode Hitam Pekat Murni `#000000` hemat daya monitor/laptop dan kontras tinggi. |
 | **Status Saver & View-Once** | *Otomatis* | Tombol unduh otomatis saat melihat status/story kontak dan media 1x lihat (zero-polling). |

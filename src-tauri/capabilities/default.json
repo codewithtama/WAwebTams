@@ -5,5 +5,8 @@
   "windows": ["main"],
   "permissions": [
     "core:default"
-  ]
+  ],
+  "remote": {
+    "urls": ["https://web.whatsapp.com"]
+  }
 }

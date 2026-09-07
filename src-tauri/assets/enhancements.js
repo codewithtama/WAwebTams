@@ -456,10 +456,72 @@
     };
 
     /* ==========================================================================
-       6. APP LOCK & PIN SECURITY (Ctrl+L)
+       6. APP LOCK & AUTO-LOCK PIN SECURITY (Ctrl+L)
        ========================================================================== */
     let appPin = safeGet('modstams_app_pin', '');
     let isAppLocked = false;
+    let autoLockMinutes = parseInt(safeGet('modstams_autolock_minutes', '5')) || 0;
+    let lastActivityTime = Date.now();
+
+    function registerActivity() {
+        lastActivityTime = Date.now();
+    }
+
+    ['mousemove', 'keydown', 'mousedown', 'touchstart', 'scroll'].forEach(evt => {
+        window.addEventListener(evt, registerActivity, { passive: true });
+    });
+
+    // Zero-overhead inactivity checker (runs every 10s)
+    setInterval(() => {
+        if (autoLockMinutes > 0 && appPin && !isAppLocked) {
+            const elapsedMinutes = (Date.now() - lastActivityTime) / 60000;
+            if (elapsedMinutes >= autoLockMinutes) {
+                window.__modstams_lockApp();
+                showToast("Kunci Otomatis", `Layar terkunci karena idle ${autoLockMinutes} menit`, null, "#ffaa00");
+            }
+        }
+    }, 10000);
+
+    /* ==========================================================================
+       6B. ALWAYS ON TOP / WINDOW PIN (Ctrl+Shift+P)
+       ========================================================================== */
+    let isWindowPinned = false;
+
+    window.__modstams_toggleAlwaysOnTop = async function() {
+        try {
+            if (window.__TAURI__ && window.__TAURI__.core && window.__TAURI__.core.invoke) {
+                isWindowPinned = await window.__TAURI__.core.invoke('toggle_always_on_top');
+            } else {
+                isWindowPinned = !isWindowPinned;
+            }
+        } catch(e) {
+            isWindowPinned = !isWindowPinned;
+        }
+        showToast(
+            isWindowPinned ? "Pin Window Aktif" : "Pin Window Nonaktif",
+            isWindowPinned ? "Jendela melayang selalu di atas aplikasi lain (Ctrl+Shift+P)" : "Jendela berjalan normal",
+            `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="${isWindowPinned ? '#00e5ff' : '#8696a0'}" stroke-width="2.2"><circle cx="12" cy="12" r="3"></circle><path d="M12 2v3m0 14v3M2 12h3m14 0h3"></path></svg>`,
+            isWindowPinned ? "#00e5ff" : "#8696a0"
+        );
+        const pinSwitch = document.getElementById('sw-pin-window');
+        if (pinSwitch) {
+            pinSwitch.innerHTML = renderSwitch('sw-btn-pin', isWindowPinned);
+        }
+    };
+
+    window.__modstams_onPinToggled = function(pinned) {
+        isWindowPinned = pinned;
+        showToast(
+            isWindowPinned ? "Pin Window Aktif" : "Pin Window Nonaktif",
+            isWindowPinned ? "Jendela melayang selalu di atas aplikasi lain (Ctrl+Shift+P)" : "Jendela berjalan normal",
+            null,
+            isWindowPinned ? "#00e5ff" : "#8696a0"
+        );
+        const pinSwitch = document.getElementById('sw-pin-window');
+        if (pinSwitch) {
+            pinSwitch.innerHTML = renderSwitch('sw-btn-pin', isWindowPinned);
+        }
+    };
 
     function renderLockOverlay() {
         if (!document.body) return;
@@ -976,6 +1038,14 @@
                             </div>
                             <div id="sw-oled">${renderSwitch('sw-btn-oled', currentTheme === 'oled')}</div>
                         </div>
+
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.06);">
+                            <div>
+                                <div style="font-weight: 600; font-size: 12px; color: #e9edef;">Pin Selalu di Atas (Always on Top)</div>
+                                <div style="font-size: 10px; color: #8696a0;">Melayang di atas aplikasi lain (Ctrl+Shift+P)</div>
+                            </div>
+                            <div id="sw-pin-window">${renderSwitch('sw-btn-pin', isWindowPinned)}</div>
+                        </div>
                     </div>
 
                     <!-- Section 3: Quick Tools & Lock -->
@@ -988,6 +1058,19 @@
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
                             Kunci Layar (Ctrl+L)
                         </button>
+                    </div>
+
+                    <!-- Inactivity Auto-Lock selector -->
+                    <div style="background: #182229; padding: 10px 12px; border-radius: 10px; display: flex; flex-direction: column; gap: 6px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div style="font-weight: 600; font-size: 12px; color: #e9edef;">Kunci Otomatis Saat Ditinggal</div>
+                            <div id="val-autolock-hud" style="font-size: 11px; font-weight: 700; color: #00a884;">${autoLockMinutes > 0 ? autoLockMinutes + ' Menit' : 'Mati'}</div>
+                        </div>
+                        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px;">
+                            ${[0, 2, 5, 10].map(m => `
+                                <button class="btn-autolock" data-min="${m}" style="padding: 6px 0; font-size: 11px; font-weight: 600; border-radius: 6px; border: 1px solid ${autoLockMinutes === m ? '#00a884' : 'rgba(255,255,255,0.08)'}; background: ${autoLockMinutes === m ? 'rgba(0, 168, 132, 0.2)' : '#202c33'}; color: ${autoLockMinutes === m ? '#00a884' : '#8696a0'}; cursor: pointer; transition: all 0.15s ease;">${m === 0 ? 'Mati' : m + 'm'}</button>
+                            `).join('')}
+                        </div>
                     </div>
 
                     <!-- Quick PIN setup -->
@@ -1063,6 +1146,28 @@
             window.__waweb_toggleOled();
             modal.querySelector('#sw-oled').innerHTML = renderSwitch('sw-btn-oled', currentTheme === 'oled');
         };
+        modal.querySelector('#sw-pin-window').onclick = () => {
+            window.__modstams_toggleAlwaysOnTop();
+        };
+
+        // Auto-Lock Selector Buttons
+        modal.querySelectorAll('.btn-autolock').forEach(btn => {
+            btn.onclick = () => {
+                const m = parseInt(btn.getAttribute('data-min')) || 0;
+                autoLockMinutes = m;
+                safeSet('modstams_autolock_minutes', m);
+                lastActivityTime = Date.now();
+                modal.querySelectorAll('.btn-autolock').forEach(b => {
+                    const bm = parseInt(b.getAttribute('data-min')) || 0;
+                    b.style.borderColor = bm === m ? '#00a884' : 'rgba(255,255,255,0.08)';
+                    b.style.background = bm === m ? 'rgba(0, 168, 132, 0.2)' : '#202c33';
+                    b.style.color = bm === m ? '#00a884' : '#8696a0';
+                });
+                const label = modal.querySelector('#val-autolock-hud');
+                if (label) label.innerText = m > 0 ? `${m} Menit` : 'Mati';
+                showToast("Auto-Lock Diatur", m > 0 ? `Kunci otomatis aktif setelah ${m} menit idle` : "Kunci otomatis dinonaktifkan", null, m > 0 ? '#00a884' : '#8696a0');
+            };
+        });
 
         // Quick Tools
         modal.querySelector('#btn-direct-chat').onclick = () => {
@@ -1123,6 +1228,11 @@
             e.preventDefault();
             window.__waweb_toggleModCenter();
         }
+        // Ctrl+Shift+P: Toggle Always on Top
+        if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'p') {
+            e.preventDefault();
+            window.__modstams_toggleAlwaysOnTop();
+        }
         // Ctrl+Shift+U: Unread Filter
         if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'u') {
             e.preventDefault();
@@ -1158,6 +1268,12 @@
         applyPrivacyStyles();
         injectNativeHeaderButton();
         if (unreadFilterActive) applyUnreadCssFilter();
+
+        if (window.__TAURI__ && window.__TAURI__.core && window.__TAURI__.core.invoke) {
+            window.__TAURI__.core.invoke('is_always_on_top').then(val => {
+                isWindowPinned = !!val;
+            }).catch(() => {});
+        }
     }
 
     if (document.readyState === 'loading') {

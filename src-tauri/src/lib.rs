@@ -9,6 +9,21 @@ pub mod window;
 
 use tauri::Manager;
 
+/// Toggles the always-on-top state of the main window.
+#[tauri::command]
+fn toggle_always_on_top(window: tauri::WebviewWindow) -> Result<bool, String> {
+    let current = window.is_always_on_top().map_err(|e| e.to_string())?;
+    let next = !current;
+    window.set_always_on_top(next).map_err(|e| e.to_string())?;
+    Ok(next)
+}
+
+/// Retrieves the current always-on-top state of the main window.
+#[tauri::command]
+fn is_always_on_top(window: tauri::WebviewWindow) -> Result<bool, String> {
+    window.is_always_on_top().map_err(|e| e.to_string())
+}
+
 /// Entry point for running the Tauri application.
 pub fn run() {
     tauri::Builder::default()
@@ -17,6 +32,10 @@ pub fn run() {
                 window::focus_window(&main_window);
             }
         }))
+        .invoke_handler(tauri::generate_handler![
+            toggle_always_on_top,
+            is_always_on_top
+        ])
         .setup(|app| {
             window::create_main_window(app)?;
             memory::start_memory_cleaner();
