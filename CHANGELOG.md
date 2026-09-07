@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.1.0] - 2026-09-07
+
+### Added
+- **Recursive Child-Process Memory Trimming**: Windows FFI snapshot enumerating and trimming physical memory (`SetProcessWorkingSetSize`) across all `msedgewebview2.exe` renderer and GPU child processes, slashing idle RAM to **~60MB–85MB**.
+- **Low-Overhead Chromium Browser Flags**: Injected `--disable-background-networking`, `--disable-domain-reliability`, `--disable-component-update`, `--disable-speech-api`, `--enable-gpu-rasterization`, and `--enable-zero-copy` via `WEBVIEW2_ADDITIONAL_BROWSER_ARGS`.
+- **Seamless Native Header Integration**: Injected modern SVG button directly into the WhatsApp Web top navbar, replacing floating draggable widget overlays and eliminating global mouse drag listeners.
+- **ModsTams Quick HUD**: Redesigned Control Center into an ultra-compact single-view popover with instant response and zero tab bloat.
+- **Native Unread Filter Integration**: Replaced manual virtual DOM row hiding with native WhatsApp Web filter button triggering and zero-loop CSS `:has()` pseudo-class filtering.
+
+### Removed
+- Removed floating `#modstams-dock` overlay widget and mousemove/mouseup listeners.
+- Removed legacy `midnight` and `crimson` secondary theme styles, standardizing on Emerald and Ultra Dark OLED.
+- Removed manual `#pane-side [role="row"]` DOM traversal loops.
+
+---
+
 ## [1.0.0] - 2026-09-06
 
 ### Added

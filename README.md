@@ -32,13 +32,14 @@ A high-performance, ultra-lightweight desktop client wrapper for WhatsApp Web en
 - **Zero Heavy Runtime**: Uses native Microsoft Edge WebView2 (Evergreen) built into Windows OS. No separate Chromium or Node.js runtime process.
 - **Aggressive RAM Management**:
   - Chromium V8 JavaScript heap is hard-capped to `256MB` (`--max-old-space-size=256`).
-  - Active working set is automatically reclaimed using Win32 `SetProcessWorkingSetSize` every 3 minutes.
-  - Idle footprint: **~180MB–250MB** (vs. ~800MB–1.2GB on official client).
+  - Active working set is automatically reclaimed using Win32 recursive process-tree trimming (`SetProcessWorkingSetSize` across host and all `msedgewebview2.exe` renderer and GPU child processes).
+  - Idle background footprint: **~60MB–85MB** (vs. ~800MB–1.2GB on official client).
+  - Low-overhead browser flags: background networking, domain reliability, speech synthesis, and telemetry disabled.
 - **Decoupled Modularity**:
-  - `src-tauri/src/memory.rs`: Windows FFI memory optimization worker.
+  - `src-tauri/src/memory.rs`: Windows FFI recursive process-tree memory optimization worker.
   - `src-tauri/src/tray.rs`: System tray icon, interactive context menu, and IPC dispatcher.
   - `src-tauri/src/window.rs`: Window configuration, script injection, and minimize-to-tray lifecycle.
-  - `src-tauri/assets/`: Encapsulated frontend enhancements injected at compile time.
+  - `src-tauri/assets/`: Encapsulated frontend enhancements (v3.5 GG Extreme) injected at compile time.
 
 ---
 
@@ -88,17 +89,16 @@ WAwebTams/
 
 | Mod Feature | Shortcut | Description |
 | :--- | :--- | :--- |
-| **Filter Chat Belum Dibaca** | `Ctrl + Shift + U` | Saring hanya percakapan yang memiliki pesan unread dalam 1-klik. |
-| **Auto-Blur Media Saja** | `Ctrl + Shift + B` | Sensor otomatis untuk foto, video, avatar, dan stiker (hover untuk intip). |
+| **Master Privacy Mode** | `Ctrl + B` | Sensor presisi modular untuk isi teks pesan, media, nama kontak, dan preview sidebar. |
+| **Auto-Blur Media Saja** | `Ctrl + Shift + B` | Sensor otomatis foto, video, stiker, dan VN (hover untuk intip, emoji tetap tajam). |
+| **Filter Chat Belum Dibaca** | `Ctrl + Shift + U` | Saring hanya percakapan unread via trigger native WhatsApp atau CSS pseudo-class `:has()`. |
 | **Anti-Centang Biru (Ghost Read)** | `Ctrl + Shift + G` | Membaca pesan tanpa mengirim laporan terbaca (*read receipts*). |
 | **Ghost Typing** | `Ctrl + Shift + T` | Menyembunyikan indikator *"Sedang mengetik..."*. |
-| **Anti-Delete & Log History** | *Otomatis* | Pesan yang ditarik pengirim tetap terlihat dan dicatat ke audit log. |
-| **Anti View-Once (Bypass 1x Lihat)** | *Otomatis* | Media 1x lihat dapat dibuka berulang kali dan diunduh langsung. |
 | **Direct Chat** | `Ctrl + M` | Kirim pesan instan ke nomor baru tanpa perlu menyimpan ke kontak. |
-| **Status Saver** | *Otomatis* | Tombol unduh otomatis saat melihat status/story kontak. |
-| **Multi-Theme & Ultra Dark OLED** | `Ctrl + Shift + O` | Berbagai tema warna termasuk Emerald, Cyberpunk, OLED Midnight. |
 | **App Lock & PIN Security** | `Ctrl + L` | Kunci layar aplikasi seketika dengan PIN 4-digit kustom. |
-| **Voice Note Speed & Booster** | *Otomatis* | Percepatan audio VN hingga 3.0x dan penguat volume hingga +200%. |
+| **Ultra Dark OLED Mode** | `Ctrl + Shift + O` | Mode Hitam Pekat Murni `#000000` hemat daya monitor/laptop dan kontras tinggi. |
+| **Status Saver & View-Once** | *Otomatis* | Tombol unduh otomatis saat melihat status/story kontak dan media 1x lihat (zero-polling). |
+| **ModsTams Quick HUD** | `Ctrl + Shift + M` | Popover kendali ringkas terpadu, terintegrasi mulus di navbar atas WhatsApp tanpa floating widget. |
 
 ---
 

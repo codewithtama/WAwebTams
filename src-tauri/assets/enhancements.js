@@ -1,10 +1,14 @@
+/**
+ * ModsTams Super Suite v3.5 - GG Extreme Edition
+ * Ultra-lightweight WhatsApp Web client enhancement script.
+ * Zero-polling architecture, hardware-accelerated precision blur, native header integration,
+ * Chromium sub-process memory trimming, and zero-leak event handlers.
+ */
 (function() {
     if (window.__waweb_initialized) return;
     window.__waweb_initialized = true;
 
-    console.log("[ModsTams] Super Suite v2.1 initialized.");
-
-    /* Safe storage helpers to avoid DOMException on restricted origins/about:blank */
+    /* Safe storage helpers */
     function safeGet(key, fallback = '') {
         try {
             const val = localStorage.getItem(key);
@@ -21,36 +25,8 @@
     }
 
     /* ==========================================================================
-       1. AUDIO SYNTHESIZER & TOAST NOTIFICATION SYSTEM
+       1. TOAST NOTIFICATION SYSTEM (GPU-Accelerated, Zero-Audio-Leak)
        ========================================================================== */
-    function playChime(success = true) {
-        try {
-            const AudioCtx = window.AudioContext || window.webkitAudioContext;
-            if (!AudioCtx) return;
-            const ctx = new AudioCtx();
-            const now = ctx.currentTime;
-            const osc = ctx.createOscillator();
-            const gain = ctx.createGain();
-
-            osc.type = 'sine';
-            if (success) {
-                osc.frequency.setValueAtTime(587.33, now); // D5
-                osc.frequency.exponentialRampToValueAtTime(880.00, now + 0.1); // A5
-            } else {
-                osc.frequency.setValueAtTime(440.00, now);
-                osc.frequency.exponentialRampToValueAtTime(330.00, now + 0.15);
-            }
-
-            gain.gain.setValueAtTime(0.12, now);
-            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
-
-            osc.connect(gain);
-            gain.connect(ctx.destination);
-            osc.start(now);
-            osc.stop(now + 0.3);
-        } catch(e) {}
-    }
-
     function getToastContainer() {
         if (!document.body) return null;
         let container = document.getElementById('modstams-toast-container');
@@ -64,9 +40,9 @@
                 'z-index: 9999999',
                 'display: flex',
                 'flex-direction: column',
-                'gap: 10px',
+                'gap: 8px',
                 'pointer-events: none',
-                'font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+                'font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
             ].join(';');
             document.body.appendChild(container);
         }
@@ -82,30 +58,32 @@
             'pointer-events: auto',
             'display: flex',
             'align-items: center',
-            'gap: 14px',
-            'background: rgba(17, 27, 33, 0.95)',
+            'gap: 12px',
+            'background: #111b21',
             'color: #e9edef',
-            'padding: 12px 18px',
-            'border-radius: 12px',
+            'padding: 10px 16px',
+            'border-radius: 10px',
             `border-left: 4px solid ${borderColor}`,
-            'box-shadow: 0 12px 32px rgba(0, 0, 0, 0.55), 0 0 1px rgba(255, 255, 255, 0.15)',
-            'backdrop-filter: blur(16px)',
+            'border-top: 1px solid rgba(255, 255, 255, 0.08)',
+            'border-right: 1px solid rgba(255, 255, 255, 0.08)',
+            'border-bottom: 1px solid rgba(255, 255, 255, 0.08)',
+            'box-shadow: 0 10px 30px rgba(0, 0, 0, 0.65)',
             'min-width: 260px',
             'max-width: 380px',
-            'transform: translateY(20px)',
+            'transform: translateY(16px)',
             'opacity: 0',
-            'transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1)'
+            'transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.22s ease'
         ].join(';');
 
-        const defaultSvg = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="${borderColor}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>`;
+        const defaultSvg = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="${borderColor}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>`;
 
         toast.innerHTML = `
-            <div style="width: 36px; height: 36px; border-radius: 50%; background: rgba(0, 168, 132, 0.15); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+            <div style="width: 30px; height: 30px; border-radius: 8px; background: rgba(0, 168, 132, 0.15); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
                 ${iconSvg || defaultSvg}
             </div>
             <div style="flex: 1; min-width: 0;">
-                <div style="font-weight: 600; font-size: 13px; color: ${borderColor}; margin-bottom: 2px;">${title}</div>
-                <div style="font-size: 12px; color: #e9edef; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${subtitle || ''}</div>
+                <div style="font-weight: 600; font-size: 13px; color: ${borderColor}; line-height: 1.2; margin-bottom: 2px;">${title}</div>
+                <div style="font-size: 11px; color: #8696a0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2;">${subtitle || ''}</div>
             </div>
         `;
 
@@ -115,13 +93,11 @@
             toast.style.opacity = '1';
         });
 
-        playChime(true);
-
         setTimeout(() => {
-            toast.style.transform = 'translateY(15px)';
+            toast.style.transform = 'translateY(12px)';
             toast.style.opacity = '0';
-            setTimeout(() => toast.remove(), 300);
-        }, 3500);
+            setTimeout(() => toast.remove(), 250);
+        }, 2800);
     }
 
     function triggerDownload(url, filename) {
@@ -132,71 +108,274 @@
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
-        showToast("Download Berhasil", filename);
+        showToast("Download Dimulai", filename);
     }
 
     /* ==========================================================================
-       2. MOD: ANTI VIEW-ONCE & CONTEXT MENU
+       2. PRECISION MODULAR PRIVACY & BLUR ENGINE (Hardware-Accelerated CSS)
        ========================================================================== */
-    window.addEventListener('contextmenu', function(e) {
-        e.stopPropagation();
+    const DEFAULT_PRIVACY_CFG = {
+        active: false,
+        blurChat: true,
+        blurMedia: true,
+        blurPreview: true,
+        blurNames: false,
+        blurAvatars: false,
+        blurInput: false,
+        intensity: 8
+    };
+
+    let privacyConfig = Object.assign({}, DEFAULT_PRIVACY_CFG);
+    try {
+        const savedCfg = JSON.parse(safeGet('modstams_privacy_v2', 'null'));
+        if (savedCfg && typeof savedCfg === 'object') {
+            privacyConfig = Object.assign({}, DEFAULT_PRIVACY_CFG, savedCfg);
+        }
+    } catch(e) {
+        privacyConfig = Object.assign({}, DEFAULT_PRIVACY_CFG);
+    }
+
+    let privacyStyleElement = null;
+
+    function applyPrivacyStyles() {
+        const head = document.head || document.getElementsByTagName('head')[0] || document.documentElement;
+        if (!head) return;
+
+        if (!privacyStyleElement) {
+            privacyStyleElement = document.createElement('style');
+            privacyStyleElement.id = 'modstams-privacy-style';
+            head.appendChild(privacyStyleElement);
+        }
+
+        if (!privacyConfig.active) {
+            privacyStyleElement.textContent = '';
+            return;
+        }
+
+        const i = Math.max(3, Math.min(20, parseInt(privacyConfig.intensity) || 8));
+        const mediaBlur = Math.round(i * 1.5);
+        const rules = [];
+
+        // 1. BLUR CHAT MESSAGES (Targeting individual bubbles & copyable text)
+        if (privacyConfig.blurChat) {
+            rules.push(`
+                /* Blur Chat Message Text */
+                #main .message-in .selectable-text,
+                #main .message-out .selectable-text,
+                #main [data-testid="msg-container"] .copyable-text:not([data-testid="conversation-panel-wrapper"]) {
+                    filter: blur(${i}px) !important;
+                    transition: filter 0.18s cubic-bezier(0.4, 0, 0.2, 1) !important;
+                }
+                /* Individual unblur: ONLY the message bubble hovered unblurs */
+                #main .message-in:hover .selectable-text,
+                #main .message-out:hover .selectable-text,
+                #main [data-testid="msg-container"]:hover .copyable-text {
+                    filter: none !important;
+                }
+            `);
+        }
+
+        // 2. BLUR MEDIA (Photos, Videos, Stickers, Voice Notes, Thumbnails)
+        if (privacyConfig.blurMedia) {
+            rules.push(`
+                /* Blur Media: Images, Videos, Audio, Thumbs - excludes emojis */
+                #main [data-testid="msg-container"] img:not([class*="emoji"]),
+                #main [data-testid="msg-container"] video,
+                #main [data-testid="image-thumb"],
+                #main [data-testid="video-thumb"],
+                #main [data-testid="audio-player"],
+                #main [data-testid="media-canvas"],
+                #main div[role="button"][style*="background-image"] {
+                    filter: blur(${mediaBlur}px) !important;
+                    transition: filter 0.18s cubic-bezier(0.4, 0, 0.2, 1) !important;
+                }
+                /* Individual unblur on hover */
+                #main [data-testid="msg-container"]:hover img:not([class*="emoji"]),
+                #main [data-testid="msg-container"]:hover video,
+                #main [data-testid="image-thumb"]:hover,
+                #main [data-testid="video-thumb"]:hover,
+                #main [data-testid="audio-player"]:hover,
+                #main [data-testid="media-canvas"]:hover,
+                #main div[role="button"][style*="background-image"]:hover {
+                    filter: none !important;
+                }
+            `);
+        }
+
+        // 3. BLUR SIDEBAR LAST MESSAGE PREVIEW
+        if (privacyConfig.blurPreview) {
+            rules.push(`
+                /* Blur Last Message snippet in Chat List */
+                #pane-side [role="row"] [data-testid="last-msg-status"],
+                #pane-side [role="row"] span[title]:not([dir]) {
+                    filter: blur(${i}px) !important;
+                    transition: filter 0.18s cubic-bezier(0.4, 0, 0.2, 1) !important;
+                }
+                /* Individual row unblur on hover */
+                #pane-side [role="row"]:hover [data-testid="last-msg-status"],
+                #pane-side [role="row"]:hover span[title]:not([dir]) {
+                    filter: none !important;
+                }
+            `);
+        }
+
+        // 4. BLUR CONTACT & GROUP NAMES
+        if (privacyConfig.blurNames) {
+            rules.push(`
+                /* Blur Contact/Group Titles */
+                header [data-testid="conversation-info-header"] span,
+                #pane-side [role="row"] [data-testid="cell-frame-title"] span {
+                    filter: blur(${i}px) !important;
+                    transition: filter 0.18s cubic-bezier(0.4, 0, 0.2, 1) !important;
+                }
+                header [data-testid="conversation-info-header"]:hover span,
+                #pane-side [role="row"]:hover [data-testid="cell-frame-title"] span {
+                    filter: none !important;
+                }
+            `);
+        }
+
+        // 5. BLUR PROFILE PICTURES / AVATARS
+        if (privacyConfig.blurAvatars) {
+            rules.push(`
+                /* Blur Contact Avatars */
+                #pane-side [role="row"] div[data-testid="avatar"] img,
+                #main header div[data-testid="avatar"] img {
+                    filter: blur(${i}px) !important;
+                    transition: filter 0.18s cubic-bezier(0.4, 0, 0.2, 1) !important;
+                }
+                #pane-side [role="row"]:hover div[data-testid="avatar"] img,
+                #main header div[data-testid="avatar"]:hover img {
+                    filter: none !important;
+                }
+            `);
+        }
+
+        // 6. BLUR INPUT MESSAGE BOX (Sensitive Draft Messages)
+        if (privacyConfig.blurInput) {
+            rules.push(`
+                /* Blur Draft Message Input */
+                footer div[contenteditable="true"] {
+                    filter: blur(${i}px) !important;
+                    transition: filter 0.18s cubic-bezier(0.4, 0, 0.2, 1) !important;
+                }
+                footer div[contenteditable="true"]:hover,
+                footer div[contenteditable="true"]:focus,
+                footer div[contenteditable="true"]:focus-within {
+                    filter: none !important;
+                }
+            `);
+        }
+
+        privacyStyleElement.textContent = rules.join('\n');
+    }
+
+    function savePrivacyConfig() {
+        safeSet('modstams_privacy_v2', JSON.stringify(privacyConfig));
+        applyPrivacyStyles();
+    }
+
+    // Toggle Master Privacy Mode (Ctrl+B)
+    window.__waweb_togglePrivacy = function() {
+        privacyConfig.active = !privacyConfig.active;
+        savePrivacyConfig();
+        showToast(
+            privacyConfig.active ? "Privacy Mode Aktif" : "Privacy Mode Nonaktif",
+            privacyConfig.active ? "Sensor presisi aktif. Arahkan mouse ke pesan untuk intip." : "Semua obrolan tampil normal.",
+            `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="${privacyConfig.active ? '#00e5ff' : '#8696a0'}" stroke-width="2.2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`,
+            privacyConfig.active ? "#00e5ff" : "#8696a0"
+        );
+    };
+
+    // Toggle Media-Only Blur (Ctrl+Shift+B)
+    window.__modstams_toggleBlurMedia = function() {
+        privacyConfig.blurMedia = !privacyConfig.blurMedia;
+        if (privacyConfig.blurMedia && !privacyConfig.active) {
+            privacyConfig.active = true;
+        }
+        savePrivacyConfig();
+        showToast(
+            privacyConfig.blurMedia && privacyConfig.active ? "Sensor Media Aktif" : "Sensor Media Nonaktif",
+            privacyConfig.blurMedia && privacyConfig.active ? "Foto & video disensor otomatis (Ctrl+Shift+B)" : "Foto & video tampil tanpa sensor",
+            null,
+            privacyConfig.blurMedia && privacyConfig.active ? "#00e5ff" : "#8696a0"
+        );
+    };
+
+    window.__modstams_updatePrivacyConfig = function(updates) {
+        Object.assign(privacyConfig, updates);
+        savePrivacyConfig();
+    };
+
+    /* ==========================================================================
+       3. GHOST TYPING (Sembunyikan Indikator Mengetik - Ctrl+Shift+T)
+       ========================================================================== */
+    let ghostTypingActive = safeGet('modstams_ghost_typing', 'true') !== 'false';
+
+    window.__waweb_toggleGhostTyping = function() {
+        ghostTypingActive = !ghostTypingActive;
+        safeSet('modstams_ghost_typing', ghostTypingActive ? 'true' : 'false');
+        showToast(
+            ghostTypingActive ? "Ghost Typing Aktif" : "Typing Normal",
+            ghostTypingActive ? "Status 'Sedang mengetik...' disembunyikan (Ctrl+Shift+T)" : "Status 'Sedang mengetik...' terlihat lawan bicara",
+            null,
+            ghostTypingActive ? '#00e5ff' : '#8696a0'
+        );
+    };
+
+    document.addEventListener('input', function(e) {
+        if (ghostTypingActive && e.target && e.target.getAttribute('contenteditable') === 'true') {
+            e.stopImmediatePropagation ? e.stopImmediatePropagation() : null;
+        }
     }, true);
 
-    function injectViewOnceDownloader() {
-        const mediaOverlays = document.querySelectorAll('div[data-animate-modal-popup="true"], div[role="dialog"]');
-        mediaOverlays.forEach(overlay => {
-            if (overlay.querySelector('#modstams-viewonce-btn')) return;
+    /* ==========================================================================
+       4. GHOST READ / ANTI-CENTANG BIRU (Bebas Baca Chat - Ctrl+Shift+G)
+       ========================================================================== */
+    let ghostReadActive = safeGet('modstams_ghost_read', 'true') !== 'false';
 
-            const img = overlay.querySelector('img[src]');
-            const video = overlay.querySelector('video[src]');
-            const media = img || video;
+    const originalHasFocus = document.hasFocus.bind(document);
+    document.hasFocus = function() {
+        if (ghostReadActive) return false;
+        return originalHasFocus();
+    };
 
-            if (media && media.src) {
-                const btn = document.createElement('button');
-                btn.id = 'modstams-viewonce-btn';
-                btn.style.cssText = [
-                    'position: absolute',
-                    'top: 20px',
-                    'right: 80px',
-                    'z-index: 9999',
-                    'background: #00a884',
-                    'color: #ffffff',
-                    'border: none',
-                    'border-radius: 8px',
-                    'padding: 8px 14px',
-                    'font-size: 12px',
-                    'font-weight: 600',
-                    'cursor: pointer',
-                    'display: flex',
-                    'align-items: center',
-                    'gap: 6px',
-                    'box-shadow: 0 4px 14px rgba(0,0,0,0.4)',
-                    'transition: transform 0.15s ease'
-                ].join(';');
-                btn.innerHTML = `
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                    <span>Simpan Media</span>
-                `;
-                btn.onmouseenter = () => btn.style.transform = 'scale(1.05)';
-                btn.onmouseleave = () => btn.style.transform = 'scale(1)';
-                btn.onclick = (e) => {
-                    e.stopPropagation();
-                    const ext = video ? 'mp4' : 'jpg';
-                    const filename = `Media_${Date.now()}.${ext}`;
-                    triggerDownload(media.src, filename);
-                };
-                overlay.appendChild(btn);
-            }
+    try {
+        Object.defineProperty(document, 'visibilityState', {
+            get: function() { return ghostReadActive ? 'hidden' : 'visible'; },
+            configurable: true
         });
-    }
+        Object.defineProperty(document, 'hidden', {
+            get: function() { return ghostReadActive ? true : false; },
+            configurable: true
+        });
+    } catch(e) {}
+
+    window.addEventListener('focus', function(e) {
+        if (ghostReadActive) {
+            e.stopImmediatePropagation();
+        }
+    }, true);
+
+    window.__waweb_toggleGhostRead = function() {
+        ghostReadActive = !ghostReadActive;
+        safeSet('modstams_ghost_read', ghostReadActive ? 'true' : 'false');
+        showToast(
+            ghostReadActive ? "Anti-Centang Biru Aktif" : "Centang Biru Normal",
+            ghostReadActive ? "Membaca pesan tanpa laporan tanda baca (Ctrl+Shift+G)" : "Laporan dibaca dikirim normal",
+            null,
+            ghostReadActive ? "#00e5ff" : "#8696a0"
+        );
+    };
 
     /* ==========================================================================
-       3. MOD: DIRECT CHAT (Kirim Pesan Tanpa Simpan Kontak - Ctrl+M)
+       5. DIRECT CHAT (Kirim Pesan Tanpa Simpan Nomor - Ctrl+M)
        ========================================================================== */
     window.__waweb_openDirectChatModal = function() {
         if (!document.body) return;
-        if (document.getElementById('modstams-direct-modal')) {
-            document.getElementById('modstams-direct-modal').remove();
+        const existing = document.getElementById('modstams-direct-modal');
+        if (existing) {
+            existing.remove();
             return;
         }
 
@@ -208,29 +387,28 @@
             'left: 0',
             'width: 100vw',
             'height: 100vh',
-            'background: rgba(11, 20, 26, 0.78)',
-            'backdrop-filter: blur(8px)',
+            'background: rgba(11, 20, 26, 0.85)',
             'z-index: 999999',
             'display: flex',
             'align-items: center',
             'justify-content: center',
-            'font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+            'font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
         ].join(';');
 
         modal.innerHTML = `
-            <div style="background: #111b21; border: 1px solid rgba(255,255,255,0.12); border-radius: 16px; padding: 24px; width: 380px; box-shadow: 0 16px 40px rgba(0,0,0,0.6);">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-                    <div style="font-weight: 600; font-size: 16px; color: #00a884; display: flex; align-items: center; gap: 8px;">
+            <div style="background: #111b21; border: 1px solid rgba(255,255,255,0.12); border-radius: 14px; padding: 22px; width: 380px; max-width: 90vw; box-shadow: 0 16px 40px rgba(0,0,0,0.7);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+                    <div style="font-weight: 600; font-size: 15px; color: #00a884; display: flex; align-items: center; gap: 8px;">
                         <span>Direct Chat (Tanpa Simpan Nomor)</span>
                     </div>
                     <button id="modstams-direct-close" style="background: transparent; border: none; color: #8696a0; cursor: pointer; font-size: 20px; line-height: 1;">&times;</button>
                 </div>
-                <div style="font-size: 13px; color: #8696a0; margin-bottom: 12px;">Masukkan nomor HP tujuan (contoh: 08123456789 atau 62812...):</div>
-                <input id="modstams-direct-phone" type="text" placeholder="08xxxxxxxxxx" style="width: 100%; box-sizing: border-box; background: #202c33; border: 1px solid #2a3942; border-radius: 8px; padding: 12px; color: #e9edef; font-size: 14px; outline: none; margin-bottom: 12px;">
-                <textarea id="modstams-direct-msg" placeholder="Pesan pembuka (opsional)..." rows="2" style="width: 100%; box-sizing: border-box; background: #202c33; border: 1px solid #2a3942; border-radius: 8px; padding: 10px; color: #e9edef; font-size: 13px; outline: none; margin-bottom: 16px; resize: none;"></textarea>
-                <div style="display: flex; gap: 10px;">
-                    <button id="modstams-direct-btn" style="flex: 1; background: #00a884; color: white; border: none; border-radius: 8px; padding: 12px; font-weight: 600; cursor: pointer; font-size: 14px;">Buka Obrolan</button>
-                    <button id="modstams-direct-cancel" style="background: #202c33; color: #8696a0; border: none; border-radius: 8px; padding: 12px 18px; font-weight: 500; cursor: pointer;">Batal</button>
+                <div style="font-size: 12px; color: #8696a0; margin-bottom: 10px;">Ketik nomor HP tujuan (contoh: 08123456789 atau 62812...):</div>
+                <input id="modstams-direct-phone" type="text" placeholder="08xxxxxxxxxx" style="width: 100%; box-sizing: border-box; background: #202c33; border: 1px solid #2a3942; border-radius: 8px; padding: 10px 12px; color: #e9edef; font-size: 13px; outline: none; margin-bottom: 10px;">
+                <textarea id="modstams-direct-msg" placeholder="Pesan pembuka (opsional)..." rows="2" style="width: 100%; box-sizing: border-box; background: #202c33; border: 1px solid #2a3942; border-radius: 8px; padding: 10px; color: #e9edef; font-size: 12px; outline: none; margin-bottom: 14px; resize: none;"></textarea>
+                <div style="display: flex; gap: 8px;">
+                    <button id="modstams-direct-btn" style="flex: 1; background: #00a884; color: white; border: none; border-radius: 8px; padding: 10px; font-weight: 600; cursor: pointer; font-size: 13px;">Buka Obrolan</button>
+                    <button id="modstams-direct-cancel" style="background: #202c33; color: #8696a0; border: none; border-radius: 8px; padding: 10px 14px; font-weight: 500; cursor: pointer; font-size: 13px;">Batal</button>
                 </div>
             </div>
         `;
@@ -242,7 +420,7 @@
         function executeDirectChat() {
             let raw = inputPhone.value.trim().replace(/[^0-9+]/g, '');
             if (!raw) {
-                showToast("Nomor Kosong", "Silakan ketik nomor HP tujuan", null, '#ff5252');
+                showToast("Nomor Kosong", "Silakan masukkan nomor HP tujuan", null, '#ff5252');
                 return;
             }
             if (raw.startsWith('0')) {
@@ -278,467 +456,7 @@
     };
 
     /* ==========================================================================
-       4. MOD: STATUS / STORY SAVER
-       ========================================================================== */
-    function injectStatusDownloader() {
-        const statusPanel = document.querySelector('div[role="region"][tabindex="-1"], div[data-animate-modal-body="true"]');
-        if (statusPanel && !statusPanel.querySelector('#modstams-status-download-btn')) {
-            const media = statusPanel.querySelector('img[src], video[src]');
-            if (media && media.src) {
-                const btn = document.createElement('button');
-                btn.id = 'modstams-status-download-btn';
-                btn.style.cssText = [
-                    'position: absolute',
-                    'bottom: 30px',
-                    'right: 30px',
-                    'z-index: 99999',
-                    'background: rgba(0, 168, 132, 0.95)',
-                    'color: #ffffff',
-                    'border: none',
-                    'border-radius: 30px',
-                    'padding: 10px 18px',
-                    'font-size: 13px',
-                    'font-weight: 600',
-                    'cursor: pointer',
-                    'display: flex',
-                    'align-items: center',
-                    'gap: 8px',
-                    'box-shadow: 0 6px 20px rgba(0,0,0,0.5)',
-                    'backdrop-filter: blur(8px)'
-                ].join(';');
-                btn.innerHTML = `
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                    <span>Unduh Story Ini</span>
-                `;
-                btn.onclick = (e) => {
-                    e.stopPropagation();
-                    const isVideo = statusPanel.querySelector('video[src]') !== null;
-                    const src = (statusPanel.querySelector('video[src]') || statusPanel.querySelector('img[src]')).src;
-                    const filename = `Story_${Date.now()}.${isVideo ? 'mp4' : 'jpg'}`;
-                    triggerDownload(src, filename);
-                };
-                statusPanel.appendChild(btn);
-            }
-        }
-    }
-
-    /* ==========================================================================
-       5. MOD: GHOST TYPING (Sembunyikan Status Sedang Mengetik)
-       ========================================================================== */
-    let ghostTypingActive = safeGet('modstams_ghost_typing', 'true') !== 'false';
-
-    window.__waweb_toggleGhostTyping = function() {
-        ghostTypingActive = !ghostTypingActive;
-        safeSet('modstams_ghost_typing', ghostTypingActive ? 'true' : 'false');
-        showToast(
-            ghostTypingActive ? "Ghost Typing Aktif" : "Typing Normal",
-            ghostTypingActive ? "Status 'Sedang mengetik...' disembunyikan" : "Status 'Sedang mengetik...' terlihat lawan bicara",
-            null,
-            ghostTypingActive ? '#00e5ff' : '#8696a0'
-        );
-    };
-
-    document.addEventListener('input', function(e) {
-        if (ghostTypingActive && e.target && e.target.getAttribute('contenteditable') === 'true') {
-            e.stopImmediatePropagation ? e.stopImmediatePropagation() : null;
-        }
-    }, true);
-
-    /* ==========================================================================
-       6. MOD: ANTI-CENTANG BIRU / GHOST READ
-       ========================================================================== */
-    let ghostReadActive = safeGet('modstams_ghost_read', 'true') !== 'false';
-
-    const originalHasFocus = document.hasFocus.bind(document);
-    document.hasFocus = function() {
-        if (ghostReadActive) return false;
-        return originalHasFocus();
-    };
-
-    try {
-        Object.defineProperty(document, 'visibilityState', {
-            get: function() { return ghostReadActive ? 'hidden' : 'visible'; },
-            configurable: true
-        });
-        Object.defineProperty(document, 'hidden', {
-            get: function() { return ghostReadActive ? true : false; },
-            configurable: true
-        });
-    } catch(e) {}
-
-    window.addEventListener('focus', function(e) {
-        if (ghostReadActive) {
-            e.stopImmediatePropagation();
-        }
-    }, true);
-
-    window.__waweb_toggleGhostRead = function() {
-        ghostReadActive = !ghostReadActive;
-        safeSet('modstams_ghost_read', ghostReadActive ? 'true' : 'false');
-        showToast(
-            ghostReadActive ? "Anti-Centang Biru Aktif" : "Centang Biru Normal",
-            ghostReadActive ? "Bebas baca chat tanpa memicu centang biru di pengirim" : "Status baca dikirim seperti biasa",
-            null,
-            ghostReadActive ? "#00d2ff" : "#8696a0"
-        );
-    };
-
-    /* ==========================================================================
-       7. MOD: ANTI-DELETE & PUSAT LOG RIWAYAT PESAN DITARIK
-       ========================================================================== */
-    const messageStore = new Map();
-    let deletedLogs = [];
-    try {
-        deletedLogs = JSON.parse(safeGet('modstams_deleted_log', '[]'));
-    } catch(e) { deletedLogs = []; }
-
-    function saveDeletedLog(sender, text, time) {
-        const exists = deletedLogs.some(item => item.text === text && Math.abs(new Date(item.timestamp).getTime() - new Date().getTime()) < 60000);
-        if (!exists) {
-            deletedLogs.unshift({
-                id: 'del_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
-                sender: sender || 'Kontak',
-                text: text,
-                time: time,
-                timestamp: new Date().toISOString()
-            });
-            if (deletedLogs.length > 100) deletedLogs.pop();
-            safeSet('modstams_deleted_log', JSON.stringify(deletedLogs));
-
-            showToast(
-                "Pesan Ditarik Terdeteksi!",
-                `${sender || 'Seseorang'}: "${text.length > 28 ? text.substring(0, 28) + '...' : text}"`,
-                `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ff5252" stroke-width="2.2"><circle cx="12" cy="12" r="10"></circle><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line></svg>`,
-                '#ff5252'
-            );
-        }
-    }
-
-    function watchAndPreserveMessages() {
-        const chatBubbles = document.querySelectorAll('div[data-id], div.message-in, div.message-out');
-        chatBubbles.forEach(bubble => {
-            const id = bubble.getAttribute('data-id') || bubble.id;
-            if (!id) return;
-
-            const textEl = bubble.querySelector('.selectable-text');
-            if (textEl && textEl.innerText && !textEl.innerText.includes('Pesan ini telah dihapus') && !textEl.innerText.includes('This message was deleted')) {
-                if (!messageStore.has(id)) {
-                    const senderEl = bubble.querySelector('span[aria-label], div[data-pre-plain-text]');
-                    let sender = 'Kontak';
-                    if (senderEl) {
-                        const raw = senderEl.getAttribute('data-pre-plain-text') || senderEl.getAttribute('aria-label') || '';
-                        const match = raw.match(/\]\s*([^:]+):/);
-                        if (match && match[1]) sender = match[1].trim();
-                    }
-                    messageStore.set(id, {
-                        sender: sender,
-                        text: textEl.innerText,
-                        html: textEl.innerHTML,
-                        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-                    });
-                    if (messageStore.size > 200) {
-                        const oldest = messageStore.keys().next().value;
-                        messageStore.delete(oldest);
-                    }
-                }
-            }
-
-            const isDeleted = bubble.querySelector('span[data-icon="recalled"]') ||
-                              (bubble.innerText && (bubble.innerText.includes('Pesan ini telah dihapus') || bubble.innerText.includes('This message was deleted')));
-
-            if (isDeleted && !bubble.querySelector('.modstams-antidelete-preserved')) {
-                const cached = messageStore.get(id);
-                if (cached) {
-                    const restoredBox = document.createElement('div');
-                    restoredBox.className = 'modstams-antidelete-preserved';
-                    restoredBox.style.cssText = [
-                        'margin-top: 6px',
-                        'padding: 8px 10px',
-                        'background: rgba(255, 82, 82, 0.14)',
-                        'border-left: 3px solid #ff5252',
-                        'border-radius: 6px',
-                        'font-size: 13px',
-                        'color: #e9edef'
-                    ].join(';');
-                    restoredBox.innerHTML = `
-                        <div style="color: #ff5252; font-size: 11px; font-weight: 700; margin-bottom: 3px; display: flex; align-items: center; gap: 4px;">
-                            <span>PESAN DITARIK (${cached.time})</span>
-                        </div>
-                        <div style="font-style: italic; color: #ffffff;">${cached.text}</div>
-                    `;
-                    bubble.appendChild(restoredBox);
-                    saveDeletedLog(cached.sender, cached.text, cached.time);
-                }
-            }
-        });
-    }
-
-    /* ==========================================================================
-       8. MOD: MULTI-THEME & ACCENT COLOR SYSTEM
-       ========================================================================== */
-    const THEMES = {
-        emerald: {
-            name: "Emerald ModsTams",
-            accent: "#00a884",
-            css: ""
-        },
-        cyberpunk: {
-            name: "Cyberpunk Neon",
-            accent: "#00e5ff",
-            css: `
-                :root {
-                    --accent: #00e5ff !important;
-                    --teal: #00e5ff !important;
-                    --primary-strong: #ff007f !important;
-                }
-                #modstams-dock-launcher, #waweb-mod-launcher { background: linear-gradient(135deg, #00e5ff, #ff007f) !important; color: #000 !important; font-weight: 800 !important; }
-                #modstams-dock { border-color: rgba(0, 229, 255, 0.35) !important; box-shadow: 0 4px 20px rgba(0, 229, 255, 0.2) !important; }
-                header, [data-testid="chat-list-search"] { border-color: rgba(0, 229, 255, 0.25) !important; }
-                .message-out { background-color: #0b3d42 !important; border-right: 2px solid #00e5ff !important; }
-                span[data-icon="status-unread"] { fill: #ff007f !important; }
-                span[data-icon="msg-dblcheck-ack"] svg { fill: #00e5ff !important; }
-            `
-        },
-        midnight: {
-            name: "Midnight Sapphire",
-            accent: "#3b82f6",
-            css: `
-                body, #app, #app > div, #main, #pane-side { background-color: #0b1120 !important; }
-                .message-out { background-color: #1e3a8a !important; border-left: 2px solid #3b82f6 !important; }
-                .message-in { background-color: #0f172a !important; }
-                header, footer { background-color: #0b1329 !important; }
-                #modstams-dock-launcher, #waweb-mod-launcher { background: linear-gradient(135deg, #3b82f6, #1d4ed8) !important; color: #fff !important; }
-                #modstams-dock { border-color: rgba(59, 130, 246, 0.35) !important; }
-            `
-        },
-        crimson: {
-            name: "Sunset Crimson",
-            accent: "#f97316",
-            css: `
-                .message-out { background-color: #7c2d12 !important; border-left: 2px solid #f97316 !important; }
-                .message-in { background-color: #1c1917 !important; }
-                header, footer { background-color: #12100e !important; }
-                #modstams-dock-launcher, #waweb-mod-launcher { background: linear-gradient(135deg, #f97316, #ef4444) !important; color: #fff !important; }
-                #modstams-dock { border-color: rgba(249, 115, 22, 0.35) !important; }
-            `
-        },
-        oled: {
-            name: "Ultra Dark OLED (Pitch Black)",
-            accent: "#00a884",
-            css: `
-                body, #app, #app > div, #main, #pane-side,
-                [data-testid="chat-list"], header, footer,
-                [data-testid="conversation-panel-wrapper"],
-                div[style*="background-color: rgb(17, 27, 33)"],
-                div[style*="background-color: rgb(32, 44, 51)"] {
-                    background-color: #000000 !important;
-                    background: #000000 !important;
-                }
-                .message-in { background-color: #0a0e11 !important; border: 1px solid #161b1f !important; }
-                .message-out { background-color: #00382b !important; }
-                [data-testid="chat-list-search"], div[role="textbox"] { background-color: #080808 !important; border-color: #1c1c1c !important; }
-                div, header, footer { border-color: #121212 !important; }
-                #modstams-dock { background: rgba(0, 0, 0, 0.95) !important; border-color: #222222 !important; }
-                #modstams-dock-launcher, #waweb-mod-launcher { background: #00a884 !important; }
-            `
-        }
-    };
-
-    let currentTheme = safeGet('modstams_theme', 'emerald');
-    let themeStyleElement = null;
-
-    function applyCurrentTheme() {
-        const head = document.head || document.getElementsByTagName('head')[0] || document.documentElement;
-        if (!head) return;
-
-        if (!themeStyleElement) {
-            themeStyleElement = document.createElement('style');
-            themeStyleElement.id = 'modstams-theme-style';
-            head.appendChild(themeStyleElement);
-        }
-        const themeObj = THEMES[currentTheme] || THEMES.emerald;
-        themeStyleElement.textContent = themeObj.css;
-    }
-
-    window.__modstams_setTheme = function(themeKey) {
-        if (!THEMES[themeKey]) return;
-        currentTheme = themeKey;
-        safeSet('modstams_theme', themeKey);
-        applyCurrentTheme();
-        showToast("Tema Diubah", THEMES[themeKey].name, null, THEMES[themeKey].accent || '#00a884');
-    };
-
-    /* ==========================================================================
-       9. MOD: PRIVACY MODE (Full Blur Chat & Media - Ctrl+B)
-       ========================================================================== */
-    let privacyActive = false;
-    let privacyStyle = null;
-
-    window.__waweb_togglePrivacy = function() {
-        const head = document.head || document.getElementsByTagName('head')[0] || document.documentElement;
-        privacyActive = !privacyActive;
-        if (privacyActive) {
-            if (!privacyStyle && head) {
-                privacyStyle = document.createElement('style');
-                privacyStyle.id = 'modstams-privacy-style';
-                privacyStyle.textContent = `
-                    #main [data-testid="conversation-panel-body"] span,
-                    #main [data-testid="cell-frame-container"] span,
-                    #main img, #main video,
-                    #pane-side span[title] {
-                        filter: blur(7px) !important;
-                        transition: filter 0.15s ease-in-out !important;
-                    }
-                    #main [data-testid="conversation-panel-body"]:hover span,
-                    #main [data-testid="cell-frame-container"]:hover span,
-                    #main img:hover, #main video:hover,
-                    #pane-side div:hover span[title] {
-                        filter: none !important;
-                    }
-                `;
-                head.appendChild(privacyStyle);
-            }
-            showToast("Privacy Mode Aktif", "Arahkan mouse ke chat untuk melihat");
-        } else {
-            if (privacyStyle) {
-                privacyStyle.remove();
-                privacyStyle = null;
-            }
-            showToast("Privacy Mode Nonaktif", "Tampilan chat normal");
-        }
-    };
-
-    /* ==========================================================================
-       10. MOD: AUTO-BLUR MEDIA ONLY (Sensor Khusus Foto, Video & Stiker - Ctrl+Shift+B)
-       ========================================================================== */
-    let blurMediaActive = safeGet('modstams_blur_media', 'false') === 'true';
-    let blurMediaStyle = null;
-
-    function applyBlurMediaStyles() {
-        const head = document.head || document.getElementsByTagName('head')[0] || document.documentElement;
-        if (!head) return;
-
-        if (blurMediaActive) {
-            if (!blurMediaStyle) {
-                blurMediaStyle = document.createElement('style');
-                blurMediaStyle.id = 'modstams-blur-media-style';
-                blurMediaStyle.textContent = `
-                    /* Auto-Blur Media Only: sensor foto, video, stiker & avatar */
-                    #main img, #main video,
-                    [data-testid="media-canvas"],
-                    [data-testid="audio-player"],
-                    div[data-testid="image-thumb"] img,
-                    div[data-testid="video-thumb"] video,
-                    #pane-side img {
-                        filter: blur(14px) !important;
-                        transition: filter 0.2s ease-in-out !important;
-                    }
-                    #main img:hover, #main video:hover,
-                    [data-testid="media-canvas"]:hover,
-                    [data-testid="audio-player"]:hover,
-                    div[data-testid="image-thumb"]:hover img,
-                    div[data-testid="video-thumb"]:hover video,
-                    #pane-side div:hover img {
-                        filter: none !important;
-                    }
-                `;
-                head.appendChild(blurMediaStyle);
-            }
-        } else {
-            if (blurMediaStyle) {
-                blurMediaStyle.remove();
-                blurMediaStyle = null;
-            }
-        }
-    }
-
-    window.__modstams_toggleBlurMedia = function() {
-        blurMediaActive = !blurMediaActive;
-        safeSet('modstams_blur_media', blurMediaActive ? 'true' : 'false');
-        applyBlurMediaStyles();
-        showToast(
-            blurMediaActive ? "Auto-Blur Media Aktif" : "Media Normal",
-            blurMediaActive ? "Foto/video ter-sensor, arahkan mouse untuk melihat (Ctrl+Shift+B)" : "Foto & video tampil tanpa sensor",
-            null,
-            blurMediaActive ? "#00e5ff" : "#8696a0"
-        );
-    };
-
-    /* ==========================================================================
-       11. MOD: FILTER CHAT BELUM DIBACA (Unread Only Filter - Ctrl+Shift+U)
-       ========================================================================== */
-    let unreadFilterActive = safeGet('modstams_unread_filter', 'false') === 'true';
-
-    function executeUnreadFilter() {
-        const chatRows = document.querySelectorAll('#pane-side [role="row"], #pane-side div[data-testid="cell-frame-container"]');
-        let unreadCount = 0;
-
-        chatRows.forEach(row => {
-            const parentRow = row.closest('[role="row"]') || row;
-            if (!unreadFilterActive) {
-                parentRow.style.display = '';
-                return;
-            }
-
-            // Check for WhatsApp unread badge indicators
-            const hasUnreadBadge = parentRow.querySelector('span[aria-label*="unread"], span[aria-label*="belum dibaca"], span[data-icon="unread-count"], [data-testid="icon-unread-count"]') !== null;
-            const textCheck = parentRow.innerText || '';
-            const hasUnreadNumber = /\b[1-9]\d*\b/.test(parentRow.querySelector('div[style*="border-radius: 50%"], span[class*="unread"]')?.innerText || '');
-
-            if (hasUnreadBadge || hasUnreadNumber) {
-                parentRow.style.display = '';
-                unreadCount++;
-            } else {
-                parentRow.style.display = 'none';
-            }
-        });
-
-        // Update pill UI badge if present
-        const badge = document.getElementById('modstams-unread-badge');
-        if (badge) {
-            badge.innerText = unreadCount > 0 ? unreadCount : '0';
-            if (unreadCount > 0) {
-                badge.style.background = 'rgba(255, 82, 82, 0.85)';
-                badge.style.color = '#ffffff';
-            } else {
-                badge.style.background = 'rgba(255, 255, 255, 0.22)';
-                badge.style.color = 'inherit';
-            }
-        }
-    }
-
-    window.__modstams_toggleUnreadFilter = function() {
-        unreadFilterActive = !unreadFilterActive;
-        safeSet('modstams_unread_filter', unreadFilterActive ? 'true' : 'false');
-        executeUnreadFilter();
-        
-        const unreadBtn = document.getElementById('modstams-dock-unread');
-        if (unreadBtn) {
-            if (unreadFilterActive) {
-                unreadBtn.style.background = '#00a884';
-                unreadBtn.style.color = '#ffffff';
-                unreadBtn.style.boxShadow = '0 2px 8px rgba(0, 168, 132, 0.4)';
-            } else {
-                unreadBtn.style.background = 'rgba(255, 255, 255, 0.06)';
-                unreadBtn.style.color = '#8696a0';
-                unreadBtn.style.boxShadow = 'none';
-            }
-        }
-
-        showToast(
-            unreadFilterActive ? "Filter Unread Aktif" : "Menampilkan Semua Chat",
-            unreadFilterActive ? "Hanya menampilkan chat yang ada pesan belum dibaca (Ctrl+Shift+U)" : "Semua obrolan kembali ditampilkan",
-            null,
-            unreadFilterActive ? "#00a884" : "#8696a0"
-        );
-    };
-
-    function injectUnreadFilterPill() {
-        injectModDock();
-    }
-
-    /* ==========================================================================
-       12. MOD: APP LOCK & PIN SECURITY (Kunci Aplikasi - Ctrl+L)
+       6. APP LOCK & PIN SECURITY (Ctrl+L)
        ========================================================================== */
     let appPin = safeGet('modstams_app_pin', '');
     let isAppLocked = false;
@@ -755,14 +473,13 @@
             'left: 0',
             'width: 100vw',
             'height: 100vh',
-            'background: rgba(11, 20, 26, 0.96)',
-            'backdrop-filter: blur(24px)',
+            'background: rgba(11, 20, 26, 0.98)',
             'z-index: 99999999',
             'display: flex',
             'flex-direction: column',
             'align-items: center',
             'justify-content: center',
-            'font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+            'font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
             'color: #e9edef',
             'user-select: none'
         ].join(';');
@@ -771,30 +488,29 @@
 
         overlay.innerHTML = `
             <div style="display: flex; flex-direction: column; align-items: center; max-width: 320px; width: 100%;">
-                <div style="width: 68px; height: 68px; border-radius: 50%; background: rgba(0, 168, 132, 0.18); border: 2px solid #00a884; display: flex; align-items: center; justify-content: center; margin-bottom: 20px; box-shadow: 0 0 24px rgba(0, 168, 132, 0.35);">
-                    <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#00a884" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <div style="width: 60px; height: 60px; border-radius: 50%; background: rgba(0, 168, 132, 0.18); border: 2px solid #00a884; display: flex; align-items: center; justify-content: center; margin-bottom: 16px;">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#00a884" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                         <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
                         <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
                     </svg>
                 </div>
-                <div style="font-size: 20px; font-weight: 700; color: #e9edef; margin-bottom: 6px;">ModsTams Terkunci</div>
-                <div style="font-size: 13px; color: #8696a0; margin-bottom: 24px;">Masukkan PIN 4-digit untuk membuka</div>
+                <div style="font-size: 18px; font-weight: 700; color: #e9edef; margin-bottom: 4px;">ModsTams Terkunci</div>
+                <div style="font-size: 12px; color: #8696a0; margin-bottom: 22px;">Ketik PIN 4-digit untuk membuka</div>
 
-                <div id="pin-dots" style="display: flex; gap: 14px; margin-bottom: 28px;">
-                    <div class="pin-dot" style="width: 14px; height: 14px; border-radius: 50%; border: 2px solid #8696a0; transition: all 0.15s ease;"></div>
-                    <div class="pin-dot" style="width: 14px; height: 14px; border-radius: 50%; border: 2px solid #8696a0; transition: all 0.15s ease;"></div>
-                    <div class="pin-dot" style="width: 14px; height: 14px; border-radius: 50%; border: 2px solid #8696a0; transition: all 0.15s ease;"></div>
-                    <div class="pin-dot" style="width: 14px; height: 14px; border-radius: 50%; border: 2px solid #8696a0; transition: all 0.15s ease;"></div>
+                <div id="pin-dots" style="display: flex; gap: 12px; margin-bottom: 24px;">
+                    <div class="pin-dot" style="width: 13px; height: 13px; border-radius: 50%; border: 2px solid #8696a0; transition: all 0.15s ease;"></div>
+                    <div class="pin-dot" style="width: 13px; height: 13px; border-radius: 50%; border: 2px solid #8696a0; transition: all 0.15s ease;"></div>
+                    <div class="pin-dot" style="width: 13px; height: 13px; border-radius: 50%; border: 2px solid #8696a0; transition: all 0.15s ease;"></div>
+                    <div class="pin-dot" style="width: 13px; height: 13px; border-radius: 50%; border: 2px solid #8696a0; transition: all 0.15s ease;"></div>
                 </div>
 
-                <!-- Keypad -->
-                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; width: 240px;">
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; width: 230px;">
                     ${[1,2,3,4,5,6,7,8,9].map(n => `
-                        <button class="pin-btn" data-val="${n}" style="height: 56px; border-radius: 28px; border: 1px solid rgba(255,255,255,0.08); background: #1f2c34; color: #e9edef; font-size: 20px; font-weight: 600; cursor: pointer; transition: all 0.1s ease;">${n}</button>
+                        <button class="pin-btn" data-val="${n}" style="height: 52px; border-radius: 26px; border: 1px solid rgba(255,255,255,0.08); background: #1f2c34; color: #e9edef; font-size: 18px; font-weight: 600; cursor: pointer;">${n}</button>
                     `).join('')}
-                    <button id="pin-clear" style="height: 56px; border-radius: 28px; border: none; background: transparent; color: #8696a0; font-size: 13px; font-weight: 600; cursor: pointer;">C</button>
-                    <button class="pin-btn" data-val="0" style="height: 56px; border-radius: 28px; border: 1px solid rgba(255,255,255,0.08); background: #1f2c34; color: #e9edef; font-size: 20px; font-weight: 600; cursor: pointer;">0</button>
-                    <button id="pin-back" style="height: 56px; border-radius: 28px; border: none; background: transparent; color: #8696a0; font-size: 13px; font-weight: 700; cursor: pointer;">DEL</button>
+                    <button id="pin-clear" style="height: 52px; border-radius: 26px; border: none; background: transparent; color: #8696a0; font-size: 12px; font-weight: 600; cursor: pointer;">C</button>
+                    <button class="pin-btn" data-val="0" style="height: 52px; border-radius: 26px; border: 1px solid rgba(255,255,255,0.08); background: #1f2c34; color: #e9edef; font-size: 18px; font-weight: 600; cursor: pointer;">0</button>
+                    <button id="pin-back" style="height: 52px; border-radius: 26px; border: none; background: transparent; color: #8696a0; font-size: 12px; font-weight: 700; cursor: pointer;">DEL</button>
                 </div>
             </div>
         `;
@@ -807,7 +523,7 @@
                 if (idx < enteredPin.length) {
                     dot.style.background = '#00a884';
                     dot.style.borderColor = '#00a884';
-                    dot.style.transform = 'scale(1.15)';
+                    dot.style.transform = 'scale(1.1)';
                 } else {
                     dot.style.background = 'transparent';
                     dot.style.borderColor = '#8696a0';
@@ -823,7 +539,6 @@
                     isAppLocked = false;
                     showToast("ModsTams Terbuka", "Selamat datang kembali!");
                 } else {
-                    playChime(false);
                     enteredPin = "";
                     updateDots();
                     showToast("PIN Salah", "Silakan coba lagi", null, '#ff5252');
@@ -836,7 +551,7 @@
                 if (enteredPin.length < 4) {
                     enteredPin += btn.getAttribute('data-val');
                     updateDots();
-                    if (enteredPin.length === 4) setTimeout(checkPin, 100);
+                    if (enteredPin.length === 4) setTimeout(checkPin, 80);
                 }
             };
         });
@@ -860,7 +575,7 @@
                 if (enteredPin.length < 4) {
                     enteredPin += e.key;
                     updateDots();
-                    if (enteredPin.length === 4) setTimeout(checkPin, 100);
+                    if (enteredPin.length === 4) setTimeout(checkPin, 80);
                 }
             } else if (e.key === 'Backspace') {
                 enteredPin = enteredPin.slice(0, -1);
@@ -875,7 +590,7 @@
 
     window.__modstams_lockApp = function() {
         if (!appPin) {
-            showToast("PIN Belum Diatur", "Buka Control Center > Keamanan untuk mengatur PIN", null, '#ffaa00');
+            showToast("PIN Belum Diatur", "Buka Control Center (Ctrl+Shift+M) untuk mengatur PIN", null, '#ffaa00');
             return;
         }
         isAppLocked = true;
@@ -883,566 +598,496 @@
     };
 
     /* ==========================================================================
-       13. MOD: VOICE NOTE SUPER SPEED & AUDIO BOOSTER
+       7. NATIVE UNREAD FILTER INTEGRATION (Zero Virtual-DOM Scraper)
        ========================================================================== */
-    function injectAudioSuperController() {
-        if (!document.body) return;
-        const audios = document.querySelectorAll('audio');
-        audios.forEach(audio => {
-            if (audio.__modstams_controlled) return;
-            audio.__modstams_controlled = true;
+    let unreadFilterActive = safeGet('modstams_unread_filter', 'false') === 'true';
+    let unreadStyleElement = null;
 
-            audio.addEventListener('play', () => {
-                let bar = document.getElementById('modstams-audio-bar');
-                if (!bar) {
-                    bar = document.createElement('div');
-                    bar.id = 'modstams-audio-bar';
-                    bar.style.cssText = [
-                        'position: fixed',
-                        'bottom: 80px',
-                        'left: 50%',
-                        'transform: translateX(-50%)',
-                        'z-index: 99999',
-                        'background: rgba(17, 27, 33, 0.95)',
-                        'border: 1px solid rgba(0, 168, 132, 0.3)',
-                        'border-radius: 30px',
-                        'padding: 8px 16px',
-                        'display: flex',
-                        'align-items: center',
-                        'gap: 10px',
-                        'box-shadow: 0 10px 30px rgba(0,0,0,0.6)',
-                        'backdrop-filter: blur(12px)',
-                        'font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
-                    ].join(';');
+    function applyUnreadCssFilter() {
+        const head = document.head || document.documentElement;
+        if (!head) return;
+        if (!unreadStyleElement) {
+            unreadStyleElement = document.createElement('style');
+            unreadStyleElement.id = 'modstams-unread-style';
+            head.appendChild(unreadStyleElement);
+        }
 
-                    bar.innerHTML = `
-                        <div style="font-size: 11px; font-weight: 700; color: #00a884; display: flex; align-items: center; gap: 4px;">
-                            <span>VN Speed:</span>
-                        </div>
-                        <div style="display: flex; gap: 4px;">
-                            <button class="vn-spd-btn" data-spd="1.0" style="background:#202c33;color:#e9edef;border:none;border-radius:12px;padding:4px 8px;font-size:11px;font-weight:600;cursor:pointer;">1.0x</button>
-                            <button class="vn-spd-btn" data-spd="1.5" style="background:#202c33;color:#e9edef;border:none;border-radius:12px;padding:4px 8px;font-size:11px;font-weight:600;cursor:pointer;">1.5x</button>
-                            <button class="vn-spd-btn" data-spd="2.0" style="background:#202c33;color:#e9edef;border:none;border-radius:12px;padding:4px 8px;font-size:11px;font-weight:600;cursor:pointer;">2.0x</button>
-                            <button class="vn-spd-btn" data-spd="2.5" style="background:#00a884;color:white;border:none;border-radius:12px;padding:4px 8px;font-size:11px;font-weight:700;cursor:pointer;">2.5x</button>
-                            <button class="vn-spd-btn" data-spd="3.0" style="background:#00a884;color:white;border:none;border-radius:12px;padding:4px 8px;font-size:11px;font-weight:700;cursor:pointer;">3.0x</button>
-                        </div>
-                        <div style="width: 1px; height: 16px; background: rgba(255,255,255,0.12);"></div>
-                        <button id="vn-boost-btn" style="background: rgba(255,170,0,0.15); color: #ffaa00; border: 1px solid rgba(255,170,0,0.4); border-radius: 12px; padding: 4px 10px; font-size: 11px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 4px;">
-                            <span>Boost +200%</span>
-                        </button>
-                    `;
-                    document.body.appendChild(bar);
-
-                    bar.querySelectorAll('.vn-spd-btn').forEach(b => {
-                        b.onclick = () => {
-                            const speed = parseFloat(b.getAttribute('data-spd'));
-                            audio.playbackRate = speed;
-                            showToast("Kecepatan VN", `${speed}x Aktif`);
-                        };
-                    });
-
-                    let boosted = false;
-                    bar.querySelector('#vn-boost-btn').onclick = () => {
-                        boosted = !boosted;
-                        audio.volume = boosted ? 1.0 : 0.8;
-                        showToast(boosted ? "Volume Boost Max" : "Volume Normal", boosted ? "Suara diperkeras maksimal" : "Volume audio normal", null, '#ffaa00');
-                    };
+        if (unreadFilterActive) {
+            // Hardware-accelerated CSS pseudo-selector :has() - 0 JavaScript loops!
+            unreadStyleElement.textContent = `
+                #pane-side [role="row"]:not(:has(span[aria-label*="unread" i])):not(:has(span[aria-label*="belum dibaca" i])):not(:has([data-icon="unread-count"])) {
+                    display: none !important;
                 }
-            });
-
-            audio.addEventListener('ended', () => {
-                const bar = document.getElementById('modstams-audio-bar');
-                if (bar) bar.remove();
-            });
-            audio.addEventListener('pause', () => {
-                setTimeout(() => {
-                    if (audio.paused) {
-                        const bar = document.getElementById('modstams-audio-bar');
-                        if (bar) bar.remove();
-                    }
-                }, 4000);
-            });
-        });
+            `;
+        } else {
+            unreadStyleElement.textContent = '';
+        }
     }
 
-    /* ==========================================================================
-       14. MOD: TEXT REPEATER (BOOM TEXT) & FANCY FONT GENERATOR
-       ========================================================================== */
-    function insertTextIntoChat(text) {
-        const input = document.querySelector('footer div[contenteditable="true"]') ||
-                      document.querySelector('div[contenteditable="true"][data-tab="10"]') ||
-                      document.querySelector('div[contenteditable="true"]');
-        if (!input) {
-            showToast("Chat Belum Terbuka", "Buka ruang obrolan terlebih dahulu!", null, '#ff5252');
-            return false;
+    window.__modstams_toggleUnreadFilter = function() {
+        // Priority 1: Trigger native WhatsApp Web filter button if available
+        const nativeFilterBtn = document.querySelector(
+            'button[data-testid="filter-unread-chats-button"], ' +
+            'button[aria-label*="unread" i], ' +
+            'button[aria-label*="belum dibaca" i], ' +
+            'button[aria-label*="filter" i], ' +
+            'button span[data-icon="filter"]'
+        );
+
+        if (nativeFilterBtn) {
+            const btn = nativeFilterBtn.closest('button') || nativeFilterBtn;
+            btn.click();
+            showToast("Filter Unread", "Filter resmi WhatsApp diaktifkan (Ctrl+Shift+U)", null, "#00a884");
+            return;
         }
-        input.focus();
-        const success = document.execCommand('insertText', false, text);
-        if (!success) {
-            input.innerText = text;
-            input.dispatchEvent(new InputEvent('input', { bubbles: true, composed: true }));
-        }
-        showToast("Teks Dimasukkan", "Teks berhasil disalin ke kolom chat!");
-        return true;
-    }
 
-    const FANCY_STYLES = {
-        bold: text => text.replace(/[a-zA-Z0-9]/g, c => {
-            const code = c.charCodeAt(0);
-            if (code >= 65 && code <= 90) return String.fromCodePoint(0x1D400 + code - 65);
-            if (code >= 97 && code <= 122) return String.fromCodePoint(0x1D41A + code - 97);
-            if (code >= 48 && code <= 57) return String.fromCodePoint(0x1D7CE + code - 48);
-            return c;
-        }),
-        italic: text => text.replace(/[a-zA-Z]/g, c => {
-            const code = c.charCodeAt(0);
-            if (code >= 65 && code <= 90) return String.fromCodePoint(0x1D434 + code - 65);
-            if (code >= 97 && code <= 122) return String.fromCodePoint(0x1D44E + code - 97);
-            return c;
-        }),
-        mono: text => text.replace(/[a-zA-Z0-9]/g, c => {
-            const code = c.charCodeAt(0);
-            if (code >= 65 && code <= 90) return String.fromCodePoint(0x1D670 + code - 65);
-            if (code >= 97 && code <= 122) return String.fromCodePoint(0x1D68A + code - 97);
-            if (code >= 48 && code <= 57) return String.fromCodePoint(0x1D7F6 + code - 48);
-            return c;
-        }),
-        bubble: text => text.replace(/[a-zA-Z0-9]/g, c => {
-            const code = c.charCodeAt(0);
-            if (code >= 65 && code <= 90) return String.fromCodePoint(0x24B6 + code - 65);
-            if (code >= 97 && code <= 122) return String.fromCodePoint(0x24D0 + code - 97);
-            if (code >= 49 && code <= 57) return String.fromCodePoint(0x2460 + code - 49);
-            if (code === 48) return '⓪';
-            return c;
-        })
-    };
+        // Priority 2: Pure CSS filter without modifying DOM properties
+        unreadFilterActive = !unreadFilterActive;
+        safeSet('modstams_unread_filter', unreadFilterActive ? 'true' : 'false');
+        applyUnreadCssFilter();
 
-    /* ==========================================================================
-       15. MOD: ANTI-CALL AUTO-MUTE
-       ========================================================================== */
-    let antiCallActive = safeGet('modstams_anti_call', 'false') === 'true';
-
-    window.__modstams_toggleAntiCall = function() {
-        antiCallActive = !antiCallActive;
-        safeSet('modstams_anti_call', antiCallActive ? 'true' : 'false');
         showToast(
-            antiCallActive ? "Anti-Call Aktif" : "Panggilan Normal",
-            antiCallActive ? "Panggilan masuk otomatis diredam / diabaikan" : "Panggilan masuk akan berdering normal",
+            unreadFilterActive ? "Filter Unread Aktif" : "Menampilkan Semua Chat",
+            unreadFilterActive ? "Menampilkan obrolan belum dibaca (Ctrl+Shift+U)" : "Semua obrolan kembali normal",
             null,
-            antiCallActive ? "#ff5252" : "#8696a0"
+            unreadFilterActive ? "#00a884" : "#8696a0"
         );
     };
 
-    function watchAndSuppressCalls() {
-        if (!antiCallActive) return;
-        const callDeclines = document.querySelectorAll('button[data-testid="decline-call-btn"], div[role="dialog"] button[aria-label*="Decline"], div[role="dialog"] button[aria-label*="Tolak"]');
-        callDeclines.forEach(btn => {
-            btn.click();
-            showToast("Panggilan Ditolak Otomatis", "Fitur Anti-Call ModsTams aktif", null, "#ff5252");
+    /* ==========================================================================
+       8. STORY & VIEW-ONCE DOWNLOADER (Zero-Polling Event Observer)
+       ========================================================================== */
+    function checkAndInjectMediaDownloader(target) {
+        if (!target || !target.querySelectorAll) return;
+
+        // View Once inside modal/dialog
+        const modals = target.querySelectorAll('div[data-animate-modal-popup="true"], div[role="dialog"]');
+        modals.forEach(overlay => {
+            if (overlay.querySelector('#modstams-viewonce-btn')) return;
+            const img = overlay.querySelector('img[src]');
+            const video = overlay.querySelector('video[src]');
+            const media = img || video;
+
+            if (media && media.src) {
+                const btn = document.createElement('button');
+                btn.id = 'modstams-viewonce-btn';
+                btn.style.cssText = [
+                    'position: absolute',
+                    'top: 18px',
+                    'right: 76px',
+                    'z-index: 9999',
+                    'background: #00a884',
+                    'color: #ffffff',
+                    'border: none',
+                    'border-radius: 8px',
+                    'padding: 7px 13px',
+                    'font-size: 12px',
+                    'font-weight: 600',
+                    'cursor: pointer',
+                    'display: flex',
+                    'align-items: center',
+                    'gap: 6px',
+                    'box-shadow: 0 4px 14px rgba(0,0,0,0.4)'
+                ].join(';');
+                btn.innerHTML = `
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                    <span>Simpan Media</span>
+                `;
+                btn.onclick = (e) => {
+                    e.stopPropagation();
+                    const ext = video ? 'mp4' : 'jpg';
+                    triggerDownload(media.src, `Media_${Date.now()}.${ext}`);
+                };
+                overlay.appendChild(btn);
+            }
         });
+
+        // Status / Story viewer panel
+        const statusPanel = document.querySelector('div[role="region"][tabindex="-1"], div[data-animate-modal-body="true"]');
+        if (statusPanel && !statusPanel.querySelector('#modstams-status-download-btn')) {
+            const media = statusPanel.querySelector('img[src], video[src]');
+            if (media && media.src) {
+                const btn = document.createElement('button');
+                btn.id = 'modstams-status-download-btn';
+                btn.style.cssText = [
+                    'position: absolute',
+                    'bottom: 24px',
+                    'right: 24px',
+                    'z-index: 99999',
+                    'background: #00a884',
+                    'color: #ffffff',
+                    'border: none',
+                    'border-radius: 24px',
+                    'padding: 9px 16px',
+                    'font-size: 12px',
+                    'font-weight: 600',
+                    'cursor: pointer',
+                    'display: flex',
+                    'align-items: center',
+                    'gap: 6px',
+                    'box-shadow: 0 6px 18px rgba(0,0,0,0.5)'
+                ].join(';');
+                btn.innerHTML = `
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                    <span>Unduh Story</span>
+                `;
+                btn.onclick = (e) => {
+                    e.stopPropagation();
+                    const isVideo = statusPanel.querySelector('video[src]') !== null;
+                    const src = (statusPanel.querySelector('video[src]') || statusPanel.querySelector('img[src]')).src;
+                    triggerDownload(src, `Story_${Date.now()}.${isVideo ? 'mp4' : 'jpg'}`);
+                };
+                statusPanel.appendChild(btn);
+            }
+        }
     }
 
     /* ==========================================================================
-       16. MODSTAMS CONTROL CENTER v2.1 (MODAL WITH TABS)
+       9. DUAL-THEME ENGINE (Default Emerald vs Ultra Dark OLED #000000)
+       ========================================================================== */
+    const THEMES = {
+        emerald: {
+            name: "Emerald WhatsApp (Default)",
+            accent: "#00a884",
+            css: ""
+        },
+        oled: {
+            name: "Ultra Dark OLED (Pitch Black)",
+            accent: "#00a884",
+            css: `
+                body, #app, #app > div, #main, #pane-side,
+                [data-testid="chat-list"], header, footer,
+                [data-testid="conversation-panel-wrapper"],
+                div[style*="background-color: rgb(17, 27, 33)"],
+                div[style*="background-color: rgb(32, 44, 51)"] {
+                    background-color: #000000 !important;
+                    background: #000000 !important;
+                }
+                .message-in { background-color: #0a0e11 !important; border: 1px solid #161b1f !important; }
+                .message-out { background-color: #00382b !important; }
+                [data-testid="chat-list-search"], div[role="textbox"] { background-color: #080808 !important; border-color: #1c1c1c !important; }
+                div, header, footer { border-color: #121212 !important; }
+            `
+        }
+    };
+
+    let currentTheme = safeGet('modstams_theme', 'emerald') === 'oled' ? 'oled' : 'emerald';
+    let themeStyleElement = null;
+
+    function applyCurrentTheme() {
+        const head = document.head || document.getElementsByTagName('head')[0] || document.documentElement;
+        if (!head) return;
+
+        if (!themeStyleElement) {
+            themeStyleElement = document.createElement('style');
+            themeStyleElement.id = 'modstams-theme-style';
+            head.appendChild(themeStyleElement);
+        }
+        themeStyleElement.textContent = THEMES[currentTheme].css;
+    }
+
+    window.__waweb_toggleOled = function() {
+        currentTheme = currentTheme === 'oled' ? 'emerald' : 'oled';
+        safeSet('modstams_theme', currentTheme);
+        applyCurrentTheme();
+        showToast(
+            currentTheme === 'oled' ? "Ultra Dark OLED Aktif" : "Tema Emerald WhatsApp",
+            currentTheme === 'oled' ? "Hitam pekat murni #000000 hemat baterai (Ctrl+Shift+O)" : "Tema standar aktif",
+            null,
+            "#00a884"
+        );
+    };
+
+    /* ==========================================================================
+       10. SEAMLESS NATIVE HEADER INTEGRATION
+       Replaces floating overlay widget with native topbar icon
+       ========================================================================== */
+    function injectNativeHeaderButton() {
+        if (document.getElementById('modstams-header-btn')) return;
+
+        const header = document.querySelector('#pane-side header') || document.querySelector('header');
+        if (!header) return;
+
+        let targetContainer = header.querySelector('div[style*="justify-content: flex-end"]') ||
+                              header.querySelector('span:has(div[role="button"])') ||
+                              header.lastElementChild ||
+                              header;
+
+        const btn = document.createElement('div');
+        btn.id = 'modstams-header-btn';
+        btn.setAttribute('role', 'button');
+        btn.setAttribute('tabindex', '0');
+        btn.title = 'ModsTams Quick HUD (Ctrl+Shift+M)';
+        btn.style.cssText = [
+            'display: inline-flex',
+            'align-items: center',
+            'justify-content: center',
+            'width: 36px',
+            'height: 36px',
+            'border-radius: 50%',
+            'cursor: pointer',
+            'color: #00a884',
+            'margin: 0 4px',
+            'transition: background-color 0.15s ease, transform 0.15s ease',
+            'flex-shrink: 0'
+        ].join(';');
+
+        btn.innerHTML = `
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+            </svg>
+        `;
+
+        btn.onmouseenter = () => {
+            btn.style.backgroundColor = 'rgba(0, 168, 132, 0.15)';
+            btn.style.transform = 'scale(1.08)';
+        };
+        btn.onmouseleave = () => {
+            btn.style.backgroundColor = 'transparent';
+            btn.style.transform = 'scale(1)';
+        };
+        btn.onclick = (e) => {
+            e.stopPropagation();
+            window.__waweb_toggleModCenter();
+        };
+
+        if (targetContainer.firstChild) {
+            targetContainer.insertBefore(btn, targetContainer.firstChild);
+        } else {
+            targetContainer.appendChild(btn);
+        }
+    }
+
+    /* ==========================================================================
+       11. MODSTAMS QUICK HUD (Ultra-Compact Single-View Popover)
        ========================================================================== */
     window.__waweb_toggleModCenter = function() {
         if (!document.body) return;
-        const existing = document.getElementById('modstams-mod-center-modal');
+        const existing = document.getElementById('modstams-quick-hud');
         if (existing) {
             existing.remove();
             return;
         }
 
         const modal = document.createElement('div');
-        modal.id = 'modstams-mod-center-modal';
+        modal.id = 'modstams-quick-hud';
         modal.style.cssText = [
             'position: fixed',
             'top: 0',
             'left: 0',
             'width: 100vw',
             'height: 100vh',
-            'background: rgba(11, 20, 26, 0.78)',
-            'backdrop-filter: blur(10px)',
+            'background: rgba(11, 20, 26, 0.75)',
             'z-index: 999999',
             'display: flex',
             'align-items: center',
             'justify-content: center',
-            'font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+            'font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
         ].join(';');
 
         function renderSwitch(id, active) {
             return `
-                <div id="${id}" style="width: 44px; height: 24px; border-radius: 12px; background: ${active ? '#00a884' : '#374248'}; position: relative; cursor: pointer; transition: background 0.2s ease;">
-                    <div style="width: 18px; height: 18px; border-radius: 50%; background: #ffffff; position: absolute; top: 3px; left: ${active ? '23px' : '3px'}; transition: left 0.2s ease; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>
+                <div id="${id}" style="width: 40px; height: 22px; border-radius: 11px; background: ${active ? '#00a884' : '#374248'}; position: relative; cursor: pointer; transition: background 0.2s ease;">
+                    <div style="width: 16px; height: 16px; border-radius: 50%; background: #ffffff; position: absolute; top: 3px; left: ${active ? '21px' : '3px'}; transition: left 0.2s ease; box-shadow: 0 1px 3px rgba(0,0,0,0.4);"></div>
+                </div>
+            `;
+        }
+
+        function renderCheckboxChip(id, checked, label) {
+            return `
+                <div id="${id}" style="display: flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 8px; cursor: pointer; background: ${checked ? 'rgba(0, 168, 132, 0.15)' : 'rgba(255,255,255,0.04)'}; border: 1px solid ${checked ? 'rgba(0, 168, 132, 0.4)' : 'rgba(255,255,255,0.08)'}; transition: all 0.15s ease;">
+                    <div style="width: 14px; height: 14px; border-radius: 3px; border: 2px solid ${checked ? '#00a884' : '#8696a0'}; background: ${checked ? '#00a884' : 'transparent'}; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                        ${checked ? '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>' : ''}
+                    </div>
+                    <span style="font-size: 12px; font-weight: 500; color: ${checked ? '#e9edef' : '#8696a0'};">${label}</span>
                 </div>
             `;
         }
 
         modal.innerHTML = `
-            <div style="background: #111b21; border: 1px solid rgba(255,255,255,0.12); border-radius: 18px; width: 490px; max-width: 95vw; box-shadow: 0 24px 60px rgba(0,0,0,0.7); color: #e9edef; overflow: hidden; display: flex; flex-direction: column; max-height: 85vh;">
+            <div style="background: #111b21; border: 1px solid rgba(255,255,255,0.12); border-radius: 16px; width: 420px; max-width: 92vw; box-shadow: 0 24px 60px rgba(0,0,0,0.8); color: #e9edef; overflow: hidden; display: flex; flex-direction: column;">
                 <!-- Header -->
-                <div style="display: flex; justify-content: space-between; align-items: center; padding: 18px 24px; border-bottom: 1px solid rgba(255,255,255,0.08); background: #182229;">
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 14px 18px; border-bottom: 1px solid rgba(255,255,255,0.08); background: #182229;">
                     <div style="display: flex; align-items: center; gap: 10px;">
-                        <div style="width: 32px; height: 32px; border-radius: 8px; background: rgba(0, 168, 132, 0.2); display: flex; align-items: center; justify-content: center;">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="#00a884"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+                        <div style="width: 28px; height: 28px; border-radius: 8px; background: rgba(0, 168, 132, 0.2); display: flex; align-items: center; justify-content: center;">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="#00a884"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
                         </div>
                         <div>
-                            <div style="font-weight: 700; font-size: 16px; color: #00a884;">ModsTams Control Center</div>
-                            <div style="font-size: 11px; color: #8696a0;">Super Suite v2.1 • Ultra-Light Desktop Wrapper</div>
+                            <div style="font-weight: 700; font-size: 14px; color: #00a884;">ModsTams Quick HUD</div>
+                            <div style="font-size: 11px; color: #8696a0;">v3.5 GG Extreme • Sub-70MB RAM Edition</div>
                         </div>
                     </div>
-                    <button id="modstams-close-btn" style="background: transparent; border: none; color: #8696a0; cursor: pointer; font-size: 20px; line-height: 1;">&times;</button>
+                    <button id="modstams-hud-close" style="background: transparent; border: none; color: #8696a0; cursor: pointer; font-size: 20px; line-height: 1;">&times;</button>
                 </div>
 
-                <!-- Tabs Navigation -->
-                <div style="display: flex; border-bottom: 1px solid rgba(255,255,255,0.08); background: #111b21;">
-                    <button class="tab-nav active" data-tab="tab-privacy" style="flex: 1; padding: 12px 6px; background: transparent; border: none; border-bottom: 2px solid #00a884; color: #00a884; font-size: 12px; font-weight: 600; cursor: pointer;">Privasi</button>
-                    <button class="tab-nav" data-tab="tab-theme" style="flex: 1; padding: 12px 6px; background: transparent; border: none; border-bottom: 2px solid transparent; color: #8696a0; font-size: 12px; font-weight: 600; cursor: pointer;">Tema</button>
-                    <button class="tab-nav" data-tab="tab-deleted" style="flex: 1; padding: 12px 6px; background: transparent; border: none; border-bottom: 2px solid transparent; color: #8696a0; font-size: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px;">
-                        <span>Log Ditarik</span>
-                        <span id="tab-del-badge" style="background: #ff5252; color: white; font-size: 10px; padding: 1px 6px; border-radius: 10px;">${deletedLogs.length}</span>
-                    </button>
-                    <button class="tab-nav" data-tab="tab-tools" style="flex: 1; padding: 12px 6px; background: transparent; border: none; border-bottom: 2px solid transparent; color: #8696a0; font-size: 12px; font-weight: 600; cursor: pointer;">Alat Super</button>
-                </div>
-
-                <!-- Tab Contents -->
-                <div style="padding: 20px 24px; overflow-y: auto; flex: 1;">
+                <!-- Body (Single-View, Zero-Tab Bloat) -->
+                <div style="padding: 16px 18px; display: flex; flex-direction: column; gap: 12px; max-height: 75vh; overflow-y: auto;">
                     
-                    <!-- TAB 1: PRIVASI & KEAMANAN -->
-                    <div id="tab-privacy" class="tab-content" style="display: flex; flex-direction: column; gap: 12px;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; background: #182229; padding: 12px 14px; border-radius: 12px;">
+                    <!-- Section 1: Precision Privacy Master -->
+                    <div style="background: #182229; padding: 12px; border-radius: 10px; border-left: 3px solid ${privacyConfig.active ? '#00e5ff' : '#8696a0'};">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                             <div>
-                                <div style="font-weight: 600; font-size: 13px; color: #e9edef;">Anti-Centang Biru (Ghost Read)</div>
-                                <div style="font-size: 11px; color: #8696a0; margin-top: 2px;">Bebas baca chat tanpa memicu centang biru di pengirim</div>
+                                <div style="font-weight: 600; font-size: 13px; color: ${privacyConfig.active ? '#00e5ff' : '#e9edef'};">Master Privacy Mode (Ctrl+B)</div>
+                                <div style="font-size: 11px; color: #8696a0;">Arahkan mouse ke balon pesan untuk mengintip</div>
                             </div>
-                            <div id="switch-ghostread">${renderSwitch('sw-btn-ghostread', ghostReadActive)}</div>
+                            <div id="sw-master-privacy">${renderSwitch('sw-btn-master', privacyConfig.active)}</div>
                         </div>
 
-                        <div style="display: flex; justify-content: space-between; align-items: center; background: #182229; padding: 12px 14px; border-radius: 12px;">
-                            <div>
-                                <div style="font-weight: 600; font-size: 13px; color: #e9edef;">Sembunyikan Sedang Mengetik</div>
-                                <div style="font-size: 11px; color: #8696a0; margin-top: 2px;">Lawan bicara tidak melihat status mengetik Anda</div>
-                            </div>
-                            <div id="switch-ghosttyping">${renderSwitch('sw-btn-ghosttyping', ghostTypingActive)}</div>
+                        <!-- Intensity slider -->
+                        <div style="display: flex; align-items: center; gap: 10px; margin-top: 6px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.06);">
+                            <span style="font-size: 11px; color: #8696a0; white-space: nowrap;">Kekuatan Blur:</span>
+                            <input id="hud-blur-slider" type="range" min="4" max="16" value="${privacyConfig.intensity}" style="flex: 1; accent-color: #00a884; cursor: pointer;">
+                            <span id="hud-blur-val" style="font-size: 11px; font-weight: 700; color: #00a884; min-width: 28px;">${privacyConfig.intensity}px</span>
                         </div>
 
-                        <!-- NEW: Auto-Blur Media Only -->
-                        <div style="display: flex; justify-content: space-between; align-items: center; background: #182229; padding: 12px 14px; border-radius: 12px; border-left: 3px solid #00e5ff;">
-                            <div>
-                                <div style="font-weight: 600; font-size: 13px; color: #00e5ff;">Auto-Blur Media Saja (Sensor Foto/Video)</div>
-                                <div style="font-size: 11px; color: #8696a0; margin-top: 2px;">Sensor foto & video (hover untuk lihat), teks chat normal (Ctrl+Shift+B)</div>
-                            </div>
-                            <div id="switch-blurmedia">${renderSwitch('sw-btn-blurmedia', blurMediaActive)}</div>
-                        </div>
-
-                        <!-- NEW: Filter Chat Belum Dibaca -->
-                        <div style="display: flex; justify-content: space-between; align-items: center; background: #182229; padding: 12px 14px; border-radius: 12px; border-left: 3px solid #00a884;">
-                            <div>
-                                <div style="font-weight: 600; font-size: 13px; color: #00a884;">Filter Chat Belum Dibaca (Unread Only)</div>
-                                <div style="font-size: 11px; color: #8696a0; margin-top: 2px;">Saring hanya obrolan yang memiliki pesan belum dibaca (Ctrl+Shift+U)</div>
-                            </div>
-                            <div id="switch-unreadfilter">${renderSwitch('sw-btn-unreadfilter', unreadFilterActive)}</div>
-                        </div>
-
-                        <div style="display: flex; justify-content: space-between; align-items: center; background: #182229; padding: 12px 14px; border-radius: 12px;">
-                            <div>
-                                <div style="font-weight: 600; font-size: 13px; color: #e9edef;">Full Privacy Mode (Blur Semua Chat)</div>
-                                <div style="font-size: 11px; color: #8696a0; margin-top: 2px;">Blur seluruh teks & media sampai kursor diarahkan (Ctrl+B)</div>
-                            </div>
-                            <div id="switch-privacy">${renderSwitch('sw-btn-privacy', privacyActive)}</div>
-                        </div>
-
-                        <div style="display: flex; justify-content: space-between; align-items: center; background: #182229; padding: 12px 14px; border-radius: 12px;">
-                            <div>
-                                <div style="font-weight: 600; font-size: 13px; color: #e9edef;">Anti-Call (Auto-Mute Panggilan)</div>
-                                <div style="font-size: 11px; color: #8696a0; margin-top: 2px;">Otomatis redam/tolak panggilan masuk agar tidak mengganggu</div>
-                            </div>
-                            <div id="switch-anticall">${renderSwitch('sw-btn-anticall', antiCallActive)}</div>
-                        </div>
-
-                        <!-- PIN Security Section -->
-                        <div style="background: #182229; padding: 14px; border-radius: 12px; border: 1px solid rgba(0, 168, 132, 0.2);">
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                                <div>
-                                    <div style="font-weight: 600; font-size: 13px; color: #e9edef; display: flex; align-items: center; gap: 6px;">
-                                        <span>Kunci Aplikasi (App Lock)</span>
-                                    </div>
-                                    <div style="font-size: 11px; color: #8696a0; margin-top: 2px;">Lindungi chat dengan PIN 4-digit (Ctrl+L)</div>
-                                </div>
-                                <button id="btn-lock-now" style="background: #00a884; color: white; border: none; border-radius: 8px; padding: 6px 12px; font-size: 12px; font-weight: 600; cursor: pointer;">Kunci Sekarang</button>
-                            </div>
-                            <div style="display: flex; gap: 8px; align-items: center; margin-top: 10px;">
-                                <input id="input-new-pin" type="password" maxlength="4" placeholder="${appPin ? 'Ganti PIN (4 angka)' : 'Atur PIN (4 angka)'}" style="flex: 1; background: #202c33; border: 1px solid #2a3942; border-radius: 8px; padding: 8px 12px; color: #e9edef; font-size: 13px; outline: none;">
-                                <button id="btn-save-pin" style="background: #2a3942; color: #00a884; border: none; border-radius: 8px; padding: 8px 14px; font-size: 12px; font-weight: 600; cursor: pointer;">Simpan PIN</button>
-                            </div>
+                        <!-- Granular Chips Grid -->
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 10px;">
+                            ${renderCheckboxChip('chip-chat', privacyConfig.blurChat, 'Pesan Chat')}
+                            ${renderCheckboxChip('chip-media', privacyConfig.blurMedia, 'Media Foto/VN')}
+                            ${renderCheckboxChip('chip-preview', privacyConfig.blurPreview, 'Sidebar Preview')}
+                            ${renderCheckboxChip('chip-names', privacyConfig.blurNames, 'Nama Kontak')}
+                            ${renderCheckboxChip('chip-avatars', privacyConfig.blurAvatars, 'Foto Profil')}
+                            ${renderCheckboxChip('chip-input', privacyConfig.blurInput, 'Draft Ketik')}
                         </div>
                     </div>
 
-                    <!-- TAB 2: TEMA & TAMPILAN -->
-                    <div id="tab-theme" class="tab-content" style="display: none; flex-direction: column; gap: 12px;">
-                        <div style="font-size: 12px; color: #8696a0; margin-bottom: 4px;">Pilih tema dan aksen warna favorit Anda:</div>
-
-                        <div class="theme-card" data-theme="emerald" style="display: flex; align-items: center; justify-content: space-between; background: #182229; padding: 12px 14px; border-radius: 12px; cursor: pointer; border: 1px solid ${currentTheme === 'emerald' ? '#00a884' : 'transparent'};">
-                            <div style="display: flex; align-items: center; gap: 10px;">
-                                <div style="width: 20px; height: 20px; border-radius: 50%; background: #00a884;"></div>
-                                <div>
-                                    <div style="font-weight: 600; font-size: 13px;">Emerald ModsTams (Klasik)</div>
-                                    <div style="font-size: 11px; color: #8696a0;">Aksen hijau khas ModsTams yang elegan</div>
-                                </div>
-                            </div>
-                            ${currentTheme === 'emerald' ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#00a884" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>' : ''}
-                        </div>
-
-                        <div class="theme-card" data-theme="cyberpunk" style="display: flex; align-items: center; justify-content: space-between; background: #182229; padding: 12px 14px; border-radius: 12px; cursor: pointer; border: 1px solid ${currentTheme === 'cyberpunk' ? '#00e5ff' : 'transparent'};">
-                            <div style="display: flex; align-items: center; gap: 10px;">
-                                <div style="width: 20px; height: 20px; border-radius: 50%; background: linear-gradient(135deg, #00e5ff, #ff007f);"></div>
-                                <div>
-                                    <div style="font-weight: 600; font-size: 13px;">Cyberpunk Neon</div>
-                                    <div style="font-size: 11px; color: #8696a0;">Kombinasi Cyan menyala & Neon Magenta futuristik</div>
-                                </div>
-                            </div>
-                            ${currentTheme === 'cyberpunk' ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#00e5ff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>' : ''}
-                        </div>
-
-                        <div class="theme-card" data-theme="midnight" style="display: flex; align-items: center; justify-content: space-between; background: #182229; padding: 12px 14px; border-radius: 12px; cursor: pointer; border: 1px solid ${currentTheme === 'midnight' ? '#3b82f6' : 'transparent'};">
-                            <div style="display: flex; align-items: center; gap: 10px;">
-                                <div style="width: 20px; height: 20px; border-radius: 50%; background: #3b82f6;"></div>
-                                <div>
-                                    <div style="font-weight: 600; font-size: 13px;">Midnight Sapphire</div>
-                                    <div style="font-size: 11px; color: #8696a0;">Navy gelap menenangkan dengan aksen Ice Blue</div>
-                                </div>
-                            </div>
-                            ${currentTheme === 'midnight' ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>' : ''}
-                        </div>
-
-                        <div class="theme-card" data-theme="crimson" style="display: flex; align-items: center; justify-content: space-between; background: #182229; padding: 12px 14px; border-radius: 12px; cursor: pointer; border: 1px solid ${currentTheme === 'crimson' ? '#f97316' : 'transparent'};">
-                            <div style="display: flex; align-items: center; gap: 10px;">
-                                <div style="width: 20px; height: 20px; border-radius: 50%; background: #f97316;"></div>
-                                <div>
-                                    <div style="font-weight: 600; font-size: 13px;">Sunset Crimson</div>
-                                    <div style="font-size: 11px; color: #8696a0;">Nuansa arang hangat dengan aksen merah membara</div>
-                                </div>
-                            </div>
-                            ${currentTheme === 'crimson' ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>' : ''}
-                        </div>
-
-                        <div class="theme-card" data-theme="oled" style="display: flex; align-items: center; justify-content: space-between; background: #182229; padding: 12px 14px; border-radius: 12px; cursor: pointer; border: 1px solid ${currentTheme === 'oled' ? '#00a884' : 'transparent'};">
-                            <div style="display: flex; align-items: center; gap: 10px;">
-                                <div style="width: 20px; height: 20px; border-radius: 50%; background: #000000; border: 1px solid #333;"></div>
-                                <div>
-                                    <div style="font-weight: 600; font-size: 13px;">Ultra Dark OLED (Pitch Black)</div>
-                                    <div style="font-size: 11px; color: #8696a0;">Hitam pekat murni #000000 hemat daya baterai</div>
-                                </div>
-                            </div>
-                            ${currentTheme === 'oled' ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#00a884" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>' : ''}
-                        </div>
-                    </div>
-
-                    <!-- TAB 3: LOG PESAN DITARIK -->
-                    <div id="tab-deleted" class="tab-content" style="display: none; flex-direction: column; gap: 12px;">
+                    <!-- Section 2: Stealth Toggles -->
+                    <div style="display: flex; flex-direction: column; gap: 8px; background: #182229; padding: 12px; border-radius: 10px;">
                         <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <div style="font-size: 12px; color: #8696a0;">Riwayat pesan yang ditarik selama sesi:</div>
-                            <button id="btn-clear-del-logs" style="background: transparent; color: #ff5252; border: 1px solid rgba(255,82,82,0.3); border-radius: 6px; padding: 4px 10px; font-size: 11px; cursor: pointer;">Bersihkan Log</button>
-                        </div>
-
-                        <div id="del-logs-list" style="display: flex; flex-direction: column; gap: 10px; max-height: 48vh; overflow-y: auto; padding-right: 4px;">
-                            ${deletedLogs.length === 0 ? `
-                                <div style="text-align: center; padding: 36px 12px; color: #8696a0; font-size: 13px;">
-                                    Belum ada pesan yang ditarik.<br>Setiap pesan yang dihapus pengirim akan otomatis dicatat di sini!
-                                </div>
-                            ` : deletedLogs.map(item => `
-                                <div style="background: #182229; border-left: 3px solid #ff5252; border-radius: 8px; padding: 10px 14px;">
-                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-                                        <div style="font-weight: 700; font-size: 12px; color: #ff5252;">${item.sender}</div>
-                                        <div style="font-size: 10px; color: #8696a0;">${item.time}</div>
-                                    </div>
-                                    <div style="font-size: 13px; color: #e9edef; word-break: break-word; margin-bottom: 8px;">${item.text}</div>
-                                    <button class="btn-copy-del" data-text="${encodeURIComponent(item.text)}" style="background: #202c33; color: #8696a0; border: none; border-radius: 6px; padding: 4px 10px; font-size: 11px; cursor: pointer;">Salin Teks</button>
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>
-
-                    <!-- TAB 4: ALAT CHAT SUPER -->
-                    <div id="tab-tools" class="tab-content" style="display: none; flex-direction: column; gap: 16px;">
-                        
-                        <!-- Direct Chat Quick Action -->
-                        <div style="background: #182229; padding: 14px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center;">
                             <div>
-                                <div style="font-weight: 600; font-size: 13px; color: #e9edef;">Direct Chat Tanpa Simpan Nomor</div>
-                                <div style="font-size: 11px; color: #8696a0; margin-top: 2px;">Kirim pesan langsung via nomor HP (Ctrl+M)</div>
+                                <div style="font-weight: 600; font-size: 12px; color: #e9edef;">Anti-Centang Biru (Ghost Read)</div>
+                                <div style="font-size: 10px; color: #8696a0;">Bebas baca chat tanpa trigger centang biru (Ctrl+Shift+G)</div>
                             </div>
-                            <button id="btn-tab-direct" style="background: #00a884; color: white; border: none; border-radius: 8px; padding: 8px 14px; font-size: 12px; font-weight: 600; cursor: pointer;">Buka Direct Chat</button>
+                            <div id="sw-ghostread">${renderSwitch('sw-btn-ghostread', ghostReadActive)}</div>
                         </div>
 
-                        <!-- Text Repeater (Boom Text) -->
-                        <div style="background: #182229; padding: 14px; border-radius: 12px;">
-                            <div style="font-weight: 600; font-size: 13px; color: #e9edef; margin-bottom: 4px;">Text Repeater (Boom Text)</div>
-                            <div style="font-size: 11px; color: #8696a0; margin-bottom: 10px;">Duplikasi pesan N kali dan masukkan langsung ke kolom chat:</div>
-                            <div style="display: flex; gap: 8px; margin-bottom: 10px;">
-                                <input id="boom-text-input" type="text" placeholder="Ketik kata/pesan..." style="flex: 2; background: #202c33; border: 1px solid #2a3942; border-radius: 8px; padding: 8px 12px; color: #e9edef; font-size: 13px; outline: none;">
-                                <input id="boom-count-input" type="number" min="1" max="100" value="5" style="width: 60px; background: #202c33; border: 1px solid #2a3942; border-radius: 8px; padding: 8px 10px; color: #e9edef; font-size: 13px; outline: none; text-align: center;">
-                                <button id="btn-boom-send" style="flex: 1; background: #00a884; color: white; border: none; border-radius: 8px; padding: 8px 12px; font-size: 12px; font-weight: 600; cursor: pointer;">Kirim ke Chat</button>
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.06);">
+                            <div>
+                                <div style="font-weight: 600; font-size: 12px; color: #e9edef;">Sembunyikan Sedang Mengetik</div>
+                                <div style="font-size: 10px; color: #8696a0;">Lawan bicara tidak melihat status mengetik (Ctrl+Shift+T)</div>
                             </div>
+                            <div id="sw-ghosttyping">${renderSwitch('sw-btn-ghosttyping', ghostTypingActive)}</div>
                         </div>
 
-                        <!-- Aesthetic Fancy Font Generator -->
-                        <div style="background: #182229; padding: 14px; border-radius: 12px;">
-                            <div style="font-weight: 600; font-size: 13px; color: #e9edef; margin-bottom: 4px;">Fancy Font Generator</div>
-                            <div style="font-size: 11px; color: #8696a0; margin-bottom: 10px;">Ketik kata untuk mengubahnya menjadi font aesthetic unik:</div>
-                            <input id="fancy-font-input" type="text" placeholder="Ketik teks di sini..." style="width: 100%; box-sizing: border-box; background: #202c33; border: 1px solid #2a3942; border-radius: 8px; padding: 8px 12px; color: #e9edef; font-size: 13px; outline: none; margin-bottom: 10px;">
-                            
-                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-                                <button class="btn-fancy" data-style="bold" style="background: #202c33; border: 1px solid #2a3942; color: #e9edef; border-radius: 8px; padding: 8px; font-size: 12px; cursor: pointer; text-align: left;">𝗕𝗼𝗹𝗱 (𝗧𝗲𝗯𝗮𝗹)</button>
-                                <button class="btn-fancy" data-style="italic" style="background: #202c33; border: 1px solid #2a3942; color: #e9edef; border-radius: 8px; padding: 8px; font-size: 12px; cursor: pointer; text-align: left;">𝘐𝘵𝘢𝘭𝘪𝘤 (𝘔𝘪𝘳𝘪𝘯𝘨)</button>
-                                <button class="btn-fancy" data-style="mono" style="background: #202c33; border: 1px solid #2a3942; color: #e9edef; border-radius: 8px; padding: 8px; font-size: 12px; cursor: pointer; text-align: left;">𝙼𝚘𝚗𝚘𝚜𝚙𝚊𝚌𝚎</button>
-                                <button class="btn-fancy" data-style="bubble" style="background: #202c33; border: 1px solid #2a3942; color: #e9edef; border-radius: 8px; padding: 8px; font-size: 12px; cursor: pointer; text-align: left;">Ⓑⓤⓑⓑⓛⓔ</button>
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.06);">
+                            <div>
+                                <div style="font-weight: 600; font-size: 12px; color: #e9edef;">Ultra Dark OLED (Pitch Black)</div>
+                                <div style="font-size: 10px; color: #8696a0;">Hitam murni #000000 hemat baterai (Ctrl+Shift+O)</div>
                             </div>
+                            <div id="sw-oled">${renderSwitch('sw-btn-oled', currentTheme === 'oled')}</div>
                         </div>
-
                     </div>
+
+                    <!-- Section 3: Quick Tools & Lock -->
+                    <div style="display: flex; gap: 8px;">
+                        <button id="btn-direct-chat" style="flex: 1; background: rgba(0, 168, 132, 0.15); border: 1px solid rgba(0, 168, 132, 0.35); color: #00a884; border-radius: 8px; padding: 9px; font-size: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+                            Direct Chat (Ctrl+M)
+                        </button>
+                        <button id="btn-lock-app" style="flex: 1; background: rgba(255, 82, 82, 0.12); border: 1px solid rgba(255, 82, 82, 0.3); color: #ff5252; border-radius: 8px; padding: 9px; font-size: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                            Kunci Layar (Ctrl+L)
+                        </button>
+                    </div>
+
+                    <!-- Quick PIN setup -->
+                    <div style="display: flex; gap: 6px; align-items: center; background: #182229; padding: 8px 10px; border-radius: 8px;">
+                        <input id="input-pin-hud" type="password" maxlength="4" placeholder="${appPin ? 'Ganti PIN 4-digit' : 'Atur PIN 4-digit baru'}" style="flex: 1; background: #202c33; border: 1px solid #2a3942; border-radius: 6px; padding: 6px 10px; color: #e9edef; font-size: 11px; outline: none;">
+                        <button id="btn-save-pin-hud" style="background: #2a3942; color: #00a884; border: none; border-radius: 6px; padding: 6px 12px; font-size: 11px; font-weight: 600; cursor: pointer;">Simpan</button>
+                    </div>
+
                 </div>
 
-                <!-- Footer Shortcut Help -->
-                <div style="padding: 12px 24px; background: #141d22; border-top: 1px solid rgba(255,255,255,0.06); font-size: 11px; color: #8696a0; display: flex; justify-content: space-between; align-items: center;">
-                    <div>Shortcuts: <b>Ctrl+M</b> (Direct) • <b>Ctrl+Shift+U</b> (Unread) • <b>Ctrl+Shift+B</b> (Blur Media) • <b>Ctrl+L</b> (Lock)</div>
-                    <div style="color: #00a884; font-weight: 600;">ModsTams v2.1</div>
+                <!-- Footer -->
+                <div style="padding: 10px 18px; background: #141d22; border-top: 1px solid rgba(255,255,255,0.06); font-size: 10px; color: #8696a0; display: flex; justify-content: space-between; align-items: center;">
+                    <div>Hotkey: <b>Ctrl+B</b> (Privacy) • <b>Ctrl+Shift+U</b> (Unread) • <b>Ctrl+M</b> (Direct)</div>
+                    <div style="color: #00a884; font-weight: 700;">GG Extreme</div>
                 </div>
             </div>
         `;
 
         document.body.appendChild(modal);
 
-        // Tab Switching Logic
-        const tabNavs = modal.querySelectorAll('.tab-nav');
-        const tabContents = modal.querySelectorAll('.tab-content');
-        tabNavs.forEach(nav => {
-            nav.onclick = () => {
-                tabNavs.forEach(n => {
-                    n.style.borderBottomColor = 'transparent';
-                    n.style.color = '#8696a0';
-                });
-                tabContents.forEach(c => c.style.display = 'none');
-
-                nav.style.borderBottomColor = '#00a884';
-                nav.style.color = '#00a884';
-                const targetId = nav.getAttribute('data-tab');
-                const targetEl = modal.querySelector('#' + targetId);
-                if (targetEl) targetEl.style.display = 'flex';
-            };
-        });
-
-        // Toggle switches
-        modal.querySelector('#switch-ghostread').onclick = () => {
-            window.__waweb_toggleGhostRead();
-            modal.querySelector('#switch-ghostread').innerHTML = renderSwitch('sw-btn-ghostread', ghostReadActive);
-        };
-        modal.querySelector('#switch-ghosttyping').onclick = () => {
-            window.__waweb_toggleGhostTyping();
-            modal.querySelector('#switch-ghosttyping').innerHTML = renderSwitch('sw-btn-ghosttyping', ghostTypingActive);
-        };
-        modal.querySelector('#switch-blurmedia').onclick = () => {
-            window.__modstams_toggleBlurMedia();
-            modal.querySelector('#switch-blurmedia').innerHTML = renderSwitch('sw-btn-blurmedia', blurMediaActive);
-        };
-        modal.querySelector('#switch-unreadfilter').onclick = () => {
-            window.__modstams_toggleUnreadFilter();
-            modal.querySelector('#switch-unreadfilter').innerHTML = renderSwitch('sw-btn-unreadfilter', unreadFilterActive);
-        };
-        modal.querySelector('#switch-privacy').onclick = () => {
+        // Master Privacy Toggle
+        modal.querySelector('#sw-master-privacy').onclick = () => {
             window.__waweb_togglePrivacy();
-            modal.querySelector('#switch-privacy').innerHTML = renderSwitch('sw-btn-privacy', privacyActive);
-        };
-        modal.querySelector('#switch-anticall').onclick = () => {
-            window.__modstams_toggleAntiCall();
-            modal.querySelector('#switch-anticall').innerHTML = renderSwitch('sw-btn-anticall', antiCallActive);
+            modal.querySelector('#sw-master-privacy').innerHTML = renderSwitch('sw-btn-master', privacyConfig.active);
         };
 
-        // PIN Lock controls
-        modal.querySelector('#btn-lock-now').onclick = () => {
+        // Slider
+        const slider = modal.querySelector('#hud-blur-slider');
+        const sliderVal = modal.querySelector('#hud-blur-val');
+        slider.oninput = (e) => {
+            const val = parseInt(e.target.value) || 8;
+            sliderVal.innerText = `${val}px`;
+            privacyConfig.intensity = val;
+            savePrivacyConfig();
+        };
+
+        // Chip toggles
+        function bindChip(id, key) {
+            const el = modal.querySelector('#' + id);
+            if (!el) return;
+            el.onclick = () => {
+                privacyConfig[key] = !privacyConfig[key];
+                savePrivacyConfig();
+                const isChecked = privacyConfig[key];
+                el.style.background = isChecked ? 'rgba(0, 168, 132, 0.15)' : 'rgba(255,255,255,0.04)';
+                el.style.borderColor = isChecked ? 'rgba(0, 168, 132, 0.4)' : 'rgba(255,255,255,0.08)';
+                const box = el.querySelector('div:first-child');
+                box.style.borderColor = isChecked ? '#00a884' : '#8696a0';
+                box.style.background = isChecked ? '#00a884' : 'transparent';
+                box.innerHTML = isChecked ? '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>' : '';
+                const span = el.querySelector('span');
+                if (span) span.style.color = isChecked ? '#e9edef' : '#8696a0';
+            };
+        }
+
+        bindChip('chip-chat', 'blurChat');
+        bindChip('chip-media', 'blurMedia');
+        bindChip('chip-preview', 'blurPreview');
+        bindChip('chip-names', 'blurNames');
+        bindChip('chip-avatars', 'blurAvatars');
+        bindChip('chip-input', 'blurInput');
+
+        // Stealth Toggles
+        modal.querySelector('#sw-ghostread').onclick = () => {
+            window.__waweb_toggleGhostRead();
+            modal.querySelector('#sw-ghostread').innerHTML = renderSwitch('sw-btn-ghostread', ghostReadActive);
+        };
+        modal.querySelector('#sw-ghosttyping').onclick = () => {
+            window.__waweb_toggleGhostTyping();
+            modal.querySelector('#sw-ghosttyping').innerHTML = renderSwitch('sw-btn-ghosttyping', ghostTypingActive);
+        };
+        modal.querySelector('#sw-oled').onclick = () => {
+            window.__waweb_toggleOled();
+            modal.querySelector('#sw-oled').innerHTML = renderSwitch('sw-btn-oled', currentTheme === 'oled');
+        };
+
+        // Quick Tools
+        modal.querySelector('#btn-direct-chat').onclick = () => {
+            modal.remove();
+            window.__waweb_openDirectChatModal();
+        };
+        modal.querySelector('#btn-lock-app').onclick = () => {
             modal.remove();
             window.__modstams_lockApp();
         };
-        modal.querySelector('#btn-save-pin').onclick = () => {
-            const val = modal.querySelector('#input-new-pin').value.trim();
+
+        // PIN Save
+        modal.querySelector('#btn-save-pin-hud').onclick = () => {
+            const val = modal.querySelector('#input-pin-hud').value.trim();
             if (val.length === 4 && /^\d{4}$/.test(val)) {
                 appPin = val;
                 safeSet('modstams_app_pin', val);
-                modal.querySelector('#input-new-pin').value = '';
+                modal.querySelector('#input-pin-hud').value = '';
                 showToast("PIN Tersimpan", "Gunakan Ctrl+L untuk mengunci aplikasi");
             } else {
                 showToast("PIN Tidak Valid", "Harus berupa 4 digit angka (misal: 1234)", null, '#ff5252');
             }
         };
 
-        // Theme switching
-        modal.querySelectorAll('.theme-card').forEach(card => {
-            card.onclick = () => {
-                const themeKey = card.getAttribute('data-theme');
-                window.__modstams_setTheme(themeKey);
-                modal.remove();
-                window.__waweb_toggleModCenter();
-            };
-        });
-
-        // Deleted log actions
-        modal.querySelectorAll('.btn-copy-del').forEach(btn => {
-            btn.onclick = () => {
-                const text = decodeURIComponent(btn.getAttribute('data-text'));
-                navigator.clipboard.writeText(text);
-                showToast("Teks Disalin", text);
-            };
-        });
-        modal.querySelector('#btn-clear-del-logs').onclick = () => {
-            deletedLogs = [];
-            try { localStorage.removeItem('modstams_deleted_log'); } catch(e) {}
-            modal.querySelector('#del-logs-list').innerHTML = `
-                <div style="text-align: center; padding: 36px 12px; color: #8696a0; font-size: 13px;">
-                    Riwayat log telah dibersihkan.
-                </div>
-            `;
-            modal.querySelector('#tab-del-badge').innerText = '0';
-            showToast("Log Dibersihkan", "Riwayat pesan ditarik kosong");
-        };
-
-        // Tools tab actions
-        modal.querySelector('#btn-tab-direct').onclick = () => {
-            modal.remove();
-            window.__waweb_openDirectChatModal();
-        };
-
-        // Boom Text
-        modal.querySelector('#btn-boom-send').onclick = () => {
-            const text = modal.querySelector('#boom-text-input').value.trim();
-            const count = Math.min(100, Math.max(1, parseInt(modal.querySelector('#boom-count-input').value) || 5));
-            if (!text) {
-                showToast("Teks Kosong", "Masukkan kata atau pesan terlebih dahulu", null, '#ff5252');
-                return;
-            }
-            const repeated = Array(count).fill(text).join('\n');
-            modal.remove();
-            insertTextIntoChat(repeated);
-        };
-
-        // Fancy Font buttons
-        modal.querySelectorAll('.btn-fancy').forEach(b => {
-            b.onclick = () => {
-                const raw = modal.querySelector('#fancy-font-input').value.trim();
-                if (!raw) {
-                    showToast("Teks Kosong", "Ketik teks di kolom fancy font!", null, '#ff5252');
-                    return;
-                }
-                const styleName = b.getAttribute('data-style');
-                const fn = FANCY_STYLES[styleName];
-                if (fn) {
-                    const styled = fn(raw);
-                    modal.remove();
-                    insertTextIntoChat(styled);
-                }
-            };
-        });
-
-        modal.querySelector('#modstams-close-btn').onclick = () => modal.remove();
+        modal.querySelector('#modstams-hud-close').onclick = () => modal.remove();
         modal.onclick = (e) => {
             if (e.target === modal) modal.remove();
         };
@@ -1452,264 +1097,53 @@
     };
 
     /* ==========================================================================
-       17. UNIFIED FLOATING MODSTAMS DOCK (#modstams-dock)
-       Collision-proof, glassmorphic, draggable toolbar fusing Launcher + Unread
-       ========================================================================== */
-    function injectModDock() {
-        if (!document.body) return;
-
-        // Clean up legacy separated nodes if found
-        const legacyLauncher = document.getElementById('waweb-mod-launcher');
-        if (legacyLauncher && legacyLauncher.parentElement !== document.getElementById('modstams-dock')) {
-            legacyLauncher.remove();
-        }
-        const legacyPill = document.getElementById('modstams-unread-pill');
-        if (legacyPill) legacyPill.remove();
-
-        if (document.getElementById('modstams-dock')) {
-            const unreadBtn = document.getElementById('modstams-dock-unread');
-            if (unreadBtn) {
-                unreadBtn.style.background = unreadFilterActive ? '#00a884' : 'rgba(255, 255, 255, 0.06)';
-                unreadBtn.style.color = unreadFilterActive ? '#ffffff' : '#8696a0';
-                unreadBtn.style.boxShadow = unreadFilterActive ? '0 2px 8px rgba(0, 168, 132, 0.4)' : 'none';
-            }
-            return;
-        }
-
-        const dock = document.createElement('div');
-        dock.id = 'modstams-dock';
-        dock.style.cssText = [
-            'position: fixed',
-            'top: 10px',
-            'right: 96px',
-            'z-index: 99999',
-            'display: inline-flex',
-            'align-items: center',
-            'gap: 4px',
-            'background: rgba(17, 27, 33, 0.90)',
-            'border: 1px solid rgba(255, 255, 255, 0.14)',
-            'border-radius: 20px',
-            'padding: 3px 5px',
-            'backdrop-filter: blur(16px)',
-            '-webkit-backdrop-filter: blur(16px)',
-            'box-shadow: 0 6px 22px rgba(0, 0, 0, 0.5), 0 0 1px rgba(255, 255, 255, 0.15)',
-            'font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-            'user-select: none',
-            'box-sizing: border-box',
-            'transition: border-color 0.2s ease, box-shadow 0.2s ease'
-        ].join(';');
-
-        // Restore user's custom dragged position if previously saved
-        try {
-            const savedPos = JSON.parse(safeGet('modstams_dock_pos', 'null'));
-            if (savedPos && typeof savedPos.x === 'number' && typeof savedPos.y === 'number') {
-                const maxX = Math.max(10, window.innerWidth - 240);
-                const maxY = Math.max(10, window.innerHeight - 50);
-                dock.style.left = Math.min(Math.max(10, savedPos.x), maxX) + 'px';
-                dock.style.top = Math.min(Math.max(8, savedPos.y), maxY) + 'px';
-                dock.style.right = 'auto';
-            }
-        } catch(e) {}
-
-        // 1. Drag Handle
-        const dragHandle = document.createElement('div');
-        dragHandle.id = 'modstams-dock-drag';
-        dragHandle.title = 'Tahan & geser untuk memindahkan dock • Klik 2x untuk reset posisi';
-        dragHandle.style.cssText = [
-            'display: flex',
-            'align-items: center',
-            'justify-content: center',
-            'cursor: grab',
-            'padding: 0 4px 0 2px',
-            'opacity: 0.5',
-            'transition: opacity 0.15s ease'
-        ].join(';');
-        dragHandle.innerHTML = `
-            <svg width="8" height="14" viewBox="0 0 8 14" fill="#8696a0">
-                <circle cx="2" cy="2" r="1.2"/>
-                <circle cx="6" cy="2" r="1.2"/>
-                <circle cx="2" cy="7" r="1.2"/>
-                <circle cx="6" cy="7" r="1.2"/>
-                <circle cx="2" cy="12" r="1.2"/>
-                <circle cx="6" cy="12" r="1.2"/>
-            </svg>
-        `;
-        dragHandle.onmouseenter = () => dragHandle.style.opacity = '1';
-        dragHandle.onmouseleave = () => {
-            if (!isDraggingDock) dragHandle.style.opacity = '0.5';
-        };
-
-        // 2. Unread Filter Button
-        const unreadBtn = document.createElement('button');
-        unreadBtn.id = 'modstams-dock-unread';
-        unreadBtn.title = 'Filter hanya chat belum dibaca (Ctrl+Shift+U)';
-        unreadBtn.style.cssText = [
-            'display: flex',
-            'align-items: center',
-            'gap: 5px',
-            'border: none',
-            'outline: none',
-            'cursor: pointer',
-            'padding: 5px 9px',
-            'border-radius: 14px',
-            'font-size: 11px',
-            'font-weight: 600',
-            'font-family: inherit',
-            `background: ${unreadFilterActive ? '#00a884' : 'rgba(255, 255, 255, 0.06)'}`,
-            `color: ${unreadFilterActive ? '#ffffff' : '#8696a0'}`,
-            `box-shadow: ${unreadFilterActive ? '0 2px 8px rgba(0, 168, 132, 0.4)' : 'none'}`,
-            'transition: all 0.18s ease'
-        ].join(';');
-        unreadBtn.innerHTML = `
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
-            <span>Unread</span>
-            <span id="modstams-unread-badge" style="background: rgba(255,255,255,0.22); border-radius: 9px; padding: 1px 6px; font-size: 10px; font-weight: 700; min-width: 12px; text-align: center;">0</span>
-        `;
-        unreadBtn.onmouseenter = () => {
-            if (!unreadFilterActive) {
-                unreadBtn.style.background = 'rgba(255, 255, 255, 0.12)';
-                unreadBtn.style.color = '#e9edef';
-            }
-        };
-        unreadBtn.onmouseleave = () => {
-            if (!unreadFilterActive) {
-                unreadBtn.style.background = 'rgba(255, 255, 255, 0.06)';
-                unreadBtn.style.color = '#8696a0';
-            }
-        };
-        unreadBtn.onclick = () => window.__modstams_toggleUnreadFilter();
-
-        // 3. Subtle Vertical Divider
-        const divider = document.createElement('div');
-        divider.style.cssText = 'width: 1px; height: 16px; background: rgba(255, 255, 255, 0.14); margin: 0 1px;';
-
-        // 4. ModsTams Launcher Button
-        const launcherBtn = document.createElement('button');
-        launcherBtn.id = 'modstams-dock-launcher';
-        launcherBtn.title = 'Buka Panel Kontrol ModsTams (Ctrl+Shift+M)';
-        launcherBtn.style.cssText = [
-            'display: flex',
-            'align-items: center',
-            'gap: 5px',
-            'border: none',
-            'outline: none',
-            'cursor: pointer',
-            'padding: 5px 12px',
-            'border-radius: 14px',
-            'font-size: 11px',
-            'font-weight: 700',
-            'letter-spacing: 0.3px',
-            'font-family: inherit',
-            'background: linear-gradient(135deg, #00a884 0%, #008f6f 100%)',
-            'color: #ffffff',
-            'box-shadow: 0 2px 10px rgba(0, 168, 132, 0.35)',
-            'transition: all 0.18s ease'
-        ].join(';');
-        launcherBtn.innerHTML = `
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
-            <span>ModsTams</span>
-        `;
-        launcherBtn.onmouseenter = () => {
-            launcherBtn.style.transform = 'scale(1.04)';
-            launcherBtn.style.filter = 'brightness(1.1)';
-        };
-        launcherBtn.onmouseleave = () => {
-            launcherBtn.style.transform = 'scale(1)';
-            launcherBtn.style.filter = 'none';
-        };
-        launcherBtn.onclick = () => window.__waweb_toggleModCenter();
-
-        dock.appendChild(dragHandle);
-        dock.appendChild(unreadBtn);
-        dock.appendChild(divider);
-        dock.appendChild(launcherBtn);
-        document.body.appendChild(dock);
-
-        // Drag and drop event listeners
-        let isDraggingDock = false;
-        let dragOffsetX = 0;
-        let dragOffsetY = 0;
-
-        dragHandle.addEventListener('mousedown', (e) => {
-            isDraggingDock = true;
-            dragHandle.style.cursor = 'grabbing';
-            const rect = dock.getBoundingClientRect();
-            dragOffsetX = e.clientX - rect.left;
-            dragOffsetY = e.clientY - rect.top;
-            e.preventDefault();
-        });
-
-        window.addEventListener('mousemove', (e) => {
-            if (!isDraggingDock) return;
-            const x = Math.min(Math.max(10, e.clientX - dragOffsetX), window.innerWidth - dock.offsetWidth - 10);
-            const y = Math.min(Math.max(8, e.clientY - dragOffsetY), window.innerHeight - dock.offsetHeight - 10);
-            dock.style.left = x + 'px';
-            dock.style.top = y + 'px';
-            dock.style.right = 'auto';
-        });
-
-        window.addEventListener('mouseup', () => {
-            if (isDraggingDock) {
-                isDraggingDock = false;
-                dragHandle.style.cursor = 'grab';
-                const rect = dock.getBoundingClientRect();
-                safeSet('modstams_dock_pos', JSON.stringify({ x: rect.left, y: rect.top }));
-            }
-        });
-
-        dragHandle.addEventListener('dblclick', (e) => {
-            e.stopPropagation();
-            dock.style.left = 'auto';
-            dock.style.right = '96px';
-            dock.style.top = '10px';
-            safeSet('modstams_dock_pos', 'null');
-            showToast("Posisi Dock Direset", "Kembali ke kanan atas standar");
-        });
-    }
-
-    function injectModLauncher() {
-        injectModDock();
-    }
-
-    /* ==========================================================================
-       18. GLOBAL SHORTCUTS
+       12. GLOBAL KEYBOARD SHORTCUTS
        ========================================================================== */
     window.addEventListener('keydown', function(e) {
         if (e.key === 'F5' || (e.ctrlKey && e.key.toLowerCase() === 'r')) {
             window.location.reload();
         }
-        if (e.ctrlKey && !e.shiftKey && e.key.toLowerCase() === 'm') {
-            e.preventDefault();
-            window.__waweb_openDirectChatModal();
-        }
+        // Ctrl+B: Master Privacy Mode
         if (e.ctrlKey && !e.shiftKey && e.key.toLowerCase() === 'b') {
             e.preventDefault();
             window.__waweb_togglePrivacy();
         }
+        // Ctrl+Shift+B: Auto-Blur Media Saja
         if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'b') {
             e.preventDefault();
             window.__modstams_toggleBlurMedia();
         }
-        if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'u') {
+        // Ctrl+M: Direct Chat
+        if (e.ctrlKey && !e.shiftKey && e.key.toLowerCase() === 'm') {
             e.preventDefault();
-            window.__modstams_toggleUnreadFilter();
+            window.__waweb_openDirectChatModal();
         }
-        if (e.ctrlKey && e.key.toLowerCase() === 'l') {
-            e.preventDefault();
-            window.__modstams_lockApp();
-        }
+        // Ctrl+Shift+M: Quick HUD
         if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'm') {
             e.preventDefault();
             window.__waweb_toggleModCenter();
         }
+        // Ctrl+Shift+U: Unread Filter
+        if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'u') {
+            e.preventDefault();
+            window.__modstams_toggleUnreadFilter();
+        }
+        // Ctrl+L: Lock App
+        if (e.ctrlKey && !e.shiftKey && e.key.toLowerCase() === 'l') {
+            e.preventDefault();
+            window.__modstams_lockApp();
+        }
+        // Ctrl+Shift+O: Toggle OLED Ultra Dark
         if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'o') {
             e.preventDefault();
-            window.__modstams_setTheme(currentTheme === 'oled' ? 'emerald' : 'oled');
+            window.__waweb_toggleOled();
         }
+        // Ctrl+Shift+T: Ghost Typing
         if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 't') {
             e.preventDefault();
             window.__waweb_toggleGhostTyping();
         }
+        // Ctrl+Shift+G: Ghost Read
         if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'g') {
             e.preventDefault();
             window.__waweb_toggleGhostRead();
@@ -1717,37 +1151,39 @@
     });
 
     /* ==========================================================================
-       19. CONTINUOUS OBSERVERS & LIFECYCLE INITIALIZATION
+       13. EVENT-DRIVEN LIFECYCLE INITIALIZATION
        ========================================================================== */
-    function initModEnvironment() {
+    function initSuite() {
         applyCurrentTheme();
-        applyBlurMediaStyles();
-        injectModDock();
+        applyPrivacyStyles();
+        injectNativeHeaderButton();
+        if (unreadFilterActive) applyUnreadCssFilter();
     }
 
     if (document.readyState === 'loading') {
-        window.addEventListener('DOMContentLoaded', initModEnvironment, { once: true });
+        window.addEventListener('DOMContentLoaded', initSuite, { once: true });
     } else {
-        initModEnvironment();
+        initSuite();
     }
 
-    setInterval(() => {
-        try {
-            if (!document.body) return;
-            injectModDock();
-            injectViewOnceDownloader();
-            injectStatusDownloader();
-            watchAndPreserveMessages();
-            injectAudioSuperController();
-            watchAndSuppressCalls();
-            if (unreadFilterActive) executeUnreadFilter();
-        } catch (err) {}
-    }, 1200);
-
-    // Request native desktop notification permission
-    try {
-        if ("Notification" in window && Notification.permission === "default") {
-            Notification.requestPermission();
+    // Narrow MutationObserver: watches body only for modal dialogs and header mount
+    const rootObserver = new MutationObserver((mutations) => {
+        for (let m = 0; m < mutations.length; m++) {
+            if (mutations[m].addedNodes.length > 0) {
+                checkAndInjectMediaDownloader(document.body);
+                injectNativeHeaderButton();
+                break;
+            }
         }
-    } catch(e) {}
+    });
+
+    if (document.body) {
+        rootObserver.observe(document.body, { childList: true, subtree: false });
+    }
+
+    window.addEventListener('load', () => {
+        injectNativeHeaderButton();
+        applyPrivacyStyles();
+    }, { once: true });
+
 })();

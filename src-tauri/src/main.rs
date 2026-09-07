@@ -18,7 +18,14 @@ fn main() {
          --disk-cache-size=33554432 \
          --media-cache-size=33554432 \
          --disable-gpu-shader-disk-cache \
-         --disable-features=Translate,OptimizationHints",
+         --disable-background-networking \
+         --disable-domain-reliability \
+         --disable-component-update \
+         --disable-speech-api \
+         --disable-speech-synthesis-api \
+         --enable-gpu-rasterization \
+         --enable-zero-copy \
+         --disable-features=Translate,OptimizationHints,AutofillServerCommunication,MediaRouter",
     );
 
     waweb_tams_lib::run();

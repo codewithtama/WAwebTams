@@ -24,11 +24,17 @@ pub fn create_main_window(app: &tauri::App) -> Result<(), Box<dyn std::error::Er
     Ok(())
 }
 
-/// Intercepts window events, such as close requests, routing them to minimize-to-tray.
+/// Intercepts window events, such as close requests and focus loss, routing them to memory trims.
 pub fn handle_window_event(window: &tauri::Window, event: &WindowEvent) {
-    if let WindowEvent::CloseRequested { api, .. } = event {
-        api.prevent_close();
-        let _ = window.hide();
-        memory::trim_working_set();
+    match event {
+        WindowEvent::CloseRequested { api, .. } => {
+            api.prevent_close();
+            let _ = window.hide();
+            memory::trim_working_set();
+        }
+        WindowEvent::Focused(false) => {
+            memory::trim_working_set();
+        }
+        _ => {}
     }
 }
