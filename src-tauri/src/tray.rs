@@ -12,67 +12,67 @@ use tauri::{
 
 /// Builds and registers the system tray icon and its context menu.
 pub fn setup_tray(app: &tauri::App) -> Result<(), Box<dyn std::error::Error>> {
-    let show_item = MenuItem::with_id(app, "show", "Tampilkan ModsTams", true, None::<&str>)?;
-    let hide_item = MenuItem::with_id(app, "hide", "Sembunyikan ke Tray", true, None::<&str>)?;
+    let show_item = MenuItem::with_id(app, "show", "Open ModsTams", true, None::<&str>)?;
+    let hide_item = MenuItem::with_id(app, "hide", "Hide to Tray", true, None::<&str>)?;
     let control_item = MenuItem::with_id(
         app,
         "control",
-        "Buka ModsTams Control Center",
+        "Preferences (Ctrl+Shift+M)",
         true,
         None::<&str>,
     )?;
-    let lock_item = MenuItem::with_id(app, "lock", "Kunci ModsTams (Ctrl+L)", true, None::<&str>)?;
-    let pin_item = MenuItem::with_id(
-        app,
-        "pin",
-        "Pin Selalu di Atas (Ctrl+Shift+P)",
-        true,
-        None::<&str>,
-    )?;
+    let lock_item = MenuItem::with_id(app, "lock", "Lock Workspace (Ctrl+L)", true, None::<&str>)?;
+    let pin_item = MenuItem::with_id(app, "pin", "Pin Window (Ctrl+Shift+P)", true, None::<&str>)?;
     let sep1 = PredefinedMenuItem::separator(app)?;
 
-    let direct_item = MenuItem::with_id(
-        app,
-        "direct",
-        "Chat Nomor Baru (Ctrl+M)",
-        true,
-        None::<&str>,
-    )?;
+    let direct_item = MenuItem::with_id(app, "direct", "Direct Chat (Ctrl+M)", true, None::<&str>)?;
     let privacy_item = MenuItem::with_id(
         app,
         "privacy",
-        "Toggle Privacy Mode (Ctrl+B)",
+        "Toggle Privacy Blur (Ctrl+B)",
         true,
         None::<&str>,
     )?;
     let blurmedia_item = MenuItem::with_id(
         app,
         "blurmedia",
-        "Toggle Auto-Blur Media (Ctrl+Shift+B)",
+        "Toggle Media Blur (Ctrl+Shift+B)",
         true,
         None::<&str>,
     )?;
     let unread_item = MenuItem::with_id(
         app,
         "unread",
-        "Toggle Filter Unread (Ctrl+Shift+U)",
+        "Toggle Unread Filter (Ctrl+Shift+U)",
         true,
         None::<&str>,
     )?;
-    let oled_item = MenuItem::with_id(app, "oled", "Toggle Ultra Dark OLED", true, None::<&str>)?;
-    let ghost_item = MenuItem::with_id(app, "ghost", "Toggle Ghost Typing", true, None::<&str>)?;
+    let oled_item = MenuItem::with_id(
+        app,
+        "oled",
+        "Toggle OLED Black (Ctrl+Shift+O)",
+        true,
+        None::<&str>,
+    )?;
+    let ghost_item = MenuItem::with_id(
+        app,
+        "ghost",
+        "Toggle Ghost Typing (Ctrl+Shift+T)",
+        true,
+        None::<&str>,
+    )?;
     let ghostread_item = MenuItem::with_id(
         app,
         "ghostread",
-        "Toggle Anti-Centang Biru",
+        "Toggle Ghost Read (Ctrl+Shift+G)",
         true,
         None::<&str>,
     )?;
 
     let sep2 = PredefinedMenuItem::separator(app)?;
-    let reload_item = MenuItem::with_id(app, "reload", "Muat Ulang (Reload)", true, None::<&str>)?;
+    let reload_item = MenuItem::with_id(app, "reload", "Reload Window", true, None::<&str>)?;
     let sep3 = PredefinedMenuItem::separator(app)?;
-    let quit_item = MenuItem::with_id(app, "quit", "Keluar Sepenuhnya", true, None::<&str>)?;
+    let quit_item = MenuItem::with_id(app, "quit", "Quit Application", true, None::<&str>)?;
 
     let menu = Menu::with_items(
         app,

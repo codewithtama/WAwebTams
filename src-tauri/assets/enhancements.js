@@ -1,8 +1,8 @@
 /**
- * ModsTams Super Suite v3.5 - GG Extreme Edition
- * Ultra-lightweight WhatsApp Web client enhancement script.
- * Zero-polling architecture, hardware-accelerated precision blur, native header integration,
- * Chromium sub-process memory trimming, and zero-leak event handlers.
+ * ModsTams Suite - Professional Desktop Client
+ * Minimalist, high-performance WhatsApp Web enhancement module.
+ * Designed with modern SaaS principles (Linear / Raycast / Vercel style).
+ * Strict design system: slate palette, 8px grid, subtle borders, zero neon/gaming aesthetics.
  */
 (function() {
     if (window.__waweb_initialized) return;
@@ -25,7 +25,7 @@
     }
 
     /* ==========================================================================
-       1. TOAST NOTIFICATION SYSTEM (GPU-Accelerated, Zero-Audio-Leak)
+       1. TOAST NOTIFICATION SYSTEM (Linear / Raycast Dark SaaS Style)
        ========================================================================== */
     function getToastContainer() {
         if (!document.body) return null;
@@ -42,14 +42,14 @@
                 'flex-direction: column',
                 'gap: 8px',
                 'pointer-events: none',
-                'font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
+                'font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
             ].join(';');
             document.body.appendChild(container);
         }
         return container;
     }
 
-    function showToast(title, subtitle, iconSvg = null, borderColor = '#00a884') {
+    function showToast(title, subtitle, iconSvg = null, accentColor = '#3b82f6') {
         const container = getToastContainer();
         if (!container) return;
 
@@ -59,31 +59,29 @@
             'display: flex',
             'align-items: center',
             'gap: 12px',
-            'background: #111b21',
-            'color: #e9edef',
-            'padding: 10px 16px',
-            'border-radius: 10px',
-            `border-left: 4px solid ${borderColor}`,
-            'border-top: 1px solid rgba(255, 255, 255, 0.08)',
-            'border-right: 1px solid rgba(255, 255, 255, 0.08)',
-            'border-bottom: 1px solid rgba(255, 255, 255, 0.08)',
-            'box-shadow: 0 10px 30px rgba(0, 0, 0, 0.65)',
+            'background: #1e293b',
+            'color: #f1f5f9',
+            'padding: 10px 14px',
+            'border-radius: 8px',
+            'border: 1px solid #334155',
+            `border-left: 3px solid ${accentColor}`,
+            'box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.35), 0 4px 6px -4px rgba(0, 0, 0, 0.2)',
             'min-width: 260px',
-            'max-width: 380px',
-            'transform: translateY(16px)',
+            'max-width: 360px',
+            'transform: translateY(12px)',
             'opacity: 0',
-            'transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.22s ease'
+            'transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.18s ease'
         ].join(';');
 
-        const defaultSvg = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="${borderColor}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>`;
+        const defaultSvg = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="${accentColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="m9 12 2 2 4-4"></path></svg>`;
 
         toast.innerHTML = `
-            <div style="width: 30px; height: 30px; border-radius: 8px; background: rgba(0, 168, 132, 0.15); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+            <div style="width: 28px; height: 28px; border-radius: 6px; background: #0f172a; border: 1px solid #334155; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
                 ${iconSvg || defaultSvg}
             </div>
             <div style="flex: 1; min-width: 0;">
-                <div style="font-weight: 600; font-size: 13px; color: ${borderColor}; line-height: 1.2; margin-bottom: 2px;">${title}</div>
-                <div style="font-size: 11px; color: #8696a0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2;">${subtitle || ''}</div>
+                <div style="font-weight: 600; font-size: 13px; color: #f1f5f9; line-height: 1.3; margin-bottom: 1px;">${title}</div>
+                <div style="font-size: 12px; color: #94a3b8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.3;">${subtitle || ''}</div>
             </div>
         `;
 
@@ -94,10 +92,10 @@
         });
 
         setTimeout(() => {
-            toast.style.transform = 'translateY(12px)';
+            toast.style.transform = 'translateY(8px)';
             toast.style.opacity = '0';
-            setTimeout(() => toast.remove(), 250);
-        }, 2800);
+            setTimeout(() => toast.remove(), 200);
+        }, 2600);
     }
 
     function triggerDownload(url, filename) {
@@ -108,7 +106,7 @@
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
-        showToast("Download Dimulai", filename);
+        showToast("Download Started", filename, null, '#22c55e');
     }
 
     /* ==========================================================================
@@ -153,20 +151,18 @@
         }
 
         const i = Math.max(3, Math.min(20, parseInt(privacyConfig.intensity) || 8));
-        const mediaBlur = Math.round(i * 1.5);
+        const mediaBlur = Math.round(i * 1.4);
         const rules = [];
 
-        // 1. BLUR CHAT MESSAGES (Targeting individual bubbles & copyable text)
+        // 1. BLUR CHAT MESSAGES
         if (privacyConfig.blurChat) {
             rules.push(`
-                /* Blur Chat Message Text */
                 #main .message-in .selectable-text,
                 #main .message-out .selectable-text,
                 #main [data-testid="msg-container"] .copyable-text:not([data-testid="conversation-panel-wrapper"]) {
                     filter: blur(${i}px) !important;
-                    transition: filter 0.18s cubic-bezier(0.4, 0, 0.2, 1) !important;
+                    transition: filter 0.16s ease !important;
                 }
-                /* Individual unblur: ONLY the message bubble hovered unblurs */
                 #main .message-in:hover .selectable-text,
                 #main .message-out:hover .selectable-text,
                 #main [data-testid="msg-container"]:hover .copyable-text {
@@ -175,10 +171,9 @@
             `);
         }
 
-        // 2. BLUR MEDIA (Photos, Videos, Stickers, Voice Notes, Thumbnails)
+        // 2. BLUR MEDIA (Images, Videos, Voice Notes, Stickers)
         if (privacyConfig.blurMedia) {
             rules.push(`
-                /* Blur Media: Images, Videos, Audio, Thumbs - excludes emojis */
                 #main [data-testid="msg-container"] img:not([class*="emoji"]),
                 #main [data-testid="msg-container"] video,
                 #main [data-testid="image-thumb"],
@@ -187,9 +182,8 @@
                 #main [data-testid="media-canvas"],
                 #main div[role="button"][style*="background-image"] {
                     filter: blur(${mediaBlur}px) !important;
-                    transition: filter 0.18s cubic-bezier(0.4, 0, 0.2, 1) !important;
+                    transition: filter 0.16s ease !important;
                 }
-                /* Individual unblur on hover */
                 #main [data-testid="msg-container"]:hover img:not([class*="emoji"]),
                 #main [data-testid="msg-container"]:hover video,
                 #main [data-testid="image-thumb"]:hover,
@@ -205,13 +199,11 @@
         // 3. BLUR SIDEBAR LAST MESSAGE PREVIEW
         if (privacyConfig.blurPreview) {
             rules.push(`
-                /* Blur Last Message snippet in Chat List */
                 #pane-side [role="row"] [data-testid="last-msg-status"],
                 #pane-side [role="row"] span[title]:not([dir]) {
                     filter: blur(${i}px) !important;
-                    transition: filter 0.18s cubic-bezier(0.4, 0, 0.2, 1) !important;
+                    transition: filter 0.16s ease !important;
                 }
-                /* Individual row unblur on hover */
                 #pane-side [role="row"]:hover [data-testid="last-msg-status"],
                 #pane-side [role="row"]:hover span[title]:not([dir]) {
                     filter: none !important;
@@ -222,11 +214,10 @@
         // 4. BLUR CONTACT & GROUP NAMES
         if (privacyConfig.blurNames) {
             rules.push(`
-                /* Blur Contact/Group Titles */
                 header [data-testid="conversation-info-header"] span,
                 #pane-side [role="row"] [data-testid="cell-frame-title"] span {
                     filter: blur(${i}px) !important;
-                    transition: filter 0.18s cubic-bezier(0.4, 0, 0.2, 1) !important;
+                    transition: filter 0.16s ease !important;
                 }
                 header [data-testid="conversation-info-header"]:hover span,
                 #pane-side [role="row"]:hover [data-testid="cell-frame-title"] span {
@@ -238,11 +229,10 @@
         // 5. BLUR PROFILE PICTURES / AVATARS
         if (privacyConfig.blurAvatars) {
             rules.push(`
-                /* Blur Contact Avatars */
                 #pane-side [role="row"] div[data-testid="avatar"] img,
                 #main header div[data-testid="avatar"] img {
                     filter: blur(${i}px) !important;
-                    transition: filter 0.18s cubic-bezier(0.4, 0, 0.2, 1) !important;
+                    transition: filter 0.16s ease !important;
                 }
                 #pane-side [role="row"]:hover div[data-testid="avatar"] img,
                 #main header div[data-testid="avatar"]:hover img {
@@ -251,13 +241,12 @@
             `);
         }
 
-        // 6. BLUR INPUT MESSAGE BOX (Sensitive Draft Messages)
+        // 6. BLUR INPUT MESSAGE BOX (Draft text)
         if (privacyConfig.blurInput) {
             rules.push(`
-                /* Blur Draft Message Input */
                 footer div[contenteditable="true"] {
                     filter: blur(${i}px) !important;
-                    transition: filter 0.18s cubic-bezier(0.4, 0, 0.2, 1) !important;
+                    transition: filter 0.16s ease !important;
                 }
                 footer div[contenteditable="true"]:hover,
                 footer div[contenteditable="true"]:focus,
@@ -280,10 +269,10 @@
         privacyConfig.active = !privacyConfig.active;
         savePrivacyConfig();
         showToast(
-            privacyConfig.active ? "Privacy Mode Aktif" : "Privacy Mode Nonaktif",
-            privacyConfig.active ? "Sensor presisi aktif. Arahkan mouse ke pesan untuk intip." : "Semua obrolan tampil normal.",
-            `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="${privacyConfig.active ? '#00e5ff' : '#8696a0'}" stroke-width="2.2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`,
-            privacyConfig.active ? "#00e5ff" : "#8696a0"
+            privacyConfig.active ? "Privacy Blur Enabled" : "Privacy Blur Disabled",
+            privacyConfig.active ? "Hover any message to temporarily unblur." : "Displaying all messages normally.",
+            null,
+            privacyConfig.active ? "#3b82f6" : "#94a3b8"
         );
     };
 
@@ -295,10 +284,10 @@
         }
         savePrivacyConfig();
         showToast(
-            privacyConfig.blurMedia && privacyConfig.active ? "Sensor Media Aktif" : "Sensor Media Nonaktif",
-            privacyConfig.blurMedia && privacyConfig.active ? "Foto & video disensor otomatis (Ctrl+Shift+B)" : "Foto & video tampil tanpa sensor",
+            privacyConfig.blurMedia && privacyConfig.active ? "Media Blur Enabled" : "Media Blur Disabled",
+            privacyConfig.blurMedia && privacyConfig.active ? "Photos and videos are concealed (Ctrl+Shift+B)" : "Media displays normally",
             null,
-            privacyConfig.blurMedia && privacyConfig.active ? "#00e5ff" : "#8696a0"
+            privacyConfig.blurMedia && privacyConfig.active ? "#3b82f6" : "#94a3b8"
         );
     };
 
@@ -308,7 +297,7 @@
     };
 
     /* ==========================================================================
-       3. GHOST TYPING (Sembunyikan Indikator Mengetik - Ctrl+Shift+T)
+       3. GHOST TYPING (Suppress Typing Indicator - Ctrl+Shift+T)
        ========================================================================== */
     let ghostTypingActive = safeGet('modstams_ghost_typing', 'true') !== 'false';
 
@@ -316,10 +305,10 @@
         ghostTypingActive = !ghostTypingActive;
         safeSet('modstams_ghost_typing', ghostTypingActive ? 'true' : 'false');
         showToast(
-            ghostTypingActive ? "Ghost Typing Aktif" : "Typing Normal",
-            ghostTypingActive ? "Status 'Sedang mengetik...' disembunyikan (Ctrl+Shift+T)" : "Status 'Sedang mengetik...' terlihat lawan bicara",
+            ghostTypingActive ? "Ghost Typing Enabled" : "Ghost Typing Disabled",
+            ghostTypingActive ? "Typing indicator is concealed (Ctrl+Shift+T)" : "Typing indicator is visible",
             null,
-            ghostTypingActive ? '#00e5ff' : '#8696a0'
+            ghostTypingActive ? "#3b82f6" : "#94a3b8"
         );
     };
 
@@ -330,7 +319,7 @@
     }, true);
 
     /* ==========================================================================
-       4. GHOST READ / ANTI-CENTANG BIRU (Bebas Baca Chat - Ctrl+Shift+G)
+       4. GHOST READ / STEALTH RECEIPTS (Read Without Blue Checks - Ctrl+Shift+G)
        ========================================================================== */
     let ghostReadActive = safeGet('modstams_ghost_read', 'true') !== 'false';
 
@@ -361,15 +350,15 @@
         ghostReadActive = !ghostReadActive;
         safeSet('modstams_ghost_read', ghostReadActive ? 'true' : 'false');
         showToast(
-            ghostReadActive ? "Anti-Centang Biru Aktif" : "Centang Biru Normal",
-            ghostReadActive ? "Membaca pesan tanpa laporan tanda baca (Ctrl+Shift+G)" : "Laporan dibaca dikirim normal",
+            ghostReadActive ? "Ghost Read Enabled" : "Ghost Read Disabled",
+            ghostReadActive ? "Reading messages without triggering blue checks (Ctrl+Shift+G)" : "Read receipts sent normally",
             null,
-            ghostReadActive ? "#00e5ff" : "#8696a0"
+            ghostReadActive ? "#3b82f6" : "#94a3b8"
         );
     };
 
     /* ==========================================================================
-       5. DIRECT CHAT (Kirim Pesan Tanpa Simpan Nomor - Ctrl+M)
+       5. DIRECT CHAT MODAL (Clean Slate Surface - Ctrl+M)
        ========================================================================== */
     window.__waweb_openDirectChatModal = function() {
         if (!document.body) return;
@@ -387,28 +376,31 @@
             'left: 0',
             'width: 100vw',
             'height: 100vh',
-            'background: rgba(11, 20, 26, 0.85)',
+            'background: rgba(15, 23, 42, 0.7)',
+            'backdrop-filter: blur(4px)',
             'z-index: 999999',
             'display: flex',
             'align-items: center',
             'justify-content: center',
-            'font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
+            'font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
         ].join(';');
 
         modal.innerHTML = `
-            <div style="background: #111b21; border: 1px solid rgba(255,255,255,0.12); border-radius: 14px; padding: 22px; width: 380px; max-width: 90vw; box-shadow: 0 16px 40px rgba(0,0,0,0.7);">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
-                    <div style="font-weight: 600; font-size: 15px; color: #00a884; display: flex; align-items: center; gap: 8px;">
-                        <span>Direct Chat (Tanpa Simpan Nomor)</span>
+            <div style="background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 24px; width: 380px; max-width: 90vw; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                    <div>
+                        <div style="font-weight: 600; font-size: 15px; color: #f1f5f9;">Direct Chat</div>
+                        <div style="font-size: 12px; color: #94a3b8; margin-top: 2px;">Send message without saving to contacts</div>
                     </div>
-                    <button id="modstams-direct-close" style="background: transparent; border: none; color: #8696a0; cursor: pointer; font-size: 20px; line-height: 1;">&times;</button>
+                    <button id="modstams-direct-close" style="background: transparent; border: none; color: #94a3b8; cursor: pointer; font-size: 18px; line-height: 1; padding: 4px; border-radius: 4px;">&times;</button>
                 </div>
-                <div style="font-size: 12px; color: #8696a0; margin-bottom: 10px;">Ketik nomor HP tujuan (contoh: 08123456789 atau 62812...):</div>
-                <input id="modstams-direct-phone" type="text" placeholder="08xxxxxxxxxx" style="width: 100%; box-sizing: border-box; background: #202c33; border: 1px solid #2a3942; border-radius: 8px; padding: 10px 12px; color: #e9edef; font-size: 13px; outline: none; margin-bottom: 10px;">
-                <textarea id="modstams-direct-msg" placeholder="Pesan pembuka (opsional)..." rows="2" style="width: 100%; box-sizing: border-box; background: #202c33; border: 1px solid #2a3942; border-radius: 8px; padding: 10px; color: #e9edef; font-size: 12px; outline: none; margin-bottom: 14px; resize: none;"></textarea>
+                <div style="font-size: 12px; font-weight: 500; color: #94a3b8; margin-bottom: 6px;">Recipient Phone Number</div>
+                <input id="modstams-direct-phone" type="text" placeholder="e.g. 08123456789 or 628..." style="width: 100%; box-sizing: border-box; background: #0f172a; border: 1px solid #334155; border-radius: 6px; padding: 9px 12px; color: #f1f5f9; font-size: 13px; outline: none; margin-bottom: 12px;">
+                <div style="font-size: 12px; font-weight: 500; color: #94a3b8; margin-bottom: 6px;">Initial Message (Optional)</div>
+                <textarea id="modstams-direct-msg" placeholder="Type a message..." rows="2" style="width: 100%; box-sizing: border-box; background: #0f172a; border: 1px solid #334155; border-radius: 6px; padding: 9px 12px; color: #f1f5f9; font-size: 12px; outline: none; margin-bottom: 18px; resize: none;"></textarea>
                 <div style="display: flex; gap: 8px;">
-                    <button id="modstams-direct-btn" style="flex: 1; background: #00a884; color: white; border: none; border-radius: 8px; padding: 10px; font-weight: 600; cursor: pointer; font-size: 13px;">Buka Obrolan</button>
-                    <button id="modstams-direct-cancel" style="background: #202c33; color: #8696a0; border: none; border-radius: 8px; padding: 10px 14px; font-weight: 500; cursor: pointer; font-size: 13px;">Batal</button>
+                    <button id="modstams-direct-btn" style="flex: 1; background: #3b82f6; color: white; border: none; border-radius: 6px; padding: 9px 14px; font-weight: 500; cursor: pointer; font-size: 13px;">Start Chat</button>
+                    <button id="modstams-direct-cancel" style="background: #0f172a; color: #94a3b8; border: 1px solid #334155; border-radius: 6px; padding: 9px 14px; font-weight: 500; cursor: pointer; font-size: 13px;">Cancel</button>
                 </div>
             </div>
         `;
@@ -420,7 +412,7 @@
         function executeDirectChat() {
             let raw = inputPhone.value.trim().replace(/[^0-9+]/g, '');
             if (!raw) {
-                showToast("Nomor Kosong", "Silakan masukkan nomor HP tujuan", null, '#ff5252');
+                showToast("Required Field", "Please enter a valid phone number", null, '#ef4444');
                 return;
             }
             if (raw.startsWith('0')) {
@@ -434,7 +426,7 @@
             const msg = modal.querySelector('#modstams-direct-msg').value.trim();
             modal.remove();
 
-            showToast("Membuka Chat", `Menghubungkan ke +${raw}...`);
+            showToast("Opening Conversation", `Connecting to +${raw}...`, null, '#3b82f6');
             const link = document.createElement('a');
             link.href = `https://web.whatsapp.com/send?phone=${raw}${msg ? '&text=' + encodeURIComponent(msg) : ''}`;
             document.body.appendChild(link);
@@ -471,13 +463,12 @@
         window.addEventListener(evt, registerActivity, { passive: true });
     });
 
-    // Zero-overhead inactivity checker (runs every 10s)
     setInterval(() => {
         if (autoLockMinutes > 0 && appPin && !isAppLocked) {
             const elapsedMinutes = (Date.now() - lastActivityTime) / 60000;
             if (elapsedMinutes >= autoLockMinutes) {
                 window.__modstams_lockApp();
-                showToast("Kunci Otomatis", `Layar terkunci karena idle ${autoLockMinutes} menit`, null, "#ffaa00");
+                showToast("Workspace Locked", `Auto-lock engaged after ${autoLockMinutes}m idle`, null, "#3b82f6");
             }
         }
     }, 10000);
@@ -498,10 +489,10 @@
             isWindowPinned = !isWindowPinned;
         }
         showToast(
-            isWindowPinned ? "Pin Window Aktif" : "Pin Window Nonaktif",
-            isWindowPinned ? "Jendela melayang selalu di atas aplikasi lain (Ctrl+Shift+P)" : "Jendela berjalan normal",
-            `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="${isWindowPinned ? '#00e5ff' : '#8696a0'}" stroke-width="2.2"><circle cx="12" cy="12" r="3"></circle><path d="M12 2v3m0 14v3M2 12h3m14 0h3"></path></svg>`,
-            isWindowPinned ? "#00e5ff" : "#8696a0"
+            isWindowPinned ? "Window Pinned" : "Window Unpinned",
+            isWindowPinned ? "Floating on top of other windows (Ctrl+Shift+P)" : "Standard window behavior restored",
+            null,
+            isWindowPinned ? "#3b82f6" : "#94a3b8"
         );
         const pinSwitch = document.getElementById('sw-pin-window');
         if (pinSwitch) {
@@ -512,10 +503,10 @@
     window.__modstams_onPinToggled = function(pinned) {
         isWindowPinned = pinned;
         showToast(
-            isWindowPinned ? "Pin Window Aktif" : "Pin Window Nonaktif",
-            isWindowPinned ? "Jendela melayang selalu di atas aplikasi lain (Ctrl+Shift+P)" : "Jendela berjalan normal",
+            isWindowPinned ? "Window Pinned" : "Window Unpinned",
+            isWindowPinned ? "Floating on top of other windows (Ctrl+Shift+P)" : "Standard window behavior restored",
             null,
-            isWindowPinned ? "#00e5ff" : "#8696a0"
+            isWindowPinned ? "#3b82f6" : "#94a3b8"
         );
         const pinSwitch = document.getElementById('sw-pin-window');
         if (pinSwitch) {
@@ -535,44 +526,44 @@
             'left: 0',
             'width: 100vw',
             'height: 100vh',
-            'background: rgba(11, 20, 26, 0.98)',
+            'background: #0f172a',
             'z-index: 99999999',
             'display: flex',
             'flex-direction: column',
             'align-items: center',
             'justify-content: center',
-            'font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
-            'color: #e9edef',
+            'font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+            'color: #f1f5f9',
             'user-select: none'
         ].join(';');
 
         let enteredPin = "";
 
         overlay.innerHTML = `
-            <div style="display: flex; flex-direction: column; align-items: center; max-width: 320px; width: 100%;">
-                <div style="width: 60px; height: 60px; border-radius: 50%; background: rgba(0, 168, 132, 0.18); border: 2px solid #00a884; display: flex; align-items: center; justify-content: center; margin-bottom: 16px;">
-                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#00a884" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <div style="background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 32px 28px; width: 300px; display: flex; flex-direction: column; align-items: center; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4);">
+                <div style="width: 44px; height: 44px; border-radius: 8px; background: #0f172a; border: 1px solid #334155; display: flex; align-items: center; justify-content: center; margin-bottom: 16px;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
                         <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
                     </svg>
                 </div>
-                <div style="font-size: 18px; font-weight: 700; color: #e9edef; margin-bottom: 4px;">ModsTams Terkunci</div>
-                <div style="font-size: 12px; color: #8696a0; margin-bottom: 22px;">Ketik PIN 4-digit untuk membuka</div>
+                <div style="font-size: 15px; font-weight: 600; color: #f1f5f9; margin-bottom: 4px;">Workspace Locked</div>
+                <div style="font-size: 12px; color: #94a3b8; margin-bottom: 24px;">Enter 4-digit PIN to continue</div>
 
                 <div id="pin-dots" style="display: flex; gap: 12px; margin-bottom: 24px;">
-                    <div class="pin-dot" style="width: 13px; height: 13px; border-radius: 50%; border: 2px solid #8696a0; transition: all 0.15s ease;"></div>
-                    <div class="pin-dot" style="width: 13px; height: 13px; border-radius: 50%; border: 2px solid #8696a0; transition: all 0.15s ease;"></div>
-                    <div class="pin-dot" style="width: 13px; height: 13px; border-radius: 50%; border: 2px solid #8696a0; transition: all 0.15s ease;"></div>
-                    <div class="pin-dot" style="width: 13px; height: 13px; border-radius: 50%; border: 2px solid #8696a0; transition: all 0.15s ease;"></div>
+                    <div class="pin-dot" style="width: 10px; height: 10px; border-radius: 50%; border: 1.5px solid #334155; transition: all 0.15s ease;"></div>
+                    <div class="pin-dot" style="width: 10px; height: 10px; border-radius: 50%; border: 1.5px solid #334155; transition: all 0.15s ease;"></div>
+                    <div class="pin-dot" style="width: 10px; height: 10px; border-radius: 50%; border: 1.5px solid #334155; transition: all 0.15s ease;"></div>
+                    <div class="pin-dot" style="width: 10px; height: 10px; border-radius: 50%; border: 1.5px solid #334155; transition: all 0.15s ease;"></div>
                 </div>
 
-                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; width: 230px;">
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; width: 100%;">
                     ${[1,2,3,4,5,6,7,8,9].map(n => `
-                        <button class="pin-btn" data-val="${n}" style="height: 52px; border-radius: 26px; border: 1px solid rgba(255,255,255,0.08); background: #1f2c34; color: #e9edef; font-size: 18px; font-weight: 600; cursor: pointer;">${n}</button>
+                        <button class="pin-btn" data-val="${n}" style="height: 44px; border-radius: 6px; border: 1px solid #334155; background: #0f172a; color: #f1f5f9; font-size: 16px; font-weight: 500; cursor: pointer; transition: background 0.12s ease;">${n}</button>
                     `).join('')}
-                    <button id="pin-clear" style="height: 52px; border-radius: 26px; border: none; background: transparent; color: #8696a0; font-size: 12px; font-weight: 600; cursor: pointer;">C</button>
-                    <button class="pin-btn" data-val="0" style="height: 52px; border-radius: 26px; border: 1px solid rgba(255,255,255,0.08); background: #1f2c34; color: #e9edef; font-size: 18px; font-weight: 600; cursor: pointer;">0</button>
-                    <button id="pin-back" style="height: 52px; border-radius: 26px; border: none; background: transparent; color: #8696a0; font-size: 12px; font-weight: 700; cursor: pointer;">DEL</button>
+                    <button id="pin-clear" style="height: 44px; border-radius: 6px; border: 1px solid transparent; background: transparent; color: #94a3b8; font-size: 12px; font-weight: 500; cursor: pointer;">C</button>
+                    <button class="pin-btn" data-val="0" style="height: 44px; border-radius: 6px; border: 1px solid #334155; background: #0f172a; color: #f1f5f9; font-size: 16px; font-weight: 500; cursor: pointer;">0</button>
+                    <button id="pin-back" style="height: 44px; border-radius: 6px; border: 1px solid transparent; background: transparent; color: #94a3b8; font-size: 12px; font-weight: 500; cursor: pointer;">DEL</button>
                 </div>
             </div>
         `;
@@ -583,13 +574,11 @@
             const dots = overlay.querySelectorAll('.pin-dot');
             dots.forEach((dot, idx) => {
                 if (idx < enteredPin.length) {
-                    dot.style.background = '#00a884';
-                    dot.style.borderColor = '#00a884';
-                    dot.style.transform = 'scale(1.1)';
+                    dot.style.background = '#3b82f6';
+                    dot.style.borderColor = '#3b82f6';
                 } else {
                     dot.style.background = 'transparent';
-                    dot.style.borderColor = '#8696a0';
-                    dot.style.transform = 'scale(1)';
+                    dot.style.borderColor = '#334155';
                 }
             });
         }
@@ -599,11 +588,12 @@
                 if (enteredPin === appPin) {
                     overlay.remove();
                     isAppLocked = false;
-                    showToast("ModsTams Terbuka", "Selamat datang kembali!");
+                    lastActivityTime = Date.now();
+                    showToast("Workspace Unlocked", "Welcome back", null, '#22c55e');
                 } else {
                     enteredPin = "";
                     updateDots();
-                    showToast("PIN Salah", "Silakan coba lagi", null, '#ff5252');
+                    showToast("Incorrect PIN", "Please verify and re-enter", null, '#ef4444');
                 }
             }
         }
@@ -613,7 +603,7 @@
                 if (enteredPin.length < 4) {
                     enteredPin += btn.getAttribute('data-val');
                     updateDots();
-                    if (enteredPin.length === 4) setTimeout(checkPin, 80);
+                    if (enteredPin.length === 4) setTimeout(checkPin, 60);
                 }
             };
         });
@@ -637,7 +627,7 @@
                 if (enteredPin.length < 4) {
                     enteredPin += e.key;
                     updateDots();
-                    if (enteredPin.length === 4) setTimeout(checkPin, 80);
+                    if (enteredPin.length === 4) setTimeout(checkPin, 60);
                 }
             } else if (e.key === 'Backspace') {
                 enteredPin = enteredPin.slice(0, -1);
@@ -652,7 +642,7 @@
 
     window.__modstams_lockApp = function() {
         if (!appPin) {
-            showToast("PIN Belum Diatur", "Buka Control Center (Ctrl+Shift+M) untuk mengatur PIN", null, '#ffaa00');
+            showToast("PIN Required", "Configure a 4-digit PIN in Preferences (Ctrl+Shift+M)", null, '#3b82f6');
             return;
         }
         isAppLocked = true;
@@ -660,7 +650,7 @@
     };
 
     /* ==========================================================================
-       7. NATIVE UNREAD FILTER INTEGRATION (Zero Virtual-DOM Scraper)
+       7. NATIVE UNREAD FILTER INTEGRATION
        ========================================================================== */
     let unreadFilterActive = safeGet('modstams_unread_filter', 'false') === 'true';
     let unreadStyleElement = null;
@@ -675,7 +665,6 @@
         }
 
         if (unreadFilterActive) {
-            // Hardware-accelerated CSS pseudo-selector :has() - 0 JavaScript loops!
             unreadStyleElement.textContent = `
                 #pane-side [role="row"]:not(:has(span[aria-label*="unread" i])):not(:has(span[aria-label*="belum dibaca" i])):not(:has([data-icon="unread-count"])) {
                     display: none !important;
@@ -687,7 +676,6 @@
     }
 
     window.__modstams_toggleUnreadFilter = function() {
-        // Priority 1: Trigger native WhatsApp Web filter button if available
         const nativeFilterBtn = document.querySelector(
             'button[data-testid="filter-unread-chats-button"], ' +
             'button[aria-label*="unread" i], ' +
@@ -699,30 +687,28 @@
         if (nativeFilterBtn) {
             const btn = nativeFilterBtn.closest('button') || nativeFilterBtn;
             btn.click();
-            showToast("Filter Unread", "Filter resmi WhatsApp diaktifkan (Ctrl+Shift+U)", null, "#00a884");
+            showToast("Filter Unread", "Toggled native chat filter", null, "#3b82f6");
             return;
         }
 
-        // Priority 2: Pure CSS filter without modifying DOM properties
         unreadFilterActive = !unreadFilterActive;
         safeSet('modstams_unread_filter', unreadFilterActive ? 'true' : 'false');
         applyUnreadCssFilter();
 
         showToast(
-            unreadFilterActive ? "Filter Unread Aktif" : "Menampilkan Semua Chat",
-            unreadFilterActive ? "Menampilkan obrolan belum dibaca (Ctrl+Shift+U)" : "Semua obrolan kembali normal",
+            unreadFilterActive ? "Unread Filter Active" : "Showing All Chats",
+            unreadFilterActive ? "Filtered to conversations with unread messages" : "Restored full conversation list",
             null,
-            unreadFilterActive ? "#00a884" : "#8696a0"
+            unreadFilterActive ? "#3b82f6" : "#94a3b8"
         );
     };
 
     /* ==========================================================================
-       8. STORY & VIEW-ONCE DOWNLOADER (Zero-Polling Event Observer)
+       8. STORY & VIEW-ONCE DOWNLOADER (Subtle Action Buttons)
        ========================================================================== */
     function checkAndInjectMediaDownloader(target) {
         if (!target || !target.querySelectorAll) return;
 
-        // View Once inside modal/dialog
         const modals = target.querySelectorAll('div[data-animate-modal-popup="true"], div[role="dialog"]');
         modals.forEach(overlay => {
             if (overlay.querySelector('#modstams-viewonce-btn')) return;
@@ -738,23 +724,26 @@
                     'top: 18px',
                     'right: 76px',
                     'z-index: 9999',
-                    'background: #00a884',
-                    'color: #ffffff',
-                    'border: none',
-                    'border-radius: 8px',
-                    'padding: 7px 13px',
+                    'background: #1e293b',
+                    'color: #f1f5f9',
+                    'border: 1px solid #334155',
+                    'border-radius: 6px',
+                    'padding: 7px 12px',
                     'font-size: 12px',
-                    'font-weight: 600',
+                    'font-weight: 500',
                     'cursor: pointer',
                     'display: flex',
                     'align-items: center',
                     'gap: 6px',
-                    'box-shadow: 0 4px 14px rgba(0,0,0,0.4)'
+                    'box-shadow: 0 4px 6px -1px rgba(0,0,0,0.3)',
+                    'transition: background 0.15s ease'
                 ].join(';');
                 btn.innerHTML = `
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                    <span>Simpan Media</span>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                    <span>Save Media</span>
                 `;
+                btn.onmouseenter = () => btn.style.background = '#334155';
+                btn.onmouseleave = () => btn.style.background = '#1e293b';
                 btn.onclick = (e) => {
                     e.stopPropagation();
                     const ext = video ? 'mp4' : 'jpg';
@@ -764,7 +753,6 @@
             }
         });
 
-        // Status / Story viewer panel
         const statusPanel = document.querySelector('div[role="region"][tabindex="-1"], div[data-animate-modal-body="true"]');
         if (statusPanel && !statusPanel.querySelector('#modstams-status-download-btn')) {
             const media = statusPanel.querySelector('img[src], video[src]');
@@ -776,23 +764,26 @@
                     'bottom: 24px',
                     'right: 24px',
                     'z-index: 99999',
-                    'background: #00a884',
-                    'color: #ffffff',
-                    'border: none',
-                    'border-radius: 24px',
-                    'padding: 9px 16px',
+                    'background: #1e293b',
+                    'color: #f1f5f9',
+                    'border: 1px solid #334155',
+                    'border-radius: 6px',
+                    'padding: 8px 14px',
                     'font-size: 12px',
-                    'font-weight: 600',
+                    'font-weight: 500',
                     'cursor: pointer',
                     'display: flex',
                     'align-items: center',
                     'gap: 6px',
-                    'box-shadow: 0 6px 18px rgba(0,0,0,0.5)'
+                    'box-shadow: 0 4px 6px -1px rgba(0,0,0,0.3)',
+                    'transition: background 0.15s ease'
                 ].join(';');
                 btn.innerHTML = `
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                    <span>Unduh Story</span>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                    <span>Save Story</span>
                 `;
+                btn.onmouseenter = () => btn.style.background = '#334155';
+                btn.onmouseleave = () => btn.style.background = '#1e293b';
                 btn.onclick = (e) => {
                     e.stopPropagation();
                     const isVideo = statusPanel.querySelector('video[src]') !== null;
@@ -805,17 +796,17 @@
     }
 
     /* ==========================================================================
-       9. DUAL-THEME ENGINE (Default Emerald vs Ultra Dark OLED #000000)
+       9. DUAL-THEME ENGINE (Default WhatsApp vs Ultra Dark OLED)
        ========================================================================== */
     const THEMES = {
         emerald: {
-            name: "Emerald WhatsApp (Default)",
-            accent: "#00a884",
+            name: "Standard Dark",
+            accent: "#3b82f6",
             css: ""
         },
         oled: {
-            name: "Ultra Dark OLED (Pitch Black)",
-            accent: "#00a884",
+            name: "Pitch Black (OLED)",
+            accent: "#3b82f6",
             css: `
                 body, #app, #app > div, #main, #pane-side,
                 [data-testid="chat-list"], header, footer,
@@ -825,10 +816,10 @@
                     background-color: #000000 !important;
                     background: #000000 !important;
                 }
-                .message-in { background-color: #0a0e11 !important; border: 1px solid #161b1f !important; }
-                .message-out { background-color: #00382b !important; }
-                [data-testid="chat-list-search"], div[role="textbox"] { background-color: #080808 !important; border-color: #1c1c1c !important; }
-                div, header, footer { border-color: #121212 !important; }
+                .message-in { background-color: #0d1117 !important; border: 1px solid #1e293b !important; }
+                .message-out { background-color: #1e293b !important; }
+                [data-testid="chat-list-search"], div[role="textbox"] { background-color: #080808 !important; border-color: #1e293b !important; }
+                div, header, footer { border-color: #1e293b !important; }
             `
         }
     };
@@ -853,16 +844,15 @@
         safeSet('modstams_theme', currentTheme);
         applyCurrentTheme();
         showToast(
-            currentTheme === 'oled' ? "Ultra Dark OLED Aktif" : "Tema Emerald WhatsApp",
-            currentTheme === 'oled' ? "Hitam pekat murni #000000 hemat baterai (Ctrl+Shift+O)" : "Tema standar aktif",
+            currentTheme === 'oled' ? "OLED Pitch Black" : "Standard Theme",
+            currentTheme === 'oled' ? "True black #000000 enabled for high contrast" : "Standard theme restored",
             null,
-            "#00a884"
+            "#3b82f6"
         );
     };
 
     /* ==========================================================================
-       10. SEAMLESS NATIVE HEADER INTEGRATION
-       Replaces floating overlay widget with native topbar icon
+       10. SEAMLESS NAVBAR PREFERENCES ICON (Clean Minimalist Icon)
        ========================================================================== */
     function injectNativeHeaderButton() {
         if (document.getElementById('modstams-header-btn')) return;
@@ -879,34 +869,42 @@
         btn.id = 'modstams-header-btn';
         btn.setAttribute('role', 'button');
         btn.setAttribute('tabindex', '0');
-        btn.title = 'ModsTams Quick HUD (Ctrl+Shift+M)';
+        btn.title = 'Preferences (Ctrl+Shift+M)';
         btn.style.cssText = [
             'display: inline-flex',
             'align-items: center',
             'justify-content: center',
-            'width: 36px',
-            'height: 36px',
-            'border-radius: 50%',
+            'width: 32px',
+            'height: 32px',
+            'border-radius: 6px',
             'cursor: pointer',
-            'color: #00a884',
+            'color: #94a3b8',
             'margin: 0 4px',
-            'transition: background-color 0.15s ease, transform 0.15s ease',
+            'transition: color 0.15s ease, background 0.15s ease',
             'flex-shrink: 0'
         ].join(';');
 
         btn.innerHTML = `
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 21v-7"></path>
+                <path d="M4 10V3"></path>
+                <path d="M12 21v-9"></path>
+                <path d="M12 8V3"></path>
+                <path d="M20 21v-5"></path>
+                <path d="M20 12V3"></path>
+                <path d="M1 14h6"></path>
+                <path d="M9 8h6"></path>
+                <path d="M17 16h6"></path>
             </svg>
         `;
 
         btn.onmouseenter = () => {
-            btn.style.backgroundColor = 'rgba(0, 168, 132, 0.15)';
-            btn.style.transform = 'scale(1.08)';
+            btn.style.backgroundColor = 'rgba(255, 255, 255, 0.06)';
+            btn.style.color = '#f1f5f9';
         };
         btn.onmouseleave = () => {
             btn.style.backgroundColor = 'transparent';
-            btn.style.transform = 'scale(1)';
+            btn.style.color = '#94a3b8';
         };
         btn.onclick = (e) => {
             e.stopPropagation();
@@ -921,170 +919,184 @@
     }
 
     /* ==========================================================================
-       11. MODSTAMS QUICK HUD (Ultra-Compact Single-View Popover)
+       11. MODSTAMS PREFERENCES DIALOG (Linear / Raycast Professional SaaS UI)
        ========================================================================== */
+    function renderSwitch(id, active) {
+        return `
+            <div id="${id}" style="width: 36px; height: 20px; border-radius: 10px; background: ${active ? '#3b82f6' : '#334155'}; position: relative; cursor: pointer; transition: background 0.15s ease;">
+                <div style="width: 16px; height: 16px; border-radius: 50%; background: #ffffff; position: absolute; top: 2px; left: ${active ? '18px' : '2px'}; transition: left 0.15s ease; box-shadow: 0 1px 2px rgba(0,0,0,0.3);"></div>
+            </div>
+        `;
+    }
+
+    function renderCheckboxChip(id, checked, label) {
+        return `
+            <div id="${id}" style="display: flex; align-items: center; gap: 8px; padding: 7px 10px; border-radius: 6px; cursor: pointer; background: ${checked ? 'rgba(59, 130, 246, 0.1)' : '#1e293b'}; border: 1px solid ${checked ? '#3b82f6' : '#334155'}; transition: all 0.12s ease;">
+                <div style="width: 14px; height: 14px; border-radius: 3px; border: 1.5px solid ${checked ? '#3b82f6' : '#64748b'}; background: ${checked ? '#3b82f6' : 'transparent'}; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                    ${checked ? '<svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>' : ''}
+                </div>
+                <span style="font-size: 12px; font-weight: 500; color: ${checked ? '#f1f5f9' : '#94a3b8'};">${label}</span>
+            </div>
+        `;
+    }
+
     window.__waweb_toggleModCenter = function() {
         if (!document.body) return;
-        const existing = document.getElementById('modstams-quick-hud');
+        const existing = document.getElementById('modstams-preferences-dialog');
         if (existing) {
             existing.remove();
             return;
         }
 
         const modal = document.createElement('div');
-        modal.id = 'modstams-quick-hud';
+        modal.id = 'modstams-preferences-dialog';
         modal.style.cssText = [
             'position: fixed',
             'top: 0',
             'left: 0',
             'width: 100vw',
             'height: 100vh',
-            'background: rgba(11, 20, 26, 0.75)',
+            'background: rgba(15, 23, 42, 0.7)',
+            'backdrop-filter: blur(4px)',
             'z-index: 999999',
             'display: flex',
             'align-items: center',
             'justify-content: center',
-            'font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
+            'font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
         ].join(';');
 
-        function renderSwitch(id, active) {
-            return `
-                <div id="${id}" style="width: 40px; height: 22px; border-radius: 11px; background: ${active ? '#00a884' : '#374248'}; position: relative; cursor: pointer; transition: background 0.2s ease;">
-                    <div style="width: 16px; height: 16px; border-radius: 50%; background: #ffffff; position: absolute; top: 3px; left: ${active ? '21px' : '3px'}; transition: left 0.2s ease; box-shadow: 0 1px 3px rgba(0,0,0,0.4);"></div>
-                </div>
-            `;
-        }
-
-        function renderCheckboxChip(id, checked, label) {
-            return `
-                <div id="${id}" style="display: flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 8px; cursor: pointer; background: ${checked ? 'rgba(0, 168, 132, 0.15)' : 'rgba(255,255,255,0.04)'}; border: 1px solid ${checked ? 'rgba(0, 168, 132, 0.4)' : 'rgba(255,255,255,0.08)'}; transition: all 0.15s ease;">
-                    <div style="width: 14px; height: 14px; border-radius: 3px; border: 2px solid ${checked ? '#00a884' : '#8696a0'}; background: ${checked ? '#00a884' : 'transparent'}; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                        ${checked ? '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>' : ''}
-                    </div>
-                    <span style="font-size: 12px; font-weight: 500; color: ${checked ? '#e9edef' : '#8696a0'};">${label}</span>
-                </div>
-            `;
-        }
-
         modal.innerHTML = `
-            <div style="background: #111b21; border: 1px solid rgba(255,255,255,0.12); border-radius: 16px; width: 420px; max-width: 92vw; box-shadow: 0 24px 60px rgba(0,0,0,0.8); color: #e9edef; overflow: hidden; display: flex; flex-direction: column;">
+            <div style="background: #1e293b; border: 1px solid #334155; border-radius: 8px; width: 440px; max-width: 92vw; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); color: #f1f5f9; overflow: hidden; display: flex; flex-direction: column;">
+                
                 <!-- Header -->
-                <div style="display: flex; justify-content: space-between; align-items: center; padding: 14px 18px; border-bottom: 1px solid rgba(255,255,255,0.08); background: #182229;">
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <div style="width: 28px; height: 28px; border-radius: 8px; background: rgba(0, 168, 132, 0.2); display: flex; align-items: center; justify-content: center;">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="#00a884"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
-                        </div>
-                        <div>
-                            <div style="font-weight: 700; font-size: 14px; color: #00a884;">ModsTams Quick HUD</div>
-                            <div style="font-size: 11px; color: #8696a0;">v3.5 GG Extreme • Sub-70MB RAM Edition</div>
-                        </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; border-bottom: 1px solid #334155; background: #1e293b;">
+                    <div>
+                        <div style="font-weight: 600; font-size: 15px; color: #f1f5f9;">Preferences</div>
+                        <div style="font-size: 12px; color: #94a3b8; margin-top: 1px;">Privacy and desktop controls</div>
                     </div>
-                    <button id="modstams-hud-close" style="background: transparent; border: none; color: #8696a0; cursor: pointer; font-size: 20px; line-height: 1;">&times;</button>
+                    <button id="modstams-hud-close" style="background: transparent; border: none; color: #94a3b8; cursor: pointer; font-size: 18px; line-height: 1; padding: 4px; border-radius: 4px;">&times;</button>
                 </div>
 
-                <!-- Body (Single-View, Zero-Tab Bloat) -->
-                <div style="padding: 16px 18px; display: flex; flex-direction: column; gap: 12px; max-height: 75vh; overflow-y: auto;">
+                <!-- Body (Linear SaaS Layout) -->
+                <div style="padding: 18px 20px; display: flex; flex-direction: column; gap: 16px; max-height: 75vh; overflow-y: auto;">
                     
-                    <!-- Section 1: Precision Privacy Master -->
-                    <div style="background: #182229; padding: 12px; border-radius: 10px; border-left: 3px solid ${privacyConfig.active ? '#00e5ff' : '#8696a0'};">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                            <div>
-                                <div style="font-weight: 600; font-size: 13px; color: ${privacyConfig.active ? '#00e5ff' : '#e9edef'};">Master Privacy Mode (Ctrl+B)</div>
-                                <div style="font-size: 11px; color: #8696a0;">Arahkan mouse ke balon pesan untuk mengintip</div>
+                    <!-- Section 1: Privacy Blur -->
+                    <div>
+                        <div style="font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: #94a3b8; margin-bottom: 8px;">Privacy & Blur</div>
+                        
+                        <div style="background: #0f172a; border: 1px solid #334155; border-radius: 6px; padding: 14px; display: flex; flex-direction: column; gap: 12px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div>
+                                    <div style="font-weight: 500; font-size: 13px; color: #f1f5f9;">Master Privacy Blur</div>
+                                    <div style="font-size: 11px; color: #94a3b8; margin-top: 2px;">Conceal message contents until hovered (Ctrl+B)</div>
+                                </div>
+                                <div id="sw-master-privacy">${renderSwitch('sw-btn-master', privacyConfig.active)}</div>
                             </div>
-                            <div id="sw-master-privacy">${renderSwitch('sw-btn-master', privacyConfig.active)}</div>
-                        </div>
 
-                        <!-- Intensity slider -->
-                        <div style="display: flex; align-items: center; gap: 10px; margin-top: 6px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.06);">
-                            <span style="font-size: 11px; color: #8696a0; white-space: nowrap;">Kekuatan Blur:</span>
-                            <input id="hud-blur-slider" type="range" min="4" max="16" value="${privacyConfig.intensity}" style="flex: 1; accent-color: #00a884; cursor: pointer;">
-                            <span id="hud-blur-val" style="font-size: 11px; font-weight: 700; color: #00a884; min-width: 28px;">${privacyConfig.intensity}px</span>
-                        </div>
+                            <div style="display: flex; align-items: center; gap: 10px; padding-top: 10px; border-top: 1px solid #1e293b;">
+                                <span style="font-size: 12px; color: #94a3b8; white-space: nowrap;">Blur Intensity:</span>
+                                <input id="hud-blur-slider" type="range" min="4" max="16" value="${privacyConfig.intensity}" style="flex: 1; accent-color: #3b82f6; cursor: pointer;">
+                                <span id="hud-blur-val" style="font-size: 12px; font-weight: 600; color: #3b82f6; min-width: 28px; text-align: right;">${privacyConfig.intensity}px</span>
+                            </div>
 
-                        <!-- Granular Chips Grid -->
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 10px;">
-                            ${renderCheckboxChip('chip-chat', privacyConfig.blurChat, 'Pesan Chat')}
-                            ${renderCheckboxChip('chip-media', privacyConfig.blurMedia, 'Media Foto/VN')}
-                            ${renderCheckboxChip('chip-preview', privacyConfig.blurPreview, 'Sidebar Preview')}
-                            ${renderCheckboxChip('chip-names', privacyConfig.blurNames, 'Nama Kontak')}
-                            ${renderCheckboxChip('chip-avatars', privacyConfig.blurAvatars, 'Foto Profil')}
-                            ${renderCheckboxChip('chip-input', privacyConfig.blurInput, 'Draft Ketik')}
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; padding-top: 8px; border-top: 1px solid #1e293b;">
+                                ${renderCheckboxChip('chip-chat', privacyConfig.blurChat, 'Message Text')}
+                                ${renderCheckboxChip('chip-media', privacyConfig.blurMedia, 'Photos & Media')}
+                                ${renderCheckboxChip('chip-preview', privacyConfig.blurPreview, 'Sidebar Preview')}
+                                ${renderCheckboxChip('chip-names', privacyConfig.blurNames, 'Contact Names')}
+                                ${renderCheckboxChip('chip-avatars', privacyConfig.blurAvatars, 'Profile Photos')}
+                                ${renderCheckboxChip('chip-input', privacyConfig.blurInput, 'Draft Input')}
+                            </div>
                         </div>
                     </div>
 
-                    <!-- Section 2: Stealth Toggles -->
-                    <div style="display: flex; flex-direction: column; gap: 8px; background: #182229; padding: 12px; border-radius: 10px;">
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <div>
-                                <div style="font-weight: 600; font-size: 12px; color: #e9edef;">Anti-Centang Biru (Ghost Read)</div>
-                                <div style="font-size: 10px; color: #8696a0;">Bebas baca chat tanpa trigger centang biru (Ctrl+Shift+G)</div>
+                    <!-- Section 2: Stealth & Desktop Controls -->
+                    <div>
+                        <div style="font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: #94a3b8; margin-bottom: 8px;">Stealth & Window</div>
+                        
+                        <div style="background: #0f172a; border: 1px solid #334155; border-radius: 6px; padding: 14px; display: flex; flex-direction: column; gap: 12px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div>
+                                    <div style="font-weight: 500; font-size: 13px; color: #f1f5f9;">Ghost Read</div>
+                                    <div style="font-size: 11px; color: #94a3b8; margin-top: 1px;">Suppress read receipts (Ctrl+Shift+G)</div>
+                                </div>
+                                <div id="sw-ghostread">${renderSwitch('sw-btn-ghostread', ghostReadActive)}</div>
                             </div>
-                            <div id="sw-ghostread">${renderSwitch('sw-btn-ghostread', ghostReadActive)}</div>
-                        </div>
 
-                        <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.06);">
-                            <div>
-                                <div style="font-weight: 600; font-size: 12px; color: #e9edef;">Sembunyikan Sedang Mengetik</div>
-                                <div style="font-size: 10px; color: #8696a0;">Lawan bicara tidak melihat status mengetik (Ctrl+Shift+T)</div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 10px; border-top: 1px solid #1e293b;">
+                                <div>
+                                    <div style="font-weight: 500; font-size: 13px; color: #f1f5f9;">Ghost Typing</div>
+                                    <div style="font-size: 11px; color: #94a3b8; margin-top: 1px;">Conceal "typing..." indicator (Ctrl+Shift+T)</div>
+                                </div>
+                                <div id="sw-ghosttyping">${renderSwitch('sw-btn-ghosttyping', ghostTypingActive)}</div>
                             </div>
-                            <div id="sw-ghosttyping">${renderSwitch('sw-btn-ghosttyping', ghostTypingActive)}</div>
-                        </div>
 
-                        <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.06);">
-                            <div>
-                                <div style="font-weight: 600; font-size: 12px; color: #e9edef;">Ultra Dark OLED (Pitch Black)</div>
-                                <div style="font-size: 10px; color: #8696a0;">Hitam murni #000000 hemat baterai (Ctrl+Shift+O)</div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 10px; border-top: 1px solid #1e293b;">
+                                <div>
+                                    <div style="font-weight: 500; font-size: 13px; color: #f1f5f9;">Always On Top</div>
+                                    <div style="font-size: 11px; color: #94a3b8; margin-top: 1px;">Pin window above all applications (Ctrl+Shift+P)</div>
+                                </div>
+                                <div id="sw-pin-window">${renderSwitch('sw-btn-pin', isWindowPinned)}</div>
                             </div>
-                            <div id="sw-oled">${renderSwitch('sw-btn-oled', currentTheme === 'oled')}</div>
-                        </div>
 
-                        <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.06);">
-                            <div>
-                                <div style="font-weight: 600; font-size: 12px; color: #e9edef;">Pin Selalu di Atas (Always on Top)</div>
-                                <div style="font-size: 10px; color: #8696a0;">Melayang di atas aplikasi lain (Ctrl+Shift+P)</div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 10px; border-top: 1px solid #1e293b;">
+                                <div>
+                                    <div style="font-weight: 500; font-size: 13px; color: #f1f5f9;">Pitch Black Theme (OLED)</div>
+                                    <div style="font-size: 11px; color: #94a3b8; margin-top: 1px;">High contrast pure #000000 mode (Ctrl+Shift+O)</div>
+                                </div>
+                                <div id="sw-oled">${renderSwitch('sw-btn-oled', currentTheme === 'oled')}</div>
                             </div>
-                            <div id="sw-pin-window">${renderSwitch('sw-btn-pin', isWindowPinned)}</div>
                         </div>
                     </div>
 
-                    <!-- Section 3: Quick Tools & Lock -->
-                    <div style="display: flex; gap: 8px;">
-                        <button id="btn-direct-chat" style="flex: 1; background: rgba(0, 168, 132, 0.15); border: 1px solid rgba(0, 168, 132, 0.35); color: #00a884; border-radius: 8px; padding: 9px; font-size: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
-                            Direct Chat (Ctrl+M)
-                        </button>
-                        <button id="btn-lock-app" style="flex: 1; background: rgba(255, 82, 82, 0.12); border: 1px solid rgba(255, 82, 82, 0.3); color: #ff5252; border-radius: 8px; padding: 9px; font-size: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
-                            Kunci Layar (Ctrl+L)
-                        </button>
-                    </div>
+                    <!-- Section 3: Security & Quick Tools -->
+                    <div>
+                        <div style="font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: #94a3b8; margin-bottom: 8px;">Security & Tools</div>
+                        
+                        <div style="background: #0f172a; border: 1px solid #334155; border-radius: 6px; padding: 14px; display: flex; flex-direction: column; gap: 12px;">
+                            
+                            <!-- Auto-Lock Idle Threshold -->
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div>
+                                    <div style="font-weight: 500; font-size: 13px; color: #f1f5f9;">Auto-Lock On Inactivity</div>
+                                    <div style="font-size: 11px; color: #94a3b8; margin-top: 1px;">Lock workspace when idle</div>
+                                </div>
+                                <div id="val-autolock-hud" style="font-size: 12px; font-weight: 600; color: #3b82f6;">${autoLockMinutes > 0 ? autoLockMinutes + 'm' : 'Off'}</div>
+                            </div>
 
-                    <!-- Inactivity Auto-Lock selector -->
-                    <div style="background: #182229; padding: 10px 12px; border-radius: 10px; display: flex; flex-direction: column; gap: 6px;">
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <div style="font-weight: 600; font-size: 12px; color: #e9edef;">Kunci Otomatis Saat Ditinggal</div>
-                            <div id="val-autolock-hud" style="font-size: 11px; font-weight: 700; color: #00a884;">${autoLockMinutes > 0 ? autoLockMinutes + ' Menit' : 'Mati'}</div>
-                        </div>
-                        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px;">
-                            ${[0, 2, 5, 10].map(m => `
-                                <button class="btn-autolock" data-min="${m}" style="padding: 6px 0; font-size: 11px; font-weight: 600; border-radius: 6px; border: 1px solid ${autoLockMinutes === m ? '#00a884' : 'rgba(255,255,255,0.08)'}; background: ${autoLockMinutes === m ? 'rgba(0, 168, 132, 0.2)' : '#202c33'}; color: ${autoLockMinutes === m ? '#00a884' : '#8696a0'}; cursor: pointer; transition: all 0.15s ease;">${m === 0 ? 'Mati' : m + 'm'}</button>
-                            `).join('')}
-                        </div>
-                    </div>
+                            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px;">
+                                ${[0, 2, 5, 10].map(m => `
+                                    <button class="btn-autolock" data-min="${m}" style="padding: 6px 0; font-size: 12px; font-weight: 500; border-radius: 6px; border: 1px solid ${autoLockMinutes === m ? '#3b82f6' : '#334155'}; background: ${autoLockMinutes === m ? 'rgba(59, 130, 246, 0.15)' : '#1e293b'}; color: ${autoLockMinutes === m ? '#3b82f6' : '#94a3b8'}; cursor: pointer; transition: all 0.12s ease;">${m === 0 ? 'Off' : m + ' min'}</button>
+                                `).join('')}
+                            </div>
 
-                    <!-- Quick PIN setup -->
-                    <div style="display: flex; gap: 6px; align-items: center; background: #182229; padding: 8px 10px; border-radius: 8px;">
-                        <input id="input-pin-hud" type="password" maxlength="4" placeholder="${appPin ? 'Ganti PIN 4-digit' : 'Atur PIN 4-digit baru'}" style="flex: 1; background: #202c33; border: 1px solid #2a3942; border-radius: 6px; padding: 6px 10px; color: #e9edef; font-size: 11px; outline: none;">
-                        <button id="btn-save-pin-hud" style="background: #2a3942; color: #00a884; border: none; border-radius: 6px; padding: 6px 12px; font-size: 11px; font-weight: 600; cursor: pointer;">Simpan</button>
+                            <!-- PIN configuration -->
+                            <div style="display: flex; gap: 8px; align-items: center; padding-top: 10px; border-top: 1px solid #1e293b;">
+                                <input id="input-pin-hud" type="password" maxlength="4" placeholder="${appPin ? 'Change PIN (4-digits)' : 'Set PIN (4-digits)'}" style="flex: 1; background: #1e293b; border: 1px solid #334155; border-radius: 6px; padding: 8px 12px; color: #f1f5f9; font-size: 12px; outline: none;">
+                                <button id="btn-save-pin-hud" style="background: #334155; color: #f1f5f9; border: none; border-radius: 6px; padding: 8px 14px; font-size: 12px; font-weight: 500; cursor: pointer;">Save</button>
+                            </div>
+
+                            <!-- Action buttons -->
+                            <div style="display: flex; gap: 8px; padding-top: 4px;">
+                                <button id="btn-direct-chat" style="flex: 1; background: #1e293b; border: 1px solid #334155; color: #f1f5f9; border-radius: 6px; padding: 8px; font-size: 12px; font-weight: 500; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+                                    Direct Chat (Ctrl+M)
+                                </button>
+                                <button id="btn-lock-app" style="flex: 1; background: #1e293b; border: 1px solid #334155; color: #ef4444; border-radius: 6px; padding: 8px; font-size: 12px; font-weight: 500; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                                    Lock Screen (Ctrl+L)
+                                </button>
+                            </div>
+
+                        </div>
                     </div>
 
                 </div>
 
                 <!-- Footer -->
-                <div style="padding: 10px 18px; background: #141d22; border-top: 1px solid rgba(255,255,255,0.06); font-size: 10px; color: #8696a0; display: flex; justify-content: space-between; align-items: center;">
-                    <div>Hotkey: <b>Ctrl+B</b> (Privacy) • <b>Ctrl+Shift+U</b> (Unread) • <b>Ctrl+M</b> (Direct)</div>
-                    <div style="color: #00a884; font-weight: 700;">GG Extreme</div>
+                <div style="padding: 12px 20px; background: #0f172a; border-top: 1px solid #334155; font-size: 11px; color: #94a3b8; display: flex; justify-content: space-between; align-items: center;">
+                    <div>Shortcuts: <b>Ctrl+B</b> (Blur) • <b>Ctrl+Shift+P</b> (Pin) • <b>Ctrl+Shift+M</b> (Preferences)</div>
+                    <div style="color: #64748b;">v3.6</div>
                 </div>
             </div>
         `;
@@ -1115,14 +1127,14 @@
                 privacyConfig[key] = !privacyConfig[key];
                 savePrivacyConfig();
                 const isChecked = privacyConfig[key];
-                el.style.background = isChecked ? 'rgba(0, 168, 132, 0.15)' : 'rgba(255,255,255,0.04)';
-                el.style.borderColor = isChecked ? 'rgba(0, 168, 132, 0.4)' : 'rgba(255,255,255,0.08)';
+                el.style.background = isChecked ? 'rgba(59, 130, 246, 0.1)' : '#1e293b';
+                el.style.borderColor = isChecked ? '#3b82f6' : '#334155';
                 const box = el.querySelector('div:first-child');
-                box.style.borderColor = isChecked ? '#00a884' : '#8696a0';
-                box.style.background = isChecked ? '#00a884' : 'transparent';
-                box.innerHTML = isChecked ? '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>' : '';
+                box.style.borderColor = isChecked ? '#3b82f6' : '#64748b';
+                box.style.background = isChecked ? '#3b82f6' : 'transparent';
+                box.innerHTML = isChecked ? '<svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>' : '';
                 const span = el.querySelector('span');
-                if (span) span.style.color = isChecked ? '#e9edef' : '#8696a0';
+                if (span) span.style.color = isChecked ? '#f1f5f9' : '#94a3b8';
             };
         }
 
@@ -1159,13 +1171,13 @@
                 lastActivityTime = Date.now();
                 modal.querySelectorAll('.btn-autolock').forEach(b => {
                     const bm = parseInt(b.getAttribute('data-min')) || 0;
-                    b.style.borderColor = bm === m ? '#00a884' : 'rgba(255,255,255,0.08)';
-                    b.style.background = bm === m ? 'rgba(0, 168, 132, 0.2)' : '#202c33';
-                    b.style.color = bm === m ? '#00a884' : '#8696a0';
+                    b.style.borderColor = bm === m ? '#3b82f6' : '#334155';
+                    b.style.background = bm === m ? 'rgba(59, 130, 246, 0.15)' : '#1e293b';
+                    b.style.color = bm === m ? '#3b82f6' : '#94a3b8';
                 });
                 const label = modal.querySelector('#val-autolock-hud');
-                if (label) label.innerText = m > 0 ? `${m} Menit` : 'Mati';
-                showToast("Auto-Lock Diatur", m > 0 ? `Kunci otomatis aktif setelah ${m} menit idle` : "Kunci otomatis dinonaktifkan", null, m > 0 ? '#00a884' : '#8696a0');
+                if (label) label.innerText = m > 0 ? `${m}m` : 'Off';
+                showToast("Auto-Lock", m > 0 ? `Locked after ${m} minutes idle` : "Auto-lock disabled", null, '#3b82f6');
             };
         });
 
@@ -1186,9 +1198,9 @@
                 appPin = val;
                 safeSet('modstams_app_pin', val);
                 modal.querySelector('#input-pin-hud').value = '';
-                showToast("PIN Tersimpan", "Gunakan Ctrl+L untuk mengunci aplikasi");
+                showToast("PIN Updated", "Press Ctrl+L to lock workspace", null, '#22c55e');
             } else {
-                showToast("PIN Tidak Valid", "Harus berupa 4 digit angka (misal: 1234)", null, '#ff5252');
+                showToast("Invalid PIN", "Enter exactly 4 digits", null, '#ef4444');
             }
         };
 
@@ -1223,7 +1235,7 @@
             e.preventDefault();
             window.__waweb_openDirectChatModal();
         }
-        // Ctrl+Shift+M: Quick HUD
+        // Ctrl+Shift+M: Preferences Dialog
         if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'm') {
             e.preventDefault();
             window.__waweb_toggleModCenter();
@@ -1282,7 +1294,6 @@
         initSuite();
     }
 
-    // Narrow MutationObserver: watches body only for modal dialogs and header mount
     const rootObserver = new MutationObserver((mutations) => {
         for (let m = 0; m < mutations.length; m++) {
             if (mutations[m].addedNodes.length > 0) {
