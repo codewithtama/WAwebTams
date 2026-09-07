@@ -514,6 +514,47 @@
         }
     };
 
+    /* ==========================================================================
+       6C. ONE-CLICK STORAGE & MEDIA CACHE PURGE (Ctrl+Shift+Del)
+       ========================================================================== */
+    window.__modstams_purgeCache = async function() {
+        try {
+            if ('caches' in window) {
+                try {
+                    const keys = await caches.keys();
+                    await Promise.all(keys.map(k => caches.delete(k)));
+                } catch (cacheErr) {
+                    console.warn("[ModsTams] CacheStorage clean skipped:", cacheErr);
+                }
+            }
+
+            if (window.__TAURI__ && window.__TAURI__.core && window.__TAURI__.core.invoke) {
+                const res = await window.__TAURI__.core.invoke('purge_media_cache');
+                const mb = (res.bytes_freed / (1024 * 1024)).toFixed(1);
+                window.__modstams_onCachePurged(mb, res.files_deleted);
+            } else {
+                showToast("Cache Cleared", "Temporary media and cache purged", null, "#22c55e");
+            }
+        } catch (err) {
+            console.error("[ModsTams] Purge cache failed:", err);
+            showToast("Purge Cache Error", "Unable to purge temporary cache", null, "#ef4444");
+        }
+    };
+
+    window.__modstams_onCachePurged = function(mb, filesCount) {
+        showToast(
+            "Cache Purged",
+            `Freed ${mb} MB (${filesCount} cached files) • Session preserved`,
+            null,
+            "#22c55e"
+        );
+        const statusEl = document.getElementById('val-cache-status');
+        if (statusEl) {
+            statusEl.innerText = `Freed ${mb} MB (${filesCount} files)`;
+            statusEl.style.color = '#22c55e';
+        }
+    };
+
     function renderLockOverlay() {
         if (!document.body) return;
         if (document.getElementById('modstams-lock-screen')) return;
@@ -1076,6 +1117,18 @@
                                 <button id="btn-save-pin-hud" style="background: #334155; color: #f1f5f9; border: none; border-radius: 6px; padding: 8px 14px; font-size: 12px; font-weight: 500; cursor: pointer;">Save</button>
                             </div>
 
+                            <!-- Temporary Media & Storage Cache Purge -->
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 10px; border-top: 1px solid #1e293b;">
+                                <div>
+                                    <div style="font-weight: 500; font-size: 13px; color: #f1f5f9;">Media & Storage Cache</div>
+                                    <div id="val-cache-status" style="font-size: 11px; color: #94a3b8; margin-top: 1px;">Flush cache files & trim RAM (Safe)</div>
+                                </div>
+                                <button id="btn-purge-cache" style="background: #1e293b; border: 1px solid #334155; color: #f1f5f9; border-radius: 6px; padding: 6px 12px; font-size: 12px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.15s ease;">
+                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                                    Purge Cache
+                                </button>
+                            </div>
+
                             <!-- Action buttons -->
                             <div style="display: flex; gap: 8px; padding-top: 4px;">
                                 <button id="btn-direct-chat" style="flex: 1; background: #1e293b; border: 1px solid #334155; color: #f1f5f9; border-radius: 6px; padding: 8px; font-size: 12px; font-weight: 500; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">
@@ -1095,8 +1148,8 @@
 
                 <!-- Footer -->
                 <div style="padding: 12px 20px; background: #0f172a; border-top: 1px solid #334155; font-size: 11px; color: #94a3b8; display: flex; justify-content: space-between; align-items: center;">
-                    <div>Shortcuts: <b>Ctrl+B</b> (Blur) • <b>Ctrl+Shift+P</b> (Pin) • <b>Ctrl+Shift+M</b> (Preferences)</div>
-                    <div style="color: #64748b;">v3.6</div>
+                    <div>Shortcuts: <b>Ctrl+B</b> (Blur) • <b>Ctrl+Shift+P</b> (Pin) • <b>Ctrl+Shift+Del</b> (Purge)</div>
+                    <div style="color: #64748b;">v3.7</div>
                 </div>
             </div>
         `;
@@ -1191,6 +1244,11 @@
             window.__modstams_lockApp();
         };
 
+        // Purge Cache Button
+        modal.querySelector('#btn-purge-cache').onclick = () => {
+            window.__modstams_purgeCache();
+        };
+
         // PIN Save
         modal.querySelector('#btn-save-pin-hud').onclick = () => {
             const val = modal.querySelector('#input-pin-hud').value.trim();
@@ -1269,6 +1327,11 @@
         if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'g') {
             e.preventDefault();
             window.__waweb_toggleGhostRead();
+        }
+        // Ctrl+Shift+Delete: Purge Storage & Media Cache
+        if (e.ctrlKey && e.shiftKey && (e.key === 'Delete' || e.key === 'Del')) {
+            e.preventDefault();
+            window.__modstams_purgeCache();
         }
     });
 

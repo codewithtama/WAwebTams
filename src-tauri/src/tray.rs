@@ -70,6 +70,7 @@ pub fn setup_tray(app: &tauri::App) -> Result<(), Box<dyn std::error::Error>> {
     )?;
 
     let sep2 = PredefinedMenuItem::separator(app)?;
+    let purge_item = MenuItem::with_id(app, "purge_cache", "Purge Temp Cache", true, None::<&str>)?;
     let reload_item = MenuItem::with_id(app, "reload", "Reload Window", true, None::<&str>)?;
     let sep3 = PredefinedMenuItem::separator(app)?;
     let quit_item = MenuItem::with_id(app, "quit", "Quit Application", true, None::<&str>)?;
@@ -91,6 +92,7 @@ pub fn setup_tray(app: &tauri::App) -> Result<(), Box<dyn std::error::Error>> {
             &ghost_item,
             &ghostread_item,
             &sep2,
+            &purge_item,
             &reload_item,
             &sep3,
             &quit_item,
@@ -202,6 +204,17 @@ fn handle_menu_action(app: &AppHandle, action_id: &str) {
             if let Some(window) = main_window {
                 let _ = window
                     .eval("window.__waweb_toggleGhostRead && window.__waweb_toggleGhostRead()");
+            }
+        }
+        "purge_cache" => {
+            let res = crate::storage::purge_cache(app);
+            let mb = (res.bytes_freed as f64) / (1024.0 * 1024.0);
+            if let Some(window) = main_window {
+                let js = format!(
+                    "window.__modstams_onCachePurged && window.__modstams_onCachePurged({:.1}, {})",
+                    mb, res.files_deleted
+                );
+                let _ = window.eval(&js);
             }
         }
         "reload" => {

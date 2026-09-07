@@ -64,6 +64,7 @@ WAwebTams/
 │   │   ├── lib.rs               # Core application orchestrator (<30 lines)
 │   │   ├── main.rs              # Executable entry point with V8 flags
 │   │   ├── memory.rs            # Windows FFI working-set trimmer
+│   │   ├── storage.rs           # Native recursive storage & cache purge
 │   │   ├── tray.rs              # System tray construction & event routing
 │   │   └── window.rs            # Window lifecycle & minimize interception
 │   ├── .cargo/
@@ -101,6 +102,7 @@ WAwebTams/
 | **Ultra Dark OLED Mode** | `Ctrl + Shift + O` | Mode Hitam Pekat Murni `#000000` hemat daya monitor/laptop dan kontras tinggi. |
 | **Status Saver & View-Once** | *Otomatis* | Tombol unduh otomatis saat melihat status/story kontak dan media 1x lihat (zero-polling). |
 | **ModsTams Quick HUD** | `Ctrl + Shift + M` | Popover kendali ringkas terpadu, terintegrasi mulus di navbar atas WhatsApp tanpa floating widget. |
+| **One-Click Storage & Media Purge** | `Ctrl + Shift + Del` | Bersihkan cache media, blobs, dan shader disk seketika tanpa logout session WhatsApp Web (otomatis trim RAM). |
 
 ---
 
