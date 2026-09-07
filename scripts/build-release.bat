@@ -10,22 +10,23 @@ set "PATH=%USERPROFILE%\.cargo\bin;%PATH%"
 
 where cargo >nul 2>&1
 if %ERRORLEVEL% neq 0 (
-    echo [ERROR] Rust toolchain (cargo) tidak ditemukan di PATH.
+    echo [ERROR] Rust toolchain - cargo tidak ditemukan di PATH.
     echo Pastikan Rust telah terpasang melalui https://rustup.rs/
     pause
     exit /b 1
 )
 
-:: Project paths
-set "PROJECT_ROOT=%~dp0.."
+:: Canonical absolute paths
+for %%I in ("%~dp0..") do set "PROJECT_ROOT=%%~fI"
 set "CARGO_TOML=%PROJECT_ROOT%\src-tauri\Cargo.toml"
 set "OUTPUT_DIR=%PROJECT_ROOT%\src-tauri\target\release"
 
 echo [1/3] Menutup instance ModsTams yang sedang aktif...
 taskkill /f /im ModsTams.exe >nul 2>&1
+timeout /t 1 /nobreak >nul 2>&1
 
 echo [2/3] Mengompilasi binary release dengan profil produksi...
-cargo build --manifest-path "%CARGO_TOML%" --release -j 2
+cargo build --manifest-path "%CARGO_TOML%" --release
 if %ERRORLEVEL% neq 0 (
     echo.
     echo [ERROR] Kompilasi gagal! Silakan periksa log error di atas.
@@ -48,4 +49,3 @@ if exist "%OUTPUT_DIR%\ModsTams.exe" (
 )
 
 endlocal
-pause

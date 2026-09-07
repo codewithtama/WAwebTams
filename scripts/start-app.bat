@@ -1,6 +1,6 @@
 @echo off
 setlocal
-set "PROJECT_ROOT=%~dp0.."
+for %%I in ("%~dp0..") do set "PROJECT_ROOT=%%~fI"
 set "EXE_PATH=%PROJECT_ROOT%\ModsTams.exe"
 
 if not exist "%EXE_PATH%" (
