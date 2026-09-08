@@ -25,6 +25,44 @@
     }
 
     /* ==========================================================================
+       0. WEBSOCKET STEALTH & CLOAK PROXY (Invisible Story & Freeze Last Seen)
+       ========================================================================== */
+    let freezeLastSeenActive = safeGet('modstams_freeze_lastseen', 'false') === 'true';
+    let invisibleStoryActive = safeGet('modstams_invisible_story', 'true') !== 'false';
+
+    try {
+        const origWsSend = WebSocket.prototype.send;
+        WebSocket.prototype.send = function(data) {
+            try {
+                if (freezeLastSeenActive || invisibleStoryActive) {
+                    let str = '';
+                    if (typeof data === 'string') {
+                        str = data;
+                    } else if (data instanceof ArrayBuffer) {
+                        str = new TextDecoder('latin1').decode(data);
+                    } else if (data && data.buffer instanceof ArrayBuffer) {
+                        str = new TextDecoder('latin1').decode(data.buffer);
+                    } else if (ArrayBuffer.isView(data)) {
+                        str = new TextDecoder('latin1').decode(data);
+                    }
+
+                    if (str) {
+                        // 1. Freeze Last Seen / Zero-Presence (Drop available/composing stanzas)
+                        if (freezeLastSeenActive && str.includes('presence') && (str.includes('available') || str.includes('composing'))) {
+                            return;
+                        }
+                        // 2. Invisible Story View (Drop status@broadcast receipts)
+                        if (invisibleStoryActive && str.includes('status@broadcast') && (str.includes('read') || str.includes('receipt') || str.includes('played'))) {
+                            return;
+                        }
+                    }
+                }
+            } catch(wsErr) {}
+            return origWsSend.apply(this, arguments);
+        };
+    } catch(hookErr) {}
+
+    /* ==========================================================================
        1. TOAST NOTIFICATION SYSTEM (Linear / Raycast Dark SaaS Style)
        ========================================================================== */
     function getToastContainer() {
@@ -325,23 +363,23 @@
 
     const originalHasFocus = document.hasFocus.bind(document);
     document.hasFocus = function() {
-        if (ghostReadActive) return false;
+        if (ghostReadActive || freezeLastSeenActive) return false;
         return originalHasFocus();
     };
 
     try {
         Object.defineProperty(document, 'visibilityState', {
-            get: function() { return ghostReadActive ? 'hidden' : 'visible'; },
+            get: function() { return (ghostReadActive || freezeLastSeenActive) ? 'hidden' : 'visible'; },
             configurable: true
         });
         Object.defineProperty(document, 'hidden', {
-            get: function() { return ghostReadActive ? true : false; },
+            get: function() { return (ghostReadActive || freezeLastSeenActive) ? true : false; },
             configurable: true
         });
     } catch(e) {}
 
     window.addEventListener('focus', function(e) {
-        if (ghostReadActive) {
+        if (ghostReadActive || freezeLastSeenActive) {
             e.stopImmediatePropagation();
         }
     }, true);
@@ -355,6 +393,36 @@
             null,
             ghostReadActive ? "#3b82f6" : "#94a3b8"
         );
+    };
+
+    window.__modstams_toggleFreezeLastSeen = function() {
+        freezeLastSeenActive = !freezeLastSeenActive;
+        safeSet('modstams_freeze_lastseen', freezeLastSeenActive ? 'true' : 'false');
+        showToast(
+            freezeLastSeenActive ? "Freeze Last Seen Active" : "Presence Restored",
+            freezeLastSeenActive ? "Status 'Online' dicegat & Last Seen dibekukan (Ctrl+Shift+F)" : "Status Online dilaporkan normal",
+            `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="${freezeLastSeenActive ? '#10b981' : '#94a3b8'}" stroke-width="2"><path d="M12 2v20"></path><path d="m17 5-5-3-5 3"></path><path d="m17 19-5 3-5-3"></path><path d="M2 12h20"></path><path d="m5 7-3 5 3 5"></path><path d="m19 7 3 5-3 5"></path></svg>`,
+            freezeLastSeenActive ? "#10b981" : "#94a3b8"
+        );
+        const parent = document.getElementById('sw-freezelastseen');
+        if (parent) {
+            parent.innerHTML = renderSwitch('sw-btn-freezelastseen', freezeLastSeenActive, '#10b981');
+        }
+    };
+
+    window.__modstams_toggleInvisibleStory = function() {
+        invisibleStoryActive = !invisibleStoryActive;
+        safeSet('modstams_invisible_story', invisibleStoryActive ? 'true' : 'false');
+        showToast(
+            invisibleStoryActive ? "Ghost Story Active" : "Story View Restored",
+            invisibleStoryActive ? "Nonton story tanpa masuk daftar viewers pengirim (Ctrl+Shift+S)" : "Laporan penayangan story dikirim normal",
+            `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="${invisibleStoryActive ? '#a855f7' : '#94a3b8'}" stroke-width="2"><path d="M9 10h.01"></path><path d="M15 10h.01"></path><path d="M12 2a8 8 0 0 0-8 8v12l3-3 2.5 2.5L12 19l2.5 2.5L17 19l3 3V10a8 8 0 0 0-8-8z"></path></svg>`,
+            invisibleStoryActive ? "#a855f7" : "#94a3b8"
+        );
+        const parent = document.getElementById('sw-invisiblestory');
+        if (parent) {
+            parent.innerHTML = renderSwitch('sw-btn-invisiblestory', invisibleStoryActive, '#a855f7');
+        }
     };
 
     /* ==========================================================================
@@ -758,6 +826,20 @@
             const media = img || video;
 
             if (media && media.src) {
+                // Cache into viewOnceVault for anti-view-once replay
+                if (antiViewOnceActive && typeof viewOnceVault !== 'undefined') {
+                    const voKey = `vo_${Date.now()}`;
+                    if (viewOnceVault.size >= 50) {
+                        const oldest = viewOnceVault.keys().next().value;
+                        viewOnceVault.delete(oldest);
+                    }
+                    viewOnceVault.set(voKey, {
+                        src: media.src,
+                        isVideo: !!video,
+                        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                    });
+                }
+
                 const btn = document.createElement('button');
                 btn.id = 'modstams-viewonce-btn';
                 btn.style.cssText = [
@@ -766,12 +848,12 @@
                     'right: 76px',
                     'z-index: 9999',
                     'background: #1e293b',
-                    'color: #f1f5f9',
-                    'border: 1px solid #334155',
+                    'color: #38bdf8',
+                    'border: 1px solid #38bdf8',
                     'border-radius: 6px',
                     'padding: 7px 12px',
                     'font-size: 12px',
-                    'font-weight: 500',
+                    'font-weight: 600',
                     'cursor: pointer',
                     'display: flex',
                     'align-items: center',
@@ -781,57 +863,89 @@
                 ].join(';');
                 btn.innerHTML = `
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                    <span>Save Media</span>
+                    <span>Simpan Media (Anti-View-Once)</span>
                 `;
                 btn.onmouseenter = () => btn.style.background = '#334155';
                 btn.onmouseleave = () => btn.style.background = '#1e293b';
                 btn.onclick = (e) => {
                     e.stopPropagation();
                     const ext = video ? 'mp4' : 'jpg';
-                    triggerDownload(media.src, `Media_${Date.now()}.${ext}`);
+                    triggerDownload(media.src, `ViewOnce_${Date.now()}.${ext}`);
                 };
                 overlay.appendChild(btn);
             }
         });
 
         const statusPanel = document.querySelector('div[role="region"][tabindex="-1"], div[data-animate-modal-body="true"]');
-        if (statusPanel && !statusPanel.querySelector('#modstams-status-download-btn')) {
-            const media = statusPanel.querySelector('img[src], video[src]');
-            if (media && media.src) {
-                const btn = document.createElement('button');
-                btn.id = 'modstams-status-download-btn';
-                btn.style.cssText = [
+        if (statusPanel) {
+            // Invisible Story View Badge
+            if (invisibleStoryActive && !statusPanel.querySelector('#modstams-ghost-story-pill')) {
+                const ghostPill = document.createElement('div');
+                ghostPill.id = 'modstams-ghost-story-pill';
+                ghostPill.style.cssText = [
                     'position: absolute',
-                    'bottom: 24px',
-                    'right: 24px',
+                    'top: 20px',
+                    'left: 24px',
                     'z-index: 99999',
-                    'background: #1e293b',
-                    'color: #f1f5f9',
-                    'border: 1px solid #334155',
-                    'border-radius: 6px',
-                    'padding: 8px 14px',
-                    'font-size: 12px',
-                    'font-weight: 500',
-                    'cursor: pointer',
                     'display: flex',
                     'align-items: center',
                     'gap: 6px',
-                    'box-shadow: 0 4px 6px -1px rgba(0,0,0,0.3)',
-                    'transition: background 0.15s ease'
+                    'background: rgba(15, 23, 42, 0.85)',
+                    'border: 1px solid #a855f7',
+                    'padding: 6px 12px',
+                    'border-radius: 20px',
+                    'color: #d8b4fe',
+                    'font-size: 11px',
+                    'font-weight: 600',
+                    'backdrop-filter: blur(4px)',
+                    'box-shadow: 0 4px 12px rgba(168, 85, 247, 0.25)',
+                    'user-select: none'
                 ].join(';');
-                btn.innerHTML = `
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                    <span>Save Story</span>
+                ghostPill.innerHTML = `
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#c084fc" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 10h.01"></path><path d="M15 10h.01"></path><path d="M12 2a8 8 0 0 0-8 8v12l3-3 2.5 2.5L12 19l2.5 2.5L17 19l3 3V10a8 8 0 0 0-8-8z"></path></svg>
+                    <span>Ghost Story Active (Nama Anda Disembunyikan)</span>
                 `;
-                btn.onmouseenter = () => btn.style.background = '#334155';
-                btn.onmouseleave = () => btn.style.background = '#1e293b';
-                btn.onclick = (e) => {
-                    e.stopPropagation();
-                    const isVideo = statusPanel.querySelector('video[src]') !== null;
-                    const src = (statusPanel.querySelector('video[src]') || statusPanel.querySelector('img[src]')).src;
-                    triggerDownload(src, `Story_${Date.now()}.${isVideo ? 'mp4' : 'jpg'}`);
-                };
-                statusPanel.appendChild(btn);
+                statusPanel.appendChild(ghostPill);
+            }
+
+            if (!statusPanel.querySelector('#modstams-status-download-btn')) {
+                const media = statusPanel.querySelector('img[src], video[src]');
+                if (media && media.src) {
+                    const btn = document.createElement('button');
+                    btn.id = 'modstams-status-download-btn';
+                    btn.style.cssText = [
+                        'position: absolute',
+                        'bottom: 24px',
+                        'right: 24px',
+                        'z-index: 99999',
+                        'background: #1e293b',
+                        'color: #f1f5f9',
+                        'border: 1px solid #334155',
+                        'border-radius: 6px',
+                        'padding: 8px 14px',
+                        'font-size: 12px',
+                        'font-weight: 500',
+                        'cursor: pointer',
+                        'display: flex',
+                        'align-items: center',
+                        'gap: 6px',
+                        'box-shadow: 0 4px 6px -1px rgba(0,0,0,0.3)',
+                        'transition: background 0.15s ease'
+                    ].join(';');
+                    btn.innerHTML = `
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                        <span>Save Story</span>
+                    `;
+                    btn.onmouseenter = () => btn.style.background = '#334155';
+                    btn.onmouseleave = () => btn.style.background = '#1e293b';
+                    btn.onclick = (e) => {
+                        e.stopPropagation();
+                        const isVideo = statusPanel.querySelector('video[src]') !== null;
+                        const src = (statusPanel.querySelector('video[src]') || statusPanel.querySelector('img[src]')).src;
+                        triggerDownload(src, `Story_${Date.now()}.${isVideo ? 'mp4' : 'jpg'}`);
+                    };
+                    statusPanel.appendChild(btn);
+                }
             }
         }
     }
@@ -960,12 +1074,16 @@
     }
 
     /* ==========================================================================
-       10B. ANTI-TARIK PESAN & REVOKE LOGGER (Client-Side DOM & LRU Ring Buffer)
+       10B. GOD-TIER MODS: ANTI-TARIK, ANTI-EDIT, & ANTI-VIEW-ONCE VAULT
        ========================================================================== */
     let antiDeleteActive = safeGet('modstams_anti_delete', 'true') !== 'false';
+    let antiEditActive = safeGet('modstams_anti_edit', 'true') !== 'false';
+    let antiViewOnceActive = safeGet('modstams_anti_viewonce', 'true') !== 'false';
     const MAX_MSG_CACHE = 1000;
     const messageCache = new Map();
     const revokedLog = [];
+    const editedLog = [];
+    const viewOnceVault = new Map();
 
     function escapeHtml(str) {
         if (!str) return '';
@@ -1111,8 +1229,116 @@
         }
     }
 
+    function restoreEditedMessage(el, cached, currentText) {
+        if (!el || !cached || el.querySelector('.modstams-edited-bubble')) return;
+        const bubble = el.querySelector('[data-testid="msg-container"]') || el.querySelector('.message-in, .message-out') || el;
+
+        const pill = document.createElement('div');
+        pill.className = 'modstams-edited-bubble';
+        pill.style.cssText = [
+            'margin-top: 6px',
+            'padding: 8px 10px',
+            'background: rgba(245, 158, 11, 0.08)',
+            'border: 1px solid rgba(245, 158, 11, 0.35)',
+            'border-radius: 6px',
+            'font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+            'box-shadow: 0 2px 4px rgba(0,0,0,0.1)'
+        ].join(';');
+
+        pill.innerHTML = `
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; font-size: 11px; font-weight: 600; color: #f59e0b;">
+                <div style="display: flex; align-items: center; gap: 5px;">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 20h9"></path>
+                        <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+                    </svg>
+                    <span>Sebelum Diedit ${cached.time ? '• ' + cached.time : ''}</span>
+                </div>
+                <span style="font-size: 10px; color: #94a3b8; font-weight: normal;">Anti-Edit ModsTams</span>
+            </div>
+            <div class="selectable-text copyable-text" style="font-size: 12.5px; line-height: 1.4; color: #cbd5e1; text-decoration: line-through; text-decoration-color: #f59e0b; word-break: break-word; user-select: text; -webkit-user-select: text;">
+                ${escapeHtml(cached.originalText)}
+            </div>
+        `;
+
+        bubble.appendChild(pill);
+
+        if (!editedLog.some(e => e.id === cached.id && e.originalText === cached.originalText)) {
+            editedLog.unshift({
+                id: cached.id,
+                sender: cached.sender || 'Seseorang',
+                time: cached.time || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                originalText: cached.originalText,
+                newText: currentText,
+                editedAt: Date.now()
+            });
+            if (editedLog.length > 50) editedLog.pop();
+
+            const senderName = cached.sender || 'Kontak';
+            const oldSnippet = cached.originalText.length > 20 ? cached.originalText.substring(0, 18) + '...' : cached.originalText;
+            const newSnippet = currentText.length > 20 ? currentText.substring(0, 18) + '...' : currentText;
+            showToast(
+                "Pesan Diedit Terdeteksi",
+                `${senderName}: "${oldSnippet}" ➔ "${newSnippet}"`,
+                `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>`,
+                "#f59e0b"
+            );
+        }
+    }
+
+    window.__modstams_openMediaViewer = function(src, isVideo) {
+        if (!document.body || !src) return;
+        const existing = document.getElementById('modstams-media-viewer-modal');
+        if (existing) existing.remove();
+
+        const modal = document.createElement('div');
+        modal.id = 'modstams-media-viewer-modal';
+        modal.style.cssText = [
+            'position: fixed',
+            'top: 0',
+            'left: 0',
+            'width: 100vw',
+            'height: 100vh',
+            'background: rgba(15, 23, 42, 0.9)',
+            'backdrop-filter: blur(8px)',
+            'z-index: 99999999',
+            'display: flex',
+            'flex-direction: column',
+            'align-items: center',
+            'justify-content: center',
+            'font-family: Inter, system-ui, sans-serif'
+        ].join(';');
+
+        const contentHtml = isVideo ?
+            `<video src="${src}" controls autoplay style="max-width: 85vw; max-height: 80vh; border-radius: 8px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.5);"></video>` :
+            `<img src="${src}" style="max-width: 85vw; max-height: 80vh; border-radius: 8px; object-fit: contain; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.5);">`;
+
+        modal.innerHTML = `
+            <div style="position: absolute; top: 20px; right: 24px; display: flex; gap: 10px; z-index: 10;">
+                <button id="modstams-viewer-dl" style="background: #1e293b; border: 1px solid #334155; color: #f1f5f9; border-radius: 6px; padding: 7px 14px; font-size: 12px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                    Simpan Media
+                </button>
+                <button id="modstams-viewer-close" style="background: #1e293b; border: 1px solid #334155; color: #94a3b8; border-radius: 6px; padding: 7px 12px; font-size: 16px; cursor: pointer; line-height: 1;">&times;</button>
+            </div>
+            <div style="position: absolute; top: 24px; left: 24px; font-size: 12px; font-weight: 600; color: #38bdf8; display: flex; align-items: center; gap: 6px;">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                Anti-View-Once Vault Viewer
+            </div>
+            ${contentHtml}
+        `;
+
+        document.body.appendChild(modal);
+        modal.querySelector('#modstams-viewer-dl').onclick = () => {
+            triggerDownload(src, `ViewOnce_${Date.now()}.${isVideo ? 'mp4' : 'jpg'}`);
+        };
+        modal.querySelector('#modstams-viewer-close').onclick = () => modal.remove();
+        modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
+        modal.onkeydown = (e) => { if (e.key === 'Escape') modal.remove(); };
+    };
+
     function scanAndProcessMessages() {
-        if (!antiDeleteActive) return;
+        if (!antiDeleteActive && !antiEditActive && !antiViewOnceActive) return;
         const mainEl = document.querySelector('#main');
         if (!mainEl) return;
 
@@ -1123,13 +1349,72 @@
             if (!msgId) continue;
 
             if (isRevokedMessage(node)) {
-                if (messageCache.has(msgId)) {
+                if (antiDeleteActive && messageCache.has(msgId)) {
                     restoreRevokedMessage(node, messageCache.get(msgId));
                 }
             } else {
                 const data = extractMessageData(node);
                 if (data && (data.text || data.mediaType)) {
-                    cacheMessage(msgId, data);
+                    if (messageCache.has(msgId)) {
+                        const cached = messageCache.get(msgId);
+                        if (antiEditActive && cached.text && data.text) {
+                            const cleanNew = data.text.replace(/\s*\((?:diedit|edited)\)\s*$/i, '').trim();
+                            const cleanOld = cached.text.replace(/\s*\((?:diedit|edited)\)\s*$/i, '').trim();
+                            const hasEditIndicator = node.querySelector('span[data-testid="msg-edited"]') || /\((?:diedit|edited)\)/i.test(data.text);
+                            if ((hasEditIndicator || cleanNew !== cleanOld) && cleanNew !== cleanOld && !node.querySelector('.modstams-edited-bubble')) {
+                                if (!cached.originalText) {
+                                    cached.originalText = cleanOld;
+                                }
+                                restoreEditedMessage(node, cached, cleanNew);
+                                cached.text = cleanNew;
+                            }
+                        }
+                    } else {
+                        cacheMessage(msgId, data);
+                    }
+                }
+
+                // Anti-View-Once: detect viewed / opened 1x messages
+                if (antiViewOnceActive) {
+                    const isViewOnceBubble = node.querySelector('span[data-icon="view-once"], span[data-icon="view-once-viewed"], [data-icon*="view-once"]');
+                    if (isViewOnceBubble && (node.innerText.includes('Dibuka') || node.innerText.includes('Opened') || isViewOnceBubble.getAttribute('data-icon') === 'view-once-viewed')) {
+                        if (!node.querySelector('.modstams-replay-viewonce-btn')) {
+                            let vaultItem = viewOnceVault.get(msgId);
+                            if (!vaultItem && viewOnceVault.size > 0) {
+                                const lastKey = Array.from(viewOnceVault.keys()).pop();
+                                vaultItem = viewOnceVault.get(lastKey);
+                            }
+                            if (vaultItem) {
+                                const bubble = node.querySelector('[data-testid="msg-container"]') || node.querySelector('.message-in, .message-out') || node;
+                                const replayBtn = document.createElement('button');
+                                replayBtn.className = 'modstams-replay-viewonce-btn';
+                                replayBtn.style.cssText = [
+                                    'margin-top: 5px',
+                                    'padding: 5px 10px',
+                                    'background: rgba(56, 189, 248, 0.12)',
+                                    'border: 1px solid #38bdf8',
+                                    'border-radius: 6px',
+                                    'color: #38bdf8',
+                                    'font-size: 11px',
+                                    'font-weight: 600',
+                                    'cursor: pointer',
+                                    'display: flex',
+                                    'align-items: center',
+                                    'gap: 6px',
+                                    'transition: all 0.12s ease'
+                                ].join(';');
+                                replayBtn.innerHTML = `
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                                    <span>Buka Ulang (Anti-View-Once)</span>
+                                `;
+                                replayBtn.onclick = (e) => {
+                                    e.stopPropagation();
+                                    window.__modstams_openMediaViewer(vaultItem.src, vaultItem.isVideo);
+                                };
+                                bubble.appendChild(replayBtn);
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -1139,7 +1424,7 @@
     let isScanPending = false;
 
     function scheduleMessageScan() {
-        if (!antiDeleteActive || isScanPending) return;
+        if ((!antiDeleteActive && !antiEditActive && !antiViewOnceActive) || isScanPending) return;
         isScanPending = true;
         requestAnimationFrame(() => {
             isScanPending = false;
@@ -1172,9 +1457,7 @@
     window.__modstams_toggleAntiDelete = function() {
         antiDeleteActive = !antiDeleteActive;
         safeSet('modstams_anti_delete', antiDeleteActive ? 'true' : 'false');
-        if (antiDeleteActive) {
-            scheduleMessageScan();
-        }
+        if (antiDeleteActive) scheduleMessageScan();
         showToast(
             antiDeleteActive ? "Anti-Tarik Diaktifkan" : "Anti-Tarik Dinonaktifkan",
             antiDeleteActive ? "Pesan yang ditarik pengirim akan otomatis dipulihkan (Ctrl+Shift+D)" : "Pesan ditarik tidak akan diintersepsi",
@@ -1182,9 +1465,136 @@
             antiDeleteActive ? "#f43f5e" : "#94a3b8"
         );
         const parent = document.getElementById('sw-antidelete');
-        if (parent) {
-            parent.innerHTML = renderSwitch('sw-btn-antidelete', antiDeleteActive, '#f43f5e');
+        if (parent) parent.innerHTML = renderSwitch('sw-btn-antidelete', antiDeleteActive, '#f43f5e');
+    };
+
+    window.__modstams_toggleAntiEdit = function() {
+        antiEditActive = !antiEditActive;
+        safeSet('modstams_anti_edit', antiEditActive ? 'true' : 'false');
+        if (antiEditActive) scheduleMessageScan();
+        showToast(
+            antiEditActive ? "Anti-Edit Diaktifkan" : "Anti-Edit Dinonaktifkan",
+            antiEditActive ? "Teks asli sebelum diedit akan dipertahankan (Ctrl+Shift+E)" : "Pesan diedit diperbarui normal",
+            `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="${antiEditActive ? '#f59e0b' : '#94a3b8'}" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>`,
+            antiEditActive ? "#f59e0b" : "#94a3b8"
+        );
+        const parent = document.getElementById('sw-antiedit');
+        if (parent) parent.innerHTML = renderSwitch('sw-btn-antiedit', antiEditActive, '#f59e0b');
+    };
+
+    window.__modstams_toggleAntiViewOnce = function() {
+        antiViewOnceActive = !antiViewOnceActive;
+        safeSet('modstams_anti_viewonce', antiViewOnceActive ? 'true' : 'false');
+        showToast(
+            antiViewOnceActive ? "Anti-View-Once Active" : "Anti-View-Once Disabled",
+            antiViewOnceActive ? "Media 1x lihat dapat diputar ulang & disimpan (Ctrl+Shift+V)" : "Media 1x lihat berlaku normal",
+            `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="${antiViewOnceActive ? '#38bdf8' : '#94a3b8'}" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>`,
+            antiViewOnceActive ? "#38bdf8" : "#94a3b8"
+        );
+        const parent = document.getElementById('sw-antiviewonce');
+        if (parent) parent.innerHTML = renderSwitch('sw-btn-antiviewonce', antiViewOnceActive, '#38bdf8');
+    };
+
+    window.__modstams_openEditedLogModal = function() {
+        if (!document.body) return;
+        const existing = document.getElementById('modstams-edited-log-modal');
+        if (existing) {
+            existing.remove();
+            return;
         }
+
+        const modal = document.createElement('div');
+        modal.id = 'modstams-edited-log-modal';
+        modal.style.cssText = [
+            'position: fixed',
+            'top: 0',
+            'left: 0',
+            'width: 100vw',
+            'height: 100vh',
+            'background: rgba(15, 23, 42, 0.75)',
+            'backdrop-filter: blur(4px)',
+            'z-index: 9999999',
+            'display: flex',
+            'align-items: center',
+            'justify-content: center',
+            'font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
+        ].join(';');
+
+        const listHtml = editedLog.length === 0 ? `
+            <div style="padding: 36px 16px; text-align: center; color: #94a3b8;">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="1.5" style="margin: 0 auto 12px; display: block;">
+                    <path d="M12 20h9"></path>
+                    <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+                </svg>
+                <div style="font-size: 13px; font-weight: 500; color: #f1f5f9; margin-bottom: 4px;">Belum Ada Pesan Diedit</div>
+                <div style="font-size: 11px;">Pesan yang diubah oleh pengirim selama sesi ini akan otomatis tercatat di sini.</div>
+            </div>
+        ` : editedLog.map(item => `
+            <div style="background: #0f172a; border: 1px solid #334155; border-radius: 6px; padding: 12px; margin-bottom: 8px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                        <span style="font-weight: 600; font-size: 12px; color: #f59e0b;">${escapeHtml(item.sender)}</span>
+                        <span style="font-size: 11px; color: #64748b;">${item.time}</span>
+                    </div>
+                    <button class="btn-copy-edited" data-text="${escapeHtml(item.originalText)}" style="background: #1e293b; border: 1px solid #334155; color: #94a3b8; border-radius: 4px; padding: 3px 8px; font-size: 11px; cursor: pointer; transition: all 0.12s ease;">Salin Teks Asli</button>
+                </div>
+                <div style="font-size: 12px; color: #94a3b8; text-decoration: line-through; text-decoration-color: #f59e0b; margin-bottom: 4px; word-break: break-word; user-select: text;">
+                    ${escapeHtml(item.originalText)}
+                </div>
+                <div style="font-size: 12.5px; color: #f1f5f9; line-height: 1.4; word-break: break-word; user-select: text;">
+                    ➔ ${escapeHtml(item.newText)}
+                </div>
+            </div>
+        `).join('');
+
+        modal.innerHTML = `
+            <div style="background: #1e293b; border: 1px solid #334155; border-radius: 8px; width: 460px; max-width: 92vw; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); color: #f1f5f9; overflow: hidden; display: flex; flex-direction: column; max-height: 80vh;">
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 14px 18px; border-bottom: 1px solid #334155; background: #1e293b;">
+                    <div>
+                        <div style="font-weight: 600; font-size: 14px; color: #f1f5f9; display: flex; align-items: center; gap: 6px;">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2.5"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+                            Log Pesan Diedit (${editedLog.length})
+                        </div>
+                        <div style="font-size: 11px; color: #94a3b8; margin-top: 1px;">Riwayat pesan sebelum dan sesudah diedit pengirim</div>
+                    </div>
+                    <button id="modstams-edited-close" style="background: transparent; border: none; color: #94a3b8; cursor: pointer; font-size: 18px; line-height: 1; padding: 4px; border-radius: 4px;">&times;</button>
+                </div>
+                <div style="padding: 14px 18px; overflow-y: auto; flex: 1;">
+                    ${listHtml}
+                </div>
+                <div style="padding: 10px 18px; background: #0f172a; border-top: 1px solid #334155; display: flex; justify-content: space-between; align-items: center;">
+                    <button id="modstams-edited-clear" style="background: transparent; border: 1px solid #334155; color: #94a3b8; border-radius: 4px; padding: 4px 10px; font-size: 11px; cursor: pointer;">Bersihkan Log</button>
+                    <button id="modstams-edited-done" style="background: #334155; border: none; color: #f1f5f9; border-radius: 4px; padding: 5px 12px; font-size: 11px; font-weight: 500; cursor: pointer;">Tutup</button>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(modal);
+
+        modal.querySelectorAll('.btn-copy-edited').forEach(btn => {
+            btn.onclick = () => {
+                const txt = btn.getAttribute('data-text');
+                navigator.clipboard.writeText(txt).then(() => {
+                    btn.innerText = 'Tersalin!';
+                    btn.style.color = '#22c55e';
+                    setTimeout(() => {
+                        btn.innerText = 'Salin Teks Asli';
+                        btn.style.color = '#94a3b8';
+                    }, 1500);
+                });
+            };
+        });
+
+        modal.querySelector('#modstams-edited-clear').onclick = () => {
+            editedLog.length = 0;
+            modal.remove();
+            showToast("Log Dibersihkan", "Riwayat pesan diedit telah dikosongkan", null, "#94a3b8");
+        };
+
+        modal.querySelector('#modstams-edited-close').onclick = () => modal.remove();
+        modal.querySelector('#modstams-edited-done').onclick = () => modal.remove();
+        modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
+        modal.onkeydown = (e) => { if (e.key === 'Escape') modal.remove(); };
     };
 
     window.__modstams_openRevokedLogModal = function() {
@@ -1379,28 +1789,17 @@
                         </div>
                     </div>
 
-                    <!-- Section 2: Stealth & Desktop Controls -->
+                    <!-- Section 2: God-Tier Mod Suite (Rank SS & S+) -->
                     <div>
-                        <div style="font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: #94a3b8; margin-bottom: 8px;">Stealth & Window</div>
+                        <div style="font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: #f59e0b; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                            <span>God-Tier Mod Suite (Rank SS / S+)</span>
+                        </div>
                         
                         <div style="background: #0f172a; border: 1px solid #334155; border-radius: 6px; padding: 14px; display: flex; flex-direction: column; gap: 12px;">
+                            
+                            <!-- 1. Anti-Tarik Pesan -->
                             <div style="display: flex; justify-content: space-between; align-items: center;">
-                                <div>
-                                    <div style="font-weight: 500; font-size: 13px; color: #f1f5f9;">Ghost Read</div>
-                                    <div style="font-size: 11px; color: #94a3b8; margin-top: 1px;">Suppress read receipts (Ctrl+Shift+G)</div>
-                                </div>
-                                <div id="sw-ghostread">${renderSwitch('sw-btn-ghostread', ghostReadActive)}</div>
-                            </div>
-
-                            <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 10px; border-top: 1px solid #1e293b;">
-                                <div>
-                                    <div style="font-weight: 500; font-size: 13px; color: #f1f5f9;">Ghost Typing</div>
-                                    <div style="font-size: 11px; color: #94a3b8; margin-top: 1px;">Conceal "typing..." indicator (Ctrl+Shift+T)</div>
-                                </div>
-                                <div id="sw-ghosttyping">${renderSwitch('sw-btn-ghosttyping', ghostTypingActive)}</div>
-                            </div>
-
-                            <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 10px; border-top: 1px solid #1e293b;">
                                 <div>
                                     <div style="font-weight: 500; font-size: 13px; color: #f1f5f9; display: flex; align-items: center; gap: 6px;">
                                         <span>Anti-Tarik Pesan</span>
@@ -1420,6 +1819,89 @@
                                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#f43f5e" stroke-width="2.5"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>
                                     Buka Log (${revokedLog.length})
                                 </button>
+                            </div>
+
+                            <!-- 2. Anti-Edit Inspector -->
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 10px; border-top: 1px solid #1e293b;">
+                                <div>
+                                    <div style="font-weight: 500; font-size: 13px; color: #f1f5f9; display: flex; align-items: center; gap: 6px;">
+                                        <span>Anti-Edit Inspector</span>
+                                        <span style="font-size: 10px; background: rgba(245, 158, 11, 0.15); color: #f59e0b; padding: 1px 5px; border-radius: 4px; font-weight: 600;">RANK SS</span>
+                                    </div>
+                                    <div style="font-size: 11px; color: #94a3b8; margin-top: 1px;">Pertahankan teks asli sebelum diubah pengirim (Ctrl+Shift+E)</div>
+                                </div>
+                                <div id="sw-antiedit">${renderSwitch('sw-btn-antiedit', antiEditActive, '#f59e0b')}</div>
+                            </div>
+
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 10px; border-top: 1px solid #1e293b;">
+                                <div>
+                                    <div style="font-weight: 500; font-size: 13px; color: #f1f5f9;">Log Pesan Diedit</div>
+                                    <div id="val-edited-count" style="font-size: 11px; color: #94a3b8; margin-top: 1px;">${editedLog.length} riwayat edit tersimpan</div>
+                                </div>
+                                <button id="btn-view-edited" style="background: #1e293b; border: 1px solid #334155; color: #f1f5f9; border-radius: 6px; padding: 6px 12px; font-size: 12px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.15s ease;">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2.5"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+                                    Buka Log (${editedLog.length})
+                                </button>
+                            </div>
+
+                            <!-- 3. Anti-View-Once Destroyer -->
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 10px; border-top: 1px solid #1e293b;">
+                                <div>
+                                    <div style="font-weight: 500; font-size: 13px; color: #f1f5f9; display: flex; align-items: center; gap: 6px;">
+                                        <span>Anti-View-Once Destroyer</span>
+                                        <span style="font-size: 10px; background: rgba(56, 189, 248, 0.15); color: #38bdf8; padding: 1px 5px; border-radius: 4px; font-weight: 600;">RANK SS</span>
+                                    </div>
+                                    <div style="font-size: 11px; color: #94a3b8; margin-top: 1px;">Buka ulang & simpan foto/video 1x lihat tanpa batas (Ctrl+Shift+V)</div>
+                                </div>
+                                <div id="sw-antiviewonce">${renderSwitch('sw-btn-antiviewonce', antiViewOnceActive, '#38bdf8')}</div>
+                            </div>
+
+                            <!-- 4. Invisible Story View -->
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 10px; border-top: 1px solid #1e293b;">
+                                <div>
+                                    <div style="font-weight: 500; font-size: 13px; color: #f1f5f9; display: flex; align-items: center; gap: 6px;">
+                                        <span>Invisible Story View</span>
+                                        <span style="font-size: 10px; background: rgba(168, 85, 247, 0.15); color: #a855f7; padding: 1px 5px; border-radius: 4px; font-weight: 600;">RANK S+</span>
+                                    </div>
+                                    <div style="font-size: 11px; color: #94a3b8; margin-top: 1px;">Nonton story tanpa masuk daftar viewers pengirim (Ctrl+Shift+S)</div>
+                                </div>
+                                <div id="sw-invisiblestory">${renderSwitch('sw-btn-invisiblestory', invisibleStoryActive, '#a855f7')}</div>
+                            </div>
+
+                            <!-- 5. Freeze Last Seen -->
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 10px; border-top: 1px solid #1e293b;">
+                                <div>
+                                    <div style="font-weight: 500; font-size: 13px; color: #f1f5f9; display: flex; align-items: center; gap: 6px;">
+                                        <span>Freeze Last Seen (Zero Presence)</span>
+                                        <span style="font-size: 10px; background: rgba(16, 185, 129, 0.15); color: #10b981; padding: 1px 5px; border-radius: 4px; font-weight: 600;">RANK S+</span>
+                                    </div>
+                                    <div style="font-size: 11px; color: #94a3b8; margin-top: 1px;">Sembunyikan status 'Online' & bekukan waktu dilihat (Ctrl+Shift+F)</div>
+                                </div>
+                                <div id="sw-freezelastseen">${renderSwitch('sw-btn-freezelastseen', freezeLastSeenActive, '#10b981')}</div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <!-- Section 3: Stealth & Window Controls -->
+                    <div>
+                        <div style="font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: #94a3b8; margin-bottom: 8px;">Stealth & Window</div>
+                        
+                        <div style="background: #0f172a; border: 1px solid #334155; border-radius: 6px; padding: 14px; display: flex; flex-direction: column; gap: 12px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div>
+                                    <div style="font-weight: 500; font-size: 13px; color: #f1f5f9;">Ghost Read</div>
+                                    <div style="font-size: 11px; color: #94a3b8; margin-top: 1px;">Suppress read receipts (Ctrl+Shift+G)</div>
+                                </div>
+                                <div id="sw-ghostread">${renderSwitch('sw-btn-ghostread', ghostReadActive)}</div>
+                            </div>
+
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 10px; border-top: 1px solid #1e293b;">
+                                <div>
+                                    <div style="font-weight: 500; font-size: 13px; color: #f1f5f9;">Ghost Typing</div>
+                                    <div style="font-size: 11px; color: #94a3b8; margin-top: 1px;">Conceal "typing..." indicator (Ctrl+Shift+T)</div>
+                                </div>
+                                <div id="sw-ghosttyping">${renderSwitch('sw-btn-ghosttyping', ghostTypingActive)}</div>
                             </div>
 
                             <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 10px; border-top: 1px solid #1e293b;">
@@ -1498,8 +1980,8 @@
 
                 <!-- Footer -->
                 <div style="padding: 12px 20px; background: #0f172a; border-top: 1px solid #334155; font-size: 11px; color: #94a3b8; display: flex; justify-content: space-between; align-items: center;">
-                    <div>Shortcuts: <b>Ctrl+Shift+D</b> (Anti-Tarik) • <b>Ctrl+B</b> (Blur) • <b>Ctrl+Shift+P</b> (Pin)</div>
-                    <div style="color: #64748b;">v3.8</div>
+                    <div>Shortcuts: <b>Ctrl+Shift+D</b> (Anti-Tarik) • <b>Ctrl+Shift+E</b> (Anti-Edit) • <b>Ctrl+Shift+S</b> (Ghost Story) • <b>Ctrl+Shift+F</b> (Freeze)</div>
+                    <div style="color: #64748b;">v3.9 (God-Tier)</div>
                 </div>
             </div>
         `;
@@ -1548,6 +2030,36 @@
         bindChip('chip-avatars', 'blurAvatars');
         bindChip('chip-input', 'blurInput');
 
+        // God-Tier Suite Toggles
+        modal.querySelector('#sw-antidelete').onclick = () => {
+            window.__modstams_toggleAntiDelete();
+            modal.querySelector('#sw-antidelete').innerHTML = renderSwitch('sw-btn-antidelete', antiDeleteActive, '#f43f5e');
+        };
+        modal.querySelector('#btn-view-revoked').onclick = () => {
+            modal.remove();
+            window.__modstams_openRevokedLogModal();
+        };
+        modal.querySelector('#sw-antiedit').onclick = () => {
+            window.__modstams_toggleAntiEdit();
+            modal.querySelector('#sw-antiedit').innerHTML = renderSwitch('sw-btn-antiedit', antiEditActive, '#f59e0b');
+        };
+        modal.querySelector('#btn-view-edited').onclick = () => {
+            modal.remove();
+            window.__modstams_openEditedLogModal();
+        };
+        modal.querySelector('#sw-antiviewonce').onclick = () => {
+            window.__modstams_toggleAntiViewOnce();
+            modal.querySelector('#sw-antiviewonce').innerHTML = renderSwitch('sw-btn-antiviewonce', antiViewOnceActive, '#38bdf8');
+        };
+        modal.querySelector('#sw-invisiblestory').onclick = () => {
+            window.__modstams_toggleInvisibleStory();
+            modal.querySelector('#sw-invisiblestory').innerHTML = renderSwitch('sw-btn-invisiblestory', invisibleStoryActive, '#a855f7');
+        };
+        modal.querySelector('#sw-freezelastseen').onclick = () => {
+            window.__modstams_toggleFreezeLastSeen();
+            modal.querySelector('#sw-freezelastseen').innerHTML = renderSwitch('sw-btn-freezelastseen', freezeLastSeenActive, '#10b981');
+        };
+
         // Stealth Toggles
         modal.querySelector('#sw-ghostread').onclick = () => {
             window.__waweb_toggleGhostRead();
@@ -1556,14 +2068,6 @@
         modal.querySelector('#sw-ghosttyping').onclick = () => {
             window.__waweb_toggleGhostTyping();
             modal.querySelector('#sw-ghosttyping').innerHTML = renderSwitch('sw-btn-ghosttyping', ghostTypingActive);
-        };
-        modal.querySelector('#sw-antidelete').onclick = () => {
-            window.__modstams_toggleAntiDelete();
-            modal.querySelector('#sw-antidelete').innerHTML = renderSwitch('sw-btn-antidelete', antiDeleteActive, '#f43f5e');
-        };
-        modal.querySelector('#btn-view-revoked').onclick = () => {
-            modal.remove();
-            window.__modstams_openRevokedLogModal();
         };
         modal.querySelector('#sw-oled').onclick = () => {
             window.__waweb_toggleOled();
@@ -1690,6 +2194,26 @@
         if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'd') {
             e.preventDefault();
             window.__modstams_toggleAntiDelete();
+        }
+        // Ctrl+Shift+E: Toggle Anti-Edit Inspector
+        if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'e') {
+            e.preventDefault();
+            window.__modstams_toggleAntiEdit();
+        }
+        // Ctrl+Shift+V: Toggle Anti-View-Once Destroyer
+        if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'v') {
+            e.preventDefault();
+            window.__modstams_toggleAntiViewOnce();
+        }
+        // Ctrl+Shift+S: Toggle Invisible Story View
+        if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 's') {
+            e.preventDefault();
+            window.__modstams_toggleInvisibleStory();
+        }
+        // Ctrl+Shift+F: Toggle Freeze Last Seen
+        if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'f') {
+            e.preventDefault();
+            window.__modstams_toggleFreezeLastSeen();
         }
         // Ctrl+Shift+Delete: Purge Storage & Media Cache
         if (e.ctrlKey && e.shiftKey && (e.key === 'Delete' || e.key === 'Del')) {

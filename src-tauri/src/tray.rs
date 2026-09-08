@@ -33,6 +33,34 @@ pub fn setup_tray(app: &tauri::App) -> Result<(), Box<dyn std::error::Error>> {
         true,
         None::<&str>,
     )?;
+    let antiedit_item = MenuItem::with_id(
+        app,
+        "antiedit",
+        "Toggle Anti-Edit (Ctrl+Shift+E)",
+        true,
+        None::<&str>,
+    )?;
+    let antiviewonce_item = MenuItem::with_id(
+        app,
+        "antiviewonce",
+        "Toggle Anti-View-Once (Ctrl+Shift+V)",
+        true,
+        None::<&str>,
+    )?;
+    let ghoststory_item = MenuItem::with_id(
+        app,
+        "ghoststory",
+        "Toggle Ghost Story (Ctrl+Shift+S)",
+        true,
+        None::<&str>,
+    )?;
+    let freezelastseen_item = MenuItem::with_id(
+        app,
+        "freezelastseen",
+        "Toggle Freeze Last Seen (Ctrl+Shift+F)",
+        true,
+        None::<&str>,
+    )?;
     let privacy_item = MenuItem::with_id(
         app,
         "privacy",
@@ -93,6 +121,10 @@ pub fn setup_tray(app: &tauri::App) -> Result<(), Box<dyn std::error::Error>> {
             &sep1,
             &direct_item,
             &antitarik_item,
+            &antiedit_item,
+            &antiviewonce_item,
+            &ghoststory_item,
+            &freezelastseen_item,
             &privacy_item,
             &blurmedia_item,
             &unread_item,
@@ -183,6 +215,33 @@ fn handle_menu_action(app: &AppHandle, action_id: &str) {
             if let Some(window) = main_window {
                 let _ = window.eval(
                     "window.__modstams_toggleAntiDelete && window.__modstams_toggleAntiDelete()",
+                );
+            }
+        }
+        "antiedit" => {
+            if let Some(window) = main_window {
+                let _ = window
+                    .eval("window.__modstams_toggleAntiEdit && window.__modstams_toggleAntiEdit()");
+            }
+        }
+        "antiviewonce" => {
+            if let Some(window) = main_window {
+                let _ = window.eval(
+                    "window.__modstams_toggleAntiViewOnce && window.__modstams_toggleAntiViewOnce()",
+                );
+            }
+        }
+        "ghoststory" => {
+            if let Some(window) = main_window {
+                let _ = window.eval(
+                    "window.__modstams_toggleInvisibleStory && window.__modstams_toggleInvisibleStory()",
+                );
+            }
+        }
+        "freezelastseen" => {
+            if let Some(window) = main_window {
+                let _ = window.eval(
+                    "window.__modstams_toggleFreezeLastSeen && window.__modstams_toggleFreezeLastSeen()",
                 );
             }
         }

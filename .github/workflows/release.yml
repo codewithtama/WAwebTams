@@ -1,0 +1,66 @@
+name: Release Publishing Pipeline
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    name: Build Release Package
+    runs-on: windows-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js Runtime
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Setup Rust Toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt
+
+      - name: Run Quality Verification
+        run: |
+          node --check src-tauri/assets/enhancements.js
+          cargo fmt --manifest-path src-tauri/Cargo.toml -- --check
+          cargo clippy --manifest-path src-tauri/Cargo.toml -- -D warnings
+
+      - name: Compile Release Binary
+        run: cargo build --manifest-path src-tauri/Cargo.toml --release
+
+      - name: Package Release & Generate Checksums
+        shell: pwsh
+        run: |
+          $tag = "${{ github.ref_name }}"
+          $distDir = "dist"
+          New-Item -ItemType Directory -Path $distDir -Force | Out-Null
+          
+          $exeSource = "src-tauri/target/release/ModsTams.exe"
+          $exeDest = "$distDir/ModsTams.exe"
+          Copy-Item $exeSource $exeDest -Force
+          
+          # Compute SHA-256
+          $hash = (Get-FileHash -Path $exeDest -Algorithm SHA256).Hash
+          "$hash  ModsTams.exe" | Out-File -FilePath "$distDir/SHA256SUMS.txt" -Encoding ascii
+          
+          # Create Zip Archive
+          Compress-Archive -Path "$distDir/*" -DestinationPath "$distDir/ModsTams-$tag-windows-x64.zip" -Force
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "ModsTams ${{ github.ref_name }}"
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+          files: |
+            dist/ModsTams-*-windows-x64.zip
+            dist/ModsTams.exe
+            dist/SHA256SUMS.txt

@@ -43,45 +43,65 @@ A high-performance, ultra-lightweight desktop client wrapper for WhatsApp Web en
 
 ---
 
+## Enterprise Engineering Documentation
+
+Comprehensive architectural blueprints, threat modeling, and specifications are maintained under [`docs/`](docs/):
+
+- 🏛️ **[System Architecture (docs/ARCHITECTURE.md)](docs/ARCHITECTURE.md)** &mdash; C4 component breakdown, Win32 working-set trimmer FFI, WebView2 sandbox boundary, and packet interception topology.
+- 🛡️ **[Security Threat Model (docs/SECURITY_THREAT_MODEL.md)](docs/SECURITY_THREAT_MODEL.md)** &mdash; Formal STRIDE analysis, zero-telemetry technical guarantee, and memory security invariants.
+- ⚡ **[Mod Suite Specification (docs/MOD_SUITE_SPECIFICATION.md)](docs/MOD_SUITE_SPECIFICATION.md)** &mdash; Functional and technical specification for all 15 mod capabilities, LRU eviction limits, and packet schemas.
+- 💻 **[Developer Guide (docs/DEVELOPER_GUIDE.md)](docs/DEVELOPER_GUIDE.md)** &mdash; Local environment setup, WebView2 DevTools debugging, memory profiling with Windows Task Manager, and release verification.
+
+---
+
 ## Repository Structure
 
 ```
 WAwebTams/
-├── .github/
-│   └── workflows/
-│       └── ci.yml               # GitHub Actions CI validation
-├── scripts/                     # Build and execution automation
-│   ├── build-release.bat        # Production release compiler
-│   ├── run-dev.bat              # Development server runner
-│   └── start-app.bat            # Application launcher
-├── src-tauri/                   # Rust native backend
+├── .github/                      # Enterprise CI/CD & Governance
+│   ├── ISSUE_TEMPLATE/           # Structured YAML Issue Forms (Bug / Feature RFC)
+│   ├── workflows/
+│   │   ├── ci.yml                # Multi-stage CI pipeline (Rustfmt, Clippy, JS Syntax, Build)
+│   │   └── release.yml           # Automated release publisher with SHA256 checksums
+│   ├── dependabot.yml            # Automated dependency updates for Cargo & npm
+│   └── PULL_REQUEST_TEMPLATE.md  # Standardized enterprise PR verification checklist
+├── docs/                         # Enterprise Technical Documentation
+│   ├── ARCHITECTURE.md           # System C4 & process boundary architecture
+│   ├── SECURITY_THREAT_MODEL.md  # STRIDE threat model & data privacy guarantees
+│   ├── MOD_SUITE_SPECIFICATION.md# Functional mod specs, packet schemas, & LRU limits
+│   └── DEVELOPER_GUIDE.md        # Contributor onboarding & performance profiling
+├── scripts/                      # Automated build, clean, and verification tooling
+│   ├── build-release.bat         # Windows CMD production compiler
+│   ├── build-release.ps1         # PowerShell release pipeline with SHA-256 integrity hash
+│   ├── run-dev.bat               # Development server runner
+│   ├── start-app.bat             # Application launcher
+│   ├── clean.bat                 # Build artifact & cache cleaner
+│   └── verify-env.ps1            # Developer toolchain diagnostic validator
+├── src-tauri/                    # Rust native backend
 │   ├── assets/
-│   │   └── enhancements.js      # Injected productivity & mod suite script
-│   ├── capabilities/
-│   │   └── default.json         # Tauri v2 security ACL capabilities
-│   ├── icons/                   # Cross-platform application icons
+│   │   └── enhancements.js       # Injected productivity & mod suite engine
+│   ├── icons/                    # Cross-platform application icons
 │   ├── src/
-│   │   ├── lib.rs               # Core application orchestrator (<30 lines)
-│   │   ├── main.rs              # Executable entry point with V8 flags
-│   │   ├── memory.rs            # Windows FFI working-set trimmer
-│   │   ├── storage.rs           # Native recursive storage & cache purge
-│   │   ├── tray.rs              # System tray construction & event routing
-│   │   └── window.rs            # Window lifecycle & minimize interception
-│   ├── .cargo/
-│   │   └── config.toml          # Portable build flags
-│   ├── Cargo.toml               # Optimized release profile (LTO, strip)
-│   └── tauri.conf.json          # Tauri application manifest
+│   │   ├── lib.rs                # Core application orchestrator (<30 lines)
+│   │   ├── main.rs               # Executable entry point with V8 flags
+│   │   ├── memory.rs             # Windows FFI working-set trimmer
+│   │   ├── storage.rs            # Native recursive storage & cache purge
+│   │   ├── tray.rs               # System tray construction & event routing
+│   │   └── window.rs             # Window lifecycle & minimize interception
+│   ├── Cargo.toml                # Optimized release profile (LTO, strip)
+│   └── tauri.conf.json           # Tauri application manifest
 ├── ui/
-│   └── index.html               # Initial offline loading screen
-├── .editorconfig                # Universal indentation and encoding standards
-├── .gitattributes               # Line-ending normalizations
-├── .gitignore                   # Enterprise git exclusion patterns
-├── CHANGELOG.md                 # Semantic versioning release log
-├── CONTRIBUTING.md              # Engineering guidelines & PR checklist
-├── LICENSE                      # MIT Open-Source License
-├── package.json                 # Standardized developer lifecycle scripts
-├── README.md                    # Technical documentation
-└── SECURITY.md                  # Vulnerability disclosure policy
+│   └── index.html                # Initial offline loading screen
+├── .editorconfig                 # Universal indentation and encoding standards
+├── .gitattributes                # Line-ending normalizations
+├── .gitignore                    # Enterprise git exclusion patterns
+├── CHANGELOG.md                  # Semantic versioning release log
+├── CODE_OF_CONDUCT.md             # Contributor Covenant v2.1 code of conduct
+├── CONTRIBUTING.md               # Enterprise engineering guidelines & PR gates
+├── LICENSE                       # MIT Open-Source License
+├── package.json                  # Standardized developer lifecycle scripts
+├── README.md                     # Executive overview & user guide
+└── SECURITY.md                   # Enterprise vulnerability disclosure & SLA policy
 ```
 
 ---
@@ -96,6 +116,10 @@ WAwebTams/
 | **Anti-Centang Biru (Ghost Read)** | `Ctrl + Shift + G` | Membaca pesan tanpa mengirim laporan terbaca (*read receipts*). |
 | **Ghost Typing** | `Ctrl + Shift + T` | Menyembunyikan indikator *"Sedang mengetik..."*. |
 | **Anti-Tarik Pesan (Anti-Delete)** | `Ctrl + Shift + D` | Intersepsi pesan yang ditarik pengirim ("Pesan ini telah dihapus"), pulihkan teks aslinya dengan badge Linear-style, dan catat ke Revoked Log. |
+| **Anti-Edit Inspector** | `Ctrl + Shift + E` | Rekam teks asli sebelum diedit pengirim, tampilkan perbandingan coretan teks asli (*strikethrough*), dan catat ke Edited Log. |
+| **Anti-View-Once Destroyer** | `Ctrl + Shift + V` | Bypass pesan 1x lihat (*View-Once*): putar ulang foto/video/VN tanpa batas via vault player dan simpan permanen. |
+| **Invisible Story View** | `Ctrl + Shift + S` | Tonton story/status siapapun tanpa nama Anda muncul di daftar penonton (*viewers*) pengirim (blokir receipt WebSocket). |
+| **Freeze Last Seen (Zero Presence)** | `Ctrl + Shift + F` | Sembunyikan status *"Online"* saat membuka WA dan bekukan jam terakhir dilihat (*Last Seen*) tanpa memutus koneksi chat. |
 | **Direct Chat** | `Ctrl + M` | Kirim pesan instan ke nomor baru tanpa perlu menyimpan ke kontak. |
 | **Pin Window (Always on Top)** | `Ctrl + Shift + P` | Pin jendela ModsTams agar selalu melayang di atas aplikasi lain saat multitasking. |
 | **Auto-Lock Saat Ditinggal** | *Otomatis* | Kunci layar aplikasi otomatis dengan PIN jika tidak ada aktivitas (2m, 5m, 10m). |

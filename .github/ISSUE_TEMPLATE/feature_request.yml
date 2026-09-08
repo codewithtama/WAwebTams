@@ -1,0 +1,40 @@
+name: "Feature Proposal (RFC)"
+description: "Propose a new feature, optimization, or architectural enhancement"
+title: "[RFC]: "
+labels: ["enhancement", "rfc"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        We welcome community proposals! Every new feature must satisfy our core tenets:
+        **< 200 KB RAM overhead**, **0.0% idle CPU utilization**, and **zero external network egress**.
+  - type: textarea
+    id: problem_statement
+    attributes:
+      label: "Problem Statement"
+      description: "What pain point or workflow limitation does this feature resolve?"
+      placeholder: "As a daily WhatsApp Web desktop user, I need..."
+    validations:
+      required: true
+  - type: textarea
+    id: proposed_solution
+    attributes:
+      label: "Proposed Solution & Design"
+      description: "Describe how this feature should work from both a user experience and technical perspective."
+    validations:
+      required: true
+  - type: textarea
+    id: performance_impact
+    attributes:
+      label: "Performance & Memory Considerations"
+      description: "Explain how this proposal ensures 0.0% idle CPU and preserves the lightweight memory profile."
+      placeholder: "Uses MutationObserver with an LRU cache bounded at 50 entries..."
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: "Alternatives Considered"
+      description: "What alternative approaches or workarounds were considered?"
+    validations:
+      required: false

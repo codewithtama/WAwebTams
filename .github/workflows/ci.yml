@@ -1,4 +1,4 @@
-name: CI / Quality Assurance
+name: CI / Quality Assurance Pipeline
 
 on:
   push:
@@ -6,13 +6,22 @@ on:
   pull_request:
     branches: [ "main" ]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  rust-checks:
-    name: Code Quality & Build Verification
+  code-quality:
+    name: Code Quality & Static Analysis
     runs-on: windows-latest
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
+
+      - name: Setup Node.js Runtime
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
 
       - name: Setup Rust Toolchain
         uses: dtolnay/rust-toolchain@stable
@@ -32,11 +41,51 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-cargo-
 
-      - name: Check Rust Formatting (rustfmt)
+      - name: Validate Injected JavaScript Syntax
+        run: node --check src-tauri/assets/enhancements.js
+
+      - name: Check Rust Code Formatting (rustfmt)
         run: cargo fmt --manifest-path src-tauri/Cargo.toml -- --check
 
-      - name: Run Clippy Linter
+      - name: Run Clippy Linter (Strict Zero Warnings)
         run: cargo clippy --manifest-path src-tauri/Cargo.toml -- -D warnings
 
-      - name: Build Debug Verification
-        run: cargo check --manifest-path src-tauri/Cargo.toml
+  build-verification:
+    name: Binary Compilation & Verification
+    needs: code-quality
+    runs-on: windows-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Rust Toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Cargo Dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            src-tauri/target/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
+
+      - name: Compile Release Binary
+        run: cargo build --manifest-path src-tauri/Cargo.toml --release
+
+      - name: Verify Binary Integrity & Generate Checksum
+        shell: pwsh
+        run: |
+          $exe = "src-tauri/target/release/ModsTams.exe"
+          if (Test-Path $exe) {
+            $hash = (Get-FileHash -Path $exe -Algorithm SHA256).Hash
+            $size = (Get-Item $exe).Length
+            Write-Host "Binary built successfully ($size bytes)"
+            Write-Host "SHA-256: $hash"
+          } else {
+            Write-Error "Binary not found at $exe"
+          }

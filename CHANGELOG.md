@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.3.0] - 2026-09-08
+
+### Added
+- **Anti-Edit Inspector (`Ctrl+Shift+E`)**: Real-time diff detection capturing original message text before sender modification; renders amber Linear-style strikethrough comparison badge and logs history to in-app drawer.
+- **Anti-View-Once Destroyer (`Ctrl+Shift+V`)**: Intercepts encrypted view-once media payloads into in-memory vault; enables unlimited replay via custom popover player and permanent uncompressed downloading.
+- **Invisible Story View (`Ctrl+Shift+S`)**: WebSocket frame interception suppressing `read-status` receipt acknowledgments to `status@broadcast`; allows incognito story consumption with active UI badge.
+- **Freeze Last Seen / Zero-Presence Cloak (`Ctrl+Shift+F`)**: Drops outgoing WebSocket presence broadcasts (`presence: available` and `chatstate: composing`); allows continuous background messaging while freezing publicly displayed Last Seen timestamp.
+- **God-Tier Suite Preferences HUD Section**: Dedicated high-contrast priority section in Preferences popover (`Ctrl+Shift+M`) providing instant switches and log inspectors.
+- **Extended System Tray Controls**: 1-click toggles for all 4 God-Tier mods within Windows tray context menu.
+
+---
+
 ## [1.2.0] - 2026-09-08
 
 ### Added
