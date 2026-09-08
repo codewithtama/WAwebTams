@@ -95,6 +95,7 @@ WAwebTams/
 | **Filter Chat Belum Dibaca** | `Ctrl + Shift + U` | Saring hanya percakapan unread via trigger native WhatsApp atau CSS pseudo-class `:has()`. |
 | **Anti-Centang Biru (Ghost Read)** | `Ctrl + Shift + G` | Membaca pesan tanpa mengirim laporan terbaca (*read receipts*). |
 | **Ghost Typing** | `Ctrl + Shift + T` | Menyembunyikan indikator *"Sedang mengetik..."*. |
+| **Anti-Tarik Pesan (Anti-Delete)** | `Ctrl + Shift + D` | Intersepsi pesan yang ditarik pengirim ("Pesan ini telah dihapus"), pulihkan teks aslinya dengan badge Linear-style, dan catat ke Revoked Log. |
 | **Direct Chat** | `Ctrl + M` | Kirim pesan instan ke nomor baru tanpa perlu menyimpan ke kontak. |
 | **Pin Window (Always on Top)** | `Ctrl + Shift + P` | Pin jendela ModsTams agar selalu melayang di atas aplikasi lain saat multitasking. |
 | **Auto-Lock Saat Ditinggal** | *Otomatis* | Kunci layar aplikasi otomatis dengan PIN jika tidak ada aktivitas (2m, 5m, 10m). |

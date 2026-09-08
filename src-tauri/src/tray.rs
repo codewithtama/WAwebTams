@@ -26,6 +26,13 @@ pub fn setup_tray(app: &tauri::App) -> Result<(), Box<dyn std::error::Error>> {
     let sep1 = PredefinedMenuItem::separator(app)?;
 
     let direct_item = MenuItem::with_id(app, "direct", "Direct Chat (Ctrl+M)", true, None::<&str>)?;
+    let antitarik_item = MenuItem::with_id(
+        app,
+        "antitarik",
+        "Toggle Anti-Tarik (Ctrl+Shift+D)",
+        true,
+        None::<&str>,
+    )?;
     let privacy_item = MenuItem::with_id(
         app,
         "privacy",
@@ -85,6 +92,7 @@ pub fn setup_tray(app: &tauri::App) -> Result<(), Box<dyn std::error::Error>> {
             &pin_item,
             &sep1,
             &direct_item,
+            &antitarik_item,
             &privacy_item,
             &blurmedia_item,
             &unread_item,
@@ -168,6 +176,13 @@ fn handle_menu_action(app: &AppHandle, action_id: &str) {
                 focus_window(&window);
                 let _ = window.eval(
                     "window.__waweb_openDirectChatModal && window.__waweb_openDirectChatModal()",
+                );
+            }
+        }
+        "antitarik" => {
+            if let Some(window) = main_window {
+                let _ = window.eval(
+                    "window.__modstams_toggleAntiDelete && window.__modstams_toggleAntiDelete()",
                 );
             }
         }

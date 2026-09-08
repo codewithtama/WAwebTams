@@ -960,11 +960,339 @@
     }
 
     /* ==========================================================================
+       10B. ANTI-TARIK PESAN & REVOKE LOGGER (Client-Side DOM & LRU Ring Buffer)
+       ========================================================================== */
+    let antiDeleteActive = safeGet('modstams_anti_delete', 'true') !== 'false';
+    const MAX_MSG_CACHE = 1000;
+    const messageCache = new Map();
+    const revokedLog = [];
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+
+    function cacheMessage(id, data) {
+        if (!id || !data) return;
+        if (messageCache.has(id)) {
+            const existing = messageCache.get(id);
+            if (!existing.text && data.text) existing.text = data.text;
+            if (!existing.sender && data.sender) existing.sender = data.sender;
+            return;
+        }
+        if (messageCache.size >= MAX_MSG_CACHE) {
+            const oldestKey = messageCache.keys().next().value;
+            messageCache.delete(oldestKey);
+        }
+        messageCache.set(id, data);
+    }
+
+    const REVOKE_REGEX = /pesan ini telah dihapus|this message was deleted|you deleted this message|pesan ini dihapus|message was deleted|dihapus oleh admin|deleted by admin|pesan ditarik/i;
+
+    function isRevokedMessage(el) {
+        if (!el) return false;
+        if (el.querySelector('span[data-icon="recalled"], span[data-icon="msg-deleted"], [data-icon*="recalled"], [data-testid*="revoked"]')) {
+            return true;
+        }
+        const text = (el.innerText || el.textContent || '').trim();
+        if (!text) return false;
+        return REVOKE_REGEX.test(text);
+    }
+
+    function extractMessageData(el) {
+        if (!el) return null;
+        let msgId = el.getAttribute('data-id');
+        if (!msgId) {
+            const parent = el.closest('[data-id]');
+            if (parent) msgId = parent.getAttribute('data-id');
+        }
+        if (!msgId) return null;
+
+        const isOut = msgId.startsWith('true_');
+        let sender = isOut ? 'Anda' : '';
+        let time = '';
+        const prePlainEl = el.querySelector('[data-pre-plain-text]');
+        if (prePlainEl) {
+            const pre = prePlainEl.getAttribute('data-pre-plain-text') || '';
+            const match = pre.match(/\[(\d{1,2}:\d{2}(?::\d{2})?(?:\s*[AaPp][Mm])?)[^\]]*\]\s*([^:]+):?/);
+            if (match) {
+                time = match[1];
+                if (!isOut) sender = match[2].trim();
+            }
+        }
+
+        if (!sender && !isOut) {
+            const authorEl = el.querySelector('span[data-testid="author"], span[dir="auto"].color-1, span[dir="auto"].color-2');
+            if (authorEl && authorEl.innerText) {
+                sender = authorEl.innerText.trim();
+            }
+        }
+
+        let text = '';
+        const textEl = el.querySelector('.selectable-text, .copyable-text .selectable-text, span._ao3e');
+        if (textEl) {
+            text = textEl.innerText.trim();
+        }
+
+        let mediaType = null;
+        if (el.querySelector('img[src]:not([class*="emoji"])')) mediaType = 'image';
+        else if (el.querySelector('video[src]')) mediaType = 'video';
+        else if (el.querySelector('[data-testid="audio-player"], audio')) mediaType = 'audio';
+        else if (el.querySelector('[data-icon="msg-sticker"], [data-testid="sticker"]')) mediaType = 'sticker';
+        else if (el.querySelector('[data-testid="document-thumb"]')) mediaType = 'document';
+
+        return { id: msgId, sender: sender || (isOut ? 'Anda' : 'Kontak'), time, text, isOut, mediaType };
+    }
+
+    function restoreRevokedMessage(el, cached) {
+        if (!el || !cached) return;
+        if (el.querySelector('.modstams-revoked-bubble')) return;
+        el.setAttribute('data-modstams-restored', 'true');
+
+        const bubble = el.querySelector('[data-testid="msg-container"]') || el.querySelector('.message-in, .message-out') || el;
+
+        const pill = document.createElement('div');
+        pill.className = 'modstams-revoked-bubble';
+        pill.style.cssText = [
+            'margin-top: 6px',
+            'padding: 8px 10px',
+            'background: rgba(244, 63, 94, 0.08)',
+            'border: 1px solid rgba(244, 63, 94, 0.3)',
+            'border-radius: 6px',
+            'font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+            'box-shadow: 0 2px 4px rgba(0,0,0,0.1)'
+        ].join(';');
+
+        const mediaBadge = cached.mediaType ? `<span style="font-size: 10px; background: rgba(244, 63, 94, 0.18); color: #f43f5e; padding: 1px 5px; border-radius: 3px; margin-left: 6px; text-transform: uppercase; font-weight: 600;">${cached.mediaType}</span>` : '';
+
+        pill.innerHTML = `
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; font-size: 11px; font-weight: 600; color: #f43f5e;">
+                <div style="display: flex; align-items: center; gap: 5px;">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+                        <path d="M3 3v5h5"></path>
+                    </svg>
+                    <span>Pesan Ditarik ${cached.time ? '• ' + cached.time : ''}</span>
+                    ${mediaBadge}
+                </div>
+                <span style="font-size: 10px; color: #94a3b8; font-weight: normal;">Anti-Tarik ModsTams</span>
+            </div>
+            <div class="selectable-text copyable-text" style="font-size: 13px; line-height: 1.45; color: #f1f5f9; user-select: text; -webkit-user-select: text; word-break: break-word; font-weight: 400;">
+                ${cached.text ? escapeHtml(cached.text) : '<i style="color: #94a3b8;">[Konten media ditarik sebelum teks diunduh]</i>'}
+            </div>
+        `;
+
+        bubble.appendChild(pill);
+
+        if (!revokedLog.some(r => r.id === cached.id)) {
+            revokedLog.unshift({
+                id: cached.id,
+                sender: cached.sender || 'Seseorang',
+                time: cached.time || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                text: cached.text || `[Media ${cached.mediaType || 'file'}]`,
+                mediaType: cached.mediaType,
+                revokedAt: Date.now()
+            });
+            if (revokedLog.length > 50) revokedLog.pop();
+
+            const senderName = cached.sender || 'Kontak';
+            const snippet = cached.text ? (cached.text.length > 35 ? cached.text.substring(0, 32) + '...' : cached.text) : `[Media ${cached.mediaType || 'file'}]`;
+            showToast(
+                "Pesan Ditarik Terdeteksi",
+                `${senderName}: "${snippet}"`,
+                `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#f43f5e" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>`,
+                "#f43f5e"
+            );
+        }
+    }
+
+    function scanAndProcessMessages() {
+        if (!antiDeleteActive) return;
+        const mainEl = document.querySelector('#main');
+        if (!mainEl) return;
+
+        const messageNodes = mainEl.querySelectorAll('[data-id]');
+        for (let i = 0; i < messageNodes.length; i++) {
+            const node = messageNodes[i];
+            const msgId = node.getAttribute('data-id');
+            if (!msgId) continue;
+
+            if (isRevokedMessage(node)) {
+                if (messageCache.has(msgId)) {
+                    restoreRevokedMessage(node, messageCache.get(msgId));
+                }
+            } else {
+                const data = extractMessageData(node);
+                if (data && (data.text || data.mediaType)) {
+                    cacheMessage(msgId, data);
+                }
+            }
+        }
+    }
+
+    let messagesObserver = null;
+    let isScanPending = false;
+
+    function scheduleMessageScan() {
+        if (!antiDeleteActive || isScanPending) return;
+        isScanPending = true;
+        requestAnimationFrame(() => {
+            isScanPending = false;
+            scanAndProcessMessages();
+        });
+    }
+
+    function bindMainChatObserver() {
+        const mainEl = document.querySelector('#main');
+        if (!mainEl) {
+            if (messagesObserver) {
+                messagesObserver.disconnect();
+                messagesObserver = null;
+            }
+            return;
+        }
+
+        scheduleMessageScan();
+
+        if (!messagesObserver || messagesObserver.__target !== mainEl) {
+            if (messagesObserver) messagesObserver.disconnect();
+            messagesObserver = new MutationObserver(() => {
+                scheduleMessageScan();
+            });
+            messagesObserver.__target = mainEl;
+            messagesObserver.observe(mainEl, { childList: true, subtree: true });
+        }
+    }
+
+    window.__modstams_toggleAntiDelete = function() {
+        antiDeleteActive = !antiDeleteActive;
+        safeSet('modstams_anti_delete', antiDeleteActive ? 'true' : 'false');
+        if (antiDeleteActive) {
+            scheduleMessageScan();
+        }
+        showToast(
+            antiDeleteActive ? "Anti-Tarik Diaktifkan" : "Anti-Tarik Dinonaktifkan",
+            antiDeleteActive ? "Pesan yang ditarik pengirim akan otomatis dipulihkan (Ctrl+Shift+D)" : "Pesan ditarik tidak akan diintersepsi",
+            `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="${antiDeleteActive ? '#f43f5e' : '#94a3b8'}" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>`,
+            antiDeleteActive ? "#f43f5e" : "#94a3b8"
+        );
+        const parent = document.getElementById('sw-antidelete');
+        if (parent) {
+            parent.innerHTML = renderSwitch('sw-btn-antidelete', antiDeleteActive, '#f43f5e');
+        }
+    };
+
+    window.__modstams_openRevokedLogModal = function() {
+        if (!document.body) return;
+        const existing = document.getElementById('modstams-revoked-log-modal');
+        if (existing) {
+            existing.remove();
+            return;
+        }
+
+        const modal = document.createElement('div');
+        modal.id = 'modstams-revoked-log-modal';
+        modal.style.cssText = [
+            'position: fixed',
+            'top: 0',
+            'left: 0',
+            'width: 100vw',
+            'height: 100vh',
+            'background: rgba(15, 23, 42, 0.75)',
+            'backdrop-filter: blur(4px)',
+            'z-index: 9999999',
+            'display: flex',
+            'align-items: center',
+            'justify-content: center',
+            'font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
+        ].join(';');
+
+        const listHtml = revokedLog.length === 0 ? `
+            <div style="padding: 36px 16px; text-align: center; color: #94a3b8;">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="1.5" style="margin: 0 auto 12px; display: block;">
+                    <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+                    <path d="M3 3v5h5"></path>
+                </svg>
+                <div style="font-size: 13px; font-weight: 500; color: #f1f5f9; margin-bottom: 4px;">Belum Ada Pesan Ditarik</div>
+                <div style="font-size: 11px;">Pesan yang dihapus oleh pengirim selama sesi ini akan otomatis dicatat di sini.</div>
+            </div>
+        ` : revokedLog.map(item => `
+            <div style="background: #0f172a; border: 1px solid #334155; border-radius: 6px; padding: 12px; margin-bottom: 8px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                        <span style="font-weight: 600; font-size: 12px; color: #f43f5e;">${escapeHtml(item.sender)}</span>
+                        <span style="font-size: 11px; color: #64748b;">${item.time}</span>
+                        ${item.mediaType ? `<span style="font-size: 9px; background: rgba(244,63,94,0.18); color: #f43f5e; padding: 1px 4px; border-radius: 3px; text-transform: uppercase; font-weight: 600;">${item.mediaType}</span>` : ''}
+                    </div>
+                    <button class="btn-copy-revoked" data-text="${escapeHtml(item.text)}" style="background: #1e293b; border: 1px solid #334155; color: #94a3b8; border-radius: 4px; padding: 3px 8px; font-size: 11px; cursor: pointer; transition: all 0.12s ease;">Salin</button>
+                </div>
+                <div style="font-size: 12.5px; color: #f1f5f9; line-height: 1.4; word-break: break-word; user-select: text; -webkit-user-select: text;">
+                    ${escapeHtml(item.text)}
+                </div>
+            </div>
+        `).join('');
+
+        modal.innerHTML = `
+            <div style="background: #1e293b; border: 1px solid #334155; border-radius: 8px; width: 460px; max-width: 92vw; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); color: #f1f5f9; overflow: hidden; display: flex; flex-direction: column; max-height: 80vh;">
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 14px 18px; border-bottom: 1px solid #334155; background: #1e293b;">
+                    <div>
+                        <div style="font-weight: 600; font-size: 14px; color: #f1f5f9; display: flex; align-items: center; gap: 6px;">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#f43f5e" stroke-width="2.5"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>
+                            Log Pesan Ditarik (${revokedLog.length})
+                        </div>
+                        <div style="font-size: 11px; color: #94a3b8; margin-top: 1px;">Riwayat pesan yang ditarik pengirim pada sesi ini</div>
+                    </div>
+                    <button id="modstams-revoked-close" style="background: transparent; border: none; color: #94a3b8; cursor: pointer; font-size: 18px; line-height: 1; padding: 4px; border-radius: 4px;">&times;</button>
+                </div>
+                <div style="padding: 14px 18px; overflow-y: auto; flex: 1;">
+                    ${listHtml}
+                </div>
+                <div style="padding: 10px 18px; background: #0f172a; border-top: 1px solid #334155; display: flex; justify-content: space-between; align-items: center;">
+                    <button id="modstams-revoked-clear" style="background: transparent; border: 1px solid #334155; color: #94a3b8; border-radius: 4px; padding: 4px 10px; font-size: 11px; cursor: pointer;">Bersihkan Log</button>
+                    <button id="modstams-revoked-done" style="background: #334155; border: none; color: #f1f5f9; border-radius: 4px; padding: 5px 12px; font-size: 11px; font-weight: 500; cursor: pointer;">Tutup</button>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(modal);
+
+        modal.querySelectorAll('.btn-copy-revoked').forEach(btn => {
+            btn.onclick = () => {
+                const txt = btn.getAttribute('data-text');
+                navigator.clipboard.writeText(txt).then(() => {
+                    btn.innerText = 'Tersalin!';
+                    btn.style.color = '#22c55e';
+                    setTimeout(() => {
+                        btn.innerText = 'Salin';
+                        btn.style.color = '#94a3b8';
+                    }, 1500);
+                });
+            };
+        });
+
+        modal.querySelector('#modstams-revoked-clear').onclick = () => {
+            revokedLog.length = 0;
+            modal.remove();
+            showToast("Log Dibersihkan", "Riwayat pesan ditarik telah dikosongkan", null, "#94a3b8");
+        };
+
+        modal.querySelector('#modstams-revoked-close').onclick = () => modal.remove();
+        modal.querySelector('#modstams-revoked-done').onclick = () => modal.remove();
+        modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
+        modal.onkeydown = (e) => { if (e.key === 'Escape') modal.remove(); };
+    };
+
+    /* ==========================================================================
        11. MODSTAMS PREFERENCES DIALOG (Linear / Raycast Professional SaaS UI)
        ========================================================================== */
-    function renderSwitch(id, active) {
+    function renderSwitch(id, active, activeColor = '#3b82f6') {
         return `
-            <div id="${id}" style="width: 36px; height: 20px; border-radius: 10px; background: ${active ? '#3b82f6' : '#334155'}; position: relative; cursor: pointer; transition: background 0.15s ease;">
+            <div id="${id}" style="width: 36px; height: 20px; border-radius: 10px; background: ${active ? activeColor : '#334155'}; position: relative; cursor: pointer; transition: background 0.15s ease;">
                 <div style="width: 16px; height: 16px; border-radius: 50%; background: #ffffff; position: absolute; top: 2px; left: ${active ? '18px' : '2px'}; transition: left 0.15s ease; box-shadow: 0 1px 2px rgba(0,0,0,0.3);"></div>
             </div>
         `;
@@ -1074,6 +1402,28 @@
 
                             <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 10px; border-top: 1px solid #1e293b;">
                                 <div>
+                                    <div style="font-weight: 500; font-size: 13px; color: #f1f5f9; display: flex; align-items: center; gap: 6px;">
+                                        <span>Anti-Tarik Pesan</span>
+                                        <span style="font-size: 10px; background: rgba(244, 63, 94, 0.15); color: #f43f5e; padding: 1px 5px; border-radius: 4px; font-weight: 600;">RANK S+</span>
+                                    </div>
+                                    <div style="font-size: 11px; color: #94a3b8; margin-top: 1px;">Pulihkan & tampilkan pesan yang dihapus (Ctrl+Shift+D)</div>
+                                </div>
+                                <div id="sw-antidelete">${renderSwitch('sw-btn-antidelete', antiDeleteActive, '#f43f5e')}</div>
+                            </div>
+
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 10px; border-top: 1px solid #1e293b;">
+                                <div>
+                                    <div style="font-weight: 500; font-size: 13px; color: #f1f5f9;">Log Pesan Ditarik</div>
+                                    <div id="val-revoked-count" style="font-size: 11px; color: #94a3b8; margin-top: 1px;">${revokedLog.length} pesan tercatat di sesi aktif</div>
+                                </div>
+                                <button id="btn-view-revoked" style="background: #1e293b; border: 1px solid #334155; color: #f1f5f9; border-radius: 6px; padding: 6px 12px; font-size: 12px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.15s ease;">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#f43f5e" stroke-width="2.5"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>
+                                    Buka Log (${revokedLog.length})
+                                </button>
+                            </div>
+
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 10px; border-top: 1px solid #1e293b;">
+                                <div>
                                     <div style="font-weight: 500; font-size: 13px; color: #f1f5f9;">Always On Top</div>
                                     <div style="font-size: 11px; color: #94a3b8; margin-top: 1px;">Pin window above all applications (Ctrl+Shift+P)</div>
                                 </div>
@@ -1148,8 +1498,8 @@
 
                 <!-- Footer -->
                 <div style="padding: 12px 20px; background: #0f172a; border-top: 1px solid #334155; font-size: 11px; color: #94a3b8; display: flex; justify-content: space-between; align-items: center;">
-                    <div>Shortcuts: <b>Ctrl+B</b> (Blur) • <b>Ctrl+Shift+P</b> (Pin) • <b>Ctrl+Shift+Del</b> (Purge)</div>
-                    <div style="color: #64748b;">v3.7</div>
+                    <div>Shortcuts: <b>Ctrl+Shift+D</b> (Anti-Tarik) • <b>Ctrl+B</b> (Blur) • <b>Ctrl+Shift+P</b> (Pin)</div>
+                    <div style="color: #64748b;">v3.8</div>
                 </div>
             </div>
         `;
@@ -1206,6 +1556,14 @@
         modal.querySelector('#sw-ghosttyping').onclick = () => {
             window.__waweb_toggleGhostTyping();
             modal.querySelector('#sw-ghosttyping').innerHTML = renderSwitch('sw-btn-ghosttyping', ghostTypingActive);
+        };
+        modal.querySelector('#sw-antidelete').onclick = () => {
+            window.__modstams_toggleAntiDelete();
+            modal.querySelector('#sw-antidelete').innerHTML = renderSwitch('sw-btn-antidelete', antiDeleteActive, '#f43f5e');
+        };
+        modal.querySelector('#btn-view-revoked').onclick = () => {
+            modal.remove();
+            window.__modstams_openRevokedLogModal();
         };
         modal.querySelector('#sw-oled').onclick = () => {
             window.__waweb_toggleOled();
@@ -1328,6 +1686,11 @@
             e.preventDefault();
             window.__waweb_toggleGhostRead();
         }
+        // Ctrl+Shift+D: Toggle Anti-Tarik Pesan
+        if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'd') {
+            e.preventDefault();
+            window.__modstams_toggleAntiDelete();
+        }
         // Ctrl+Shift+Delete: Purge Storage & Media Cache
         if (e.ctrlKey && e.shiftKey && (e.key === 'Delete' || e.key === 'Del')) {
             e.preventDefault();
@@ -1342,6 +1705,7 @@
         applyCurrentTheme();
         applyPrivacyStyles();
         injectNativeHeaderButton();
+        bindMainChatObserver();
         if (unreadFilterActive) applyUnreadCssFilter();
 
         if (window.__TAURI__ && window.__TAURI__.core && window.__TAURI__.core.invoke) {
@@ -1362,6 +1726,7 @@
             if (mutations[m].addedNodes.length > 0) {
                 checkAndInjectMediaDownloader(document.body);
                 injectNativeHeaderButton();
+                bindMainChatObserver();
                 break;
             }
         }

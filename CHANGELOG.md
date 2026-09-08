@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.2.0] - 2026-09-08
+
+### Added
+- **Anti-Tarik Pesan (Client-Side Anti-Delete & Revoke Logger)**: Ultra-lightweight DOM-level message retention engine with bounded 1,000-entry LRU ring buffer (<200KB RAM overhead).
+- **Non-Destructive Message Restoration**: Detects revoke stanzas / "Pesan ini telah dihapus" and restores original message text inside a sleek Linear/Raycast-style rose badge with timestamp and media type tags.
+- **Revoked Messages Log Viewer**: In-app inspector drawer accessible via Preferences HUD (`Ctrl+Shift+M`) displaying captured revoked messages in the current session with one-click clipboard copying.
+- **Instant Desktop Alert**: Dispatches real-time discrete Toast alert when a revoked message is intercepted.
+- **Keyboard Shortcut & System Tray Integration**: Toggle Anti-Tarik via `Ctrl+Shift+D` or context menu in the Windows system tray.
+
+---
+
 ## [1.1.0] - 2026-09-07
 
 ### Added
