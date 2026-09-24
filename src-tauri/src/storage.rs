@@ -39,6 +39,96 @@ fn clean_directory(dir: &Path, result: &mut CachePurgeResult) {
     }
 }
 
+/// Resolves the platform-specific base directory where Tauri / the embedded WebView
+/// stores its application data caches.
+///
+/// | Platform | Root                                         |
+/// |----------|----------------------------------------------|
+/// | Windows  | `%LOCALAPPDATA%\com.tams.waweb\EBWebView`    |
+/// | Linux    | `$XDG_DATA_HOME/com.tams.waweb` (fallback `~/.local/share`) |
+/// | macOS    | `~/Library/Caches/com.tams.waweb`            |
+fn resolve_cache_base() -> Option<PathBuf> {
+    #[cfg(target_os = "windows")]
+    {
+        std::env::var("LOCALAPPDATA").ok().map(|p| {
+            PathBuf::from(p)
+                .join("com.tams.waweb")
+                .join("EBWebView")
+        })
+    }
+
+    #[cfg(target_os = "linux")]
+    {
+        // Prefer XDG_DATA_HOME; fall back to ~/.local/share
+        let data_home = std::env::var("XDG_DATA_HOME")
+            .map(PathBuf::from)
+            .unwrap_or_else(|_| {
+                dirs_or_home().join(".local").join("share")
+            });
+        Some(data_home.join("com.tams.waweb"))
+    }
+
+    #[cfg(target_os = "macos")]
+    {
+        dirs_or_home()
+            .parent()
+            .map(|p| p.join("Caches").join("com.tams.waweb"))
+    }
+
+    #[cfg(not(any(target_os = "windows", target_os = "linux", target_os = "macos")))]
+    {
+        None
+    }
+}
+
+/// Returns the current user's home directory, falling back to "/" if unresolvable.
+fn dirs_or_home() -> PathBuf {
+    std::env::var("HOME")
+        .map(PathBuf::from)
+        .unwrap_or_else(|_| PathBuf::from("/"))
+}
+
+/// Returns the list of safe disposable cache sub-directories for the current platform.
+/// NEVER includes IndexedDB, Local Storage, or Cookies.
+fn cache_dirs(base: &Path) -> Vec<PathBuf> {
+    #[cfg(target_os = "windows")]
+    {
+        // WebView2 (msedgewebview2.exe) layout
+        vec![
+            base.join("Default").join("Cache"),
+            base.join("Default").join("Code Cache"),
+            base.join("Default").join("GPUCache"),
+            base.join("Default").join("DawnGraphiteCache"),
+            base.join("Default").join("DawnWebGPUCache"),
+            base.join("Default").join("blob_storage"),
+            base.join("Default").join("optimization_guide_hint_cache_store"),
+            base.join("ShaderCache"),
+        ]
+    }
+
+    #[cfg(target_os = "linux")]
+    {
+        // WebKitGTK2 layout used by Tauri on Linux
+        vec![
+            base.join("cache"),
+            base.join("webkitgtk").join("databases"),
+        ]
+    }
+
+    #[cfg(target_os = "macos")]
+    {
+        vec![
+            base.join("WebKit").join("MediaCache"),
+            base.join("WebKit").join("NetworkCache"),
+        ]
+    }
+
+    #[cfg(not(any(target_os = "windows", target_os = "linux", target_os = "macos")))]
+    {
+        vec![]
+    }
+}
+
 /// Safely purges temporary web media and browser caches without altering session credentials.
 pub fn purge_cache(_app: &AppHandle) -> CachePurgeResult {
     let mut result = CachePurgeResult {
@@ -47,37 +137,19 @@ pub fn purge_cache(_app: &AppHandle) -> CachePurgeResult {
         success: true,
     };
 
-    let base_path = match std::env::var("LOCALAPPDATA") {
-        Ok(local_app_data) => PathBuf::from(local_app_data)
-            .join("com.tams.waweb")
-            .join("EBWebView"),
-        Err(_) => return result,
+    let Some(base_path) = resolve_cache_base() else {
+        return result;
     };
 
     if !base_path.exists() {
         return result;
     }
 
-    // Explicit whitelist of safe disposable cache directories
-    // NEVER includes IndexedDB, Local Storage, or Network (Cookies)
-    let cache_dirs = [
-        base_path.join("Default").join("Cache"),
-        base_path.join("Default").join("Code Cache"),
-        base_path.join("Default").join("GPUCache"),
-        base_path.join("Default").join("DawnGraphiteCache"),
-        base_path.join("Default").join("DawnWebGPUCache"),
-        base_path.join("Default").join("blob_storage"),
-        base_path
-            .join("Default")
-            .join("optimization_guide_hint_cache_store"),
-        base_path.join("ShaderCache"),
-    ];
-
-    for cache_dir in &cache_dirs {
-        clean_directory(cache_dir, &mut result);
+    for dir in cache_dirs(&base_path) {
+        clean_directory(&dir, &mut result);
     }
 
-    // Trim RAM working set after releasing disk cache
+    // Trim RAM working set after releasing disk cache (no-op on non-Windows)
     crate::memory::trim_working_set();
 
     result
